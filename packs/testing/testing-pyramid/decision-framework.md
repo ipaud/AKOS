@@ -1,0 +1,3 @@
+# Decision Framework — Testing Pyramid Pack
+
+Which layer for a new test? Pure logic, no I/O → unit. Verifying two real components cooperate (API + DB, two services) → integration. Verifying a user can complete a real task end-to-end through the actual UI → E2E, and only for genuinely critical paths. Bug found in production: identify the cheapest layer that would have caught it and add coverage there — adding only an E2E test for a pure-logic bug is over-paying for the confidence gained. Ratio targets by profile: Prototype — unit tests on core logic only; MVP — unit + integration on primary flows, minimal E2E; Production — full pyramid with E2E on all critical journeys; Enterprise — full pyramid + contract tests at service boundaries.

@@ -1,0 +1,13 @@
+name: inspired
+domain: product
+authority-level: 3
+version: 1.0.0
+tags: [product-management, discovery, empowered-teams, risk, prototyping, product-strategy]
+sources:
+  - title: "Inspired: How to Create Tech Products Customers Love (2nd ed.)"
+    author: Marty Cagan
+    url: https://www.svpg.com/inspired-how-to-create-products-customers-love/
+related:
+  - packs/product/lean-startup
+  - packs/product/escaping-the-build-trap
+  - packs/product/continuous-discovery-habits

@@ -1,0 +1,13 @@
+name: html
+domain: frontend
+authority-level: 1
+version: 1.0.0
+tags: [html, semantics, accessibility, forms, landmarks]
+sources:
+  - title: "HTML Living Standard"
+    author: WHATWG
+    url: https://html.spec.whatwg.org/
+related:
+  - packs/ux/wcag
+  - packs/frontend/css
+  - packs/frontend/react

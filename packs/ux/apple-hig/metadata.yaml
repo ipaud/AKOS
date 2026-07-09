@@ -1,0 +1,14 @@
+name: apple-hig
+domain: ux
+authority-level: 1
+platform-scope: [ios, ipados, macos, watchos, visionos]
+version: 1.0.0
+tags: [apple, ios, macos, platform-guidelines, touch, navigation, dynamic-type, sf-symbols]
+sources:
+  - title: "Human Interface Guidelines"
+    author: Apple Inc.
+    url: https://developer.apple.com/design/human-interface-guidelines/
+related:
+  - packs/ux/material-design
+  - packs/ux/wcag
+  - packs/ux/don-norman

@@ -1,0 +1,13 @@
+name: supabase
+domain: backend
+authority-level: 2
+version: 1.0.0
+tags: [supabase, rls, row-level-security, auth, storage, edge-functions]
+sources:
+  - title: "Supabase Documentation"
+    author: Supabase
+    url: https://supabase.com/docs
+related:
+  - packs/backend/postgres
+  - packs/security/owasp-top-10
+  - packs/personal/pau-avila

@@ -1,0 +1,3 @@
+# Decision Framework — CSS Pack
+
+Flexbox vs Grid: one dimension of alignment/distribution → Flexbox; two-dimensional layout (rows and columns together) → Grid. Both together is common (Grid for page layout, Flexbox inside grid cells). Media vs container query: layout responds to viewport size → media query; layout responds to the component's own available space (reusable card in different contexts) → container query. Utility classes vs component CSS: highly reusable atomic patterns (spacing, flex utilities) → utility classes; component-specific structural/thematic styling → scoped component CSS. Mixing both is fine; consistency within a codebase matters more than which is chosen.

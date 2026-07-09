@@ -1,0 +1,3 @@
+# Decision Framework — TypeScript Pack
+
+`any` vs `unknown`: truly unknown-shape data (e.g. plugin data) → `unknown` + narrowing, never `any`. Schema library choice: Zod for TS-first ergonomics and inference, io-ts for fp-style codebases — pick one, use consistently. Branded types: worth the ceremony when a primitive (string/number) has a real invariant misuse risk (IDs of different entities, currency amounts) — skip for low-risk simple values. Retrofitting strict mode onto a loose codebase: enable file-by-file via `// @ts-strict` overrides or a strict-mode migration tool, don't attempt a big-bang flip on a large codebase.

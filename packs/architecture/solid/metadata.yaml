@@ -1,0 +1,13 @@
+name: solid
+domain: architecture
+authority-level: 3
+version: 1.0.0
+tags: [solid, oop, coupling, cohesion, dependency-inversion, class-design]
+sources:
+  - title: "Agile Software Development, Principles, Patterns, and Practices"
+    author: Robert C. Martin
+    url: https://blog.cleancoder.com/uncle-bob/2020/10/18/Solid-Relevance.html
+related:
+  - packs/architecture/clean-architecture
+  - packs/architecture/design-patterns
+  - packs/architecture/martin-fowler-refactoring

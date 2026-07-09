@@ -1,0 +1,16 @@
+name: browser-rendering
+domain: performance
+authority-level: 1
+version: 1.0.0
+tags: [rendering, layout, paint, compositing, reflow, repaint, frame-budget, animation]
+sources:
+  - title: "Rendering Performance"
+    author: Google / web.dev
+    url: https://web.dev/articles/rendering-performance
+  - title: "Inside look at modern web browser"
+    author: Chrome Developers
+    url: https://developer.chrome.com/blog/inside-browser-part1
+related:
+  - packs/performance/core-web-vitals
+  - packs/performance/web-dev
+  - packs/frontend/css

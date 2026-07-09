@@ -1,0 +1,3 @@
+# Decision Framework — Playwright Pack
+
+Selector choice ladder: `getByRole` (best — matches accessibility tree) → `getByLabel`/`getByText` (good, content-based) → `getByTestId` (acceptable escape hatch for elements with no good semantic anchor) → CSS/XPath (last resort, brittle). Test data strategy: API-seeded per-test data for speed and isolation; UI-driven setup only when the setup steps themselves are what's being tested. Parallelization: independent tests run in parallel by default; only serialize tests that share unavoidable state (rare — usually a sign isolation should be fixed instead).

@@ -1,0 +1,12 @@
+name: playwright
+domain: testing
+authority-level: 2
+version: 1.0.0
+tags: [playwright, e2e, browser-testing, selectors, flakiness]
+sources:
+  - title: "Playwright Documentation"
+    author: Microsoft
+    url: https://playwright.dev/docs/intro
+related:
+  - packs/testing/testing-pyramid
+  - packs/ux/wcag

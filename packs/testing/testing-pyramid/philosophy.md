@@ -1,0 +1,3 @@
+# Philosophy — Testing Pyramid Pack
+
+Test cost and reliability trade off by layer: unit tests are cheap, fast, and pinpoint failures precisely but can't catch integration bugs; E2E tests catch real cross-system bugs but are slow, flaky, and expensive to maintain. A healthy suite has many unit tests, fewer integration tests, and a small number of E2E tests covering only critical paths — the pyramid shape, not an inverted "ice cream cone" of mostly-E2E tests that are slow to run and constantly flaky, nor an hourglass of only-unit-and-only-E2E with no integration layer catching the bugs that live at component boundaries.

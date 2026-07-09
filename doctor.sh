@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+#
+# doctor.sh — AKOS health check.
+# Verifies directory structure, the 16-file pack contract, executable bits,
+# symlinks, and empty files. Exits non-zero on any failure.
+#
+set -uo pipefail
+
+AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_red=$'\033[31m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
+pass=0; warnc=0; failc=0
+ok()   { printf '%s✓%s %s\n' "$c_green" "$c_reset" "$*"; pass=$((pass+1)); }
+warn() { printf '%s!%s %s\n' "$c_yellow" "$c_reset" "$*"; warnc=$((warnc+1)); }
+fail() { printf '%s✗%s %s\n' "$c_red" "$c_reset" "$*"; failc=$((failc+1)); }
+
+printf '%sAKOS Doctor%s — %s\n\n' "$c_bold" "$c_reset" "$AKOS_HOME"
+
+# --- Required top-level directories ---
+printf '%sStructure%s\n' "$c_bold" "$c_reset"
+for d in core packs agents workflows templates prompts graphs scoring bin; do
+  if [ -d "$AKOS_HOME/$d" ]; then ok "dir $d/"; else fail "missing dir $d/"; fi
+done
+
+# --- Required root files ---
+for f in README.md VERSION CHANGELOG.md install.sh update.sh doctor.sh uninstall.sh; do
+  if [ -f "$AKOS_HOME/$f" ]; then ok "file $f"; else fail "missing file $f"; fi
+done
+
+# --- Required core files ---
+printf '\n%sCore layer%s\n' "$c_bold" "$c_reset"
+core_files=(constitution authority-model reasoning-engine conflict-resolution \
+  decision-framework confidence-model knowledge-schema review-pipeline scoring-model \
+  reasoning-profiles source-policy)
+for cf in "${core_files[@]}"; do
+  if [ -f "$AKOS_HOME/core/$cf.md" ]; then ok "core/$cf.md"; else fail "missing core/$cf.md"; fi
+done
+
+# --- Pack 16-file contract ---
+printf '\n%sPacks (16-file contract)%s\n' "$c_bold" "$c_reset"
+pack_files=(README.md metadata.yaml philosophy.md mental-models.md principles.md \
+  heuristics.md engineering-rules.md decision-framework.md anti-patterns.md \
+  review-checklist.md examples.md prompt-fragments.md scoring-rubric.md glossary.md \
+  references.md CHANGELOG.md VERSION)
+pack_count=0; pack_issues=0
+for pack in "$AKOS_HOME"/packs/*/*/; do
+  [ -d "$pack" ] || continue
+  pack_count=$((pack_count+1))
+  rel="${pack#"$AKOS_HOME/"}"
+  # personal layer uses its own file set — check it separately.
+  if [[ "$rel" == packs/personal/* ]]; then
+    for pf in README.md principles.md design-language.md project-patterns.md \
+      coding-preferences.md ux-preferences.md supabase-rules.md ai-agent-rules.md VERSION CHANGELOG.md; do
+      [ -f "$pack$pf" ] || { fail "missing $rel$pf"; pack_issues=$((pack_issues+1)); }
+    done
+    continue
+  fi
+  for pf in "${pack_files[@]}"; do
+    [ -f "$pack$pf" ] || { fail "missing $rel$pf"; pack_issues=$((pack_issues+1)); }
+  done
+done
+if [ "$pack_issues" -eq 0 ]; then ok "$pack_count packs all satisfy the file contract"; fi
+
+# --- Empty file check ---
+printf '\n%sEmpty files%s\n' "$c_bold" "$c_reset"
+empty="$(find "$AKOS_HOME/packs" "$AKOS_HOME/core" "$AKOS_HOME/agents" \
+  "$AKOS_HOME/workflows" "$AKOS_HOME/scoring" "$AKOS_HOME/graphs" \
+  "$AKOS_HOME/prompts" "$AKOS_HOME/templates" -type f -empty 2>/dev/null || true)"
+if [ -z "$empty" ]; then ok "no empty files"; else fail "empty files found:"; printf '   %s\n' $empty; fi
+
+# --- Agents / workflows / scoring / graphs counts ---
+printf '\n%sComponents%s\n' "$c_bold" "$c_reset"
+count_check() { local dir="$1" want="$2" label="$3"
+  local n; n="$(find "$AKOS_HOME/$dir" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
+  if [ "$n" -ge "$want" ]; then ok "$label: $n"; else warn "$label: $n (expected ≥$want)"; fi
+}
+count_check agents 13 "agents"
+count_check workflows 9 "workflows"
+count_check scoring 7 "scoring rubrics"
+count_check graphs 5 "graphs"
+count_check prompts 6 "prompts"
+count_check templates 6 "templates"
+
+# --- Executable bits ---
+printf '\n%sExecutables%s\n' "$c_bold" "$c_reset"
+for s in install.sh update.sh doctor.sh uninstall.sh bin/akos; do
+  if [ -x "$AKOS_HOME/$s" ]; then ok "$s executable"; else warn "$s not executable (run ./install.sh)"; fi
+done
+
+# --- Symlinks ---
+printf '\n%sSymlinks%s\n' "$c_bold" "$c_reset"
+if [ -e "$HOME/DEV/AKOS" ]; then ok "~/DEV/AKOS resolves"; else warn "~/DEV/AKOS not found (run ./install.sh)"; fi
+if [ -L "$HOME/bin/akos" ]; then ok "~/bin/akos symlink present"; else warn "~/bin/akos symlink absent (run ./install.sh)"; fi
+
+# --- Summary ---
+printf '\n%sSummary%s  %s✓ %d%s  %s! %d%s  %s✗ %d%s\n' \
+  "$c_bold" "$c_reset" "$c_green" "$pass" "$c_reset" "$c_yellow" "$warnc" "$c_reset" "$c_red" "$failc" "$c_reset"
+[ "$failc" -eq 0 ]

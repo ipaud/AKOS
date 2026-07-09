@@ -1,0 +1,26 @@
+# Cursor Rule Template (AKOS integration)
+
+Written to a project's `.cursor/rules/akos.mdc` by `akos install-project`. Cursor reads `.mdc` rule files with frontmatter.
+
+```mdc
+---
+description: AKOS knowledge system integration
+alwaysApply: true
+---
+
+# AKOS
+
+This project uses AKOS (global knowledge system at ~/DEV/AKOS). For user-facing features, architecture, security, or data work, load the relevant AKOS knowledge before acting.
+
+Bootstrap (read in order):
+- ~/DEV/AKOS/core/constitution.md
+- ~/DEV/AKOS/core/authority-model.md
+- ~/DEV/AKOS/core/reasoning-profiles.md (profile in .akos/config.md)
+- ~/DEV/AKOS/core/review-pipeline.md
+- ~/DEV/AKOS/packs/personal/pau-avila/ (Level-0, always applies)
+
+Then load the 2-5 task-relevant packs from ~/DEV/AKOS/packs/. For reviews use ~/DEV/AKOS/agents/ and the unified Review Summary format.
+
+Safety floor (never waived, any profile): security, accessibility basics, data integrity.
+Defaults: empty/loading/error/success states on every async surface; mobile-responsive by default; Supabase RLS at table creation for deployed projects; challenge unnecessary complexity; anti-template UI; direct actionable output.
+```

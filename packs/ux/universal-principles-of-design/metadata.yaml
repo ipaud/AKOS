@@ -1,0 +1,14 @@
+name: universal-principles-of-design
+domain: ux
+authority-level: 3
+version: 1.0.0
+tags: [design-theory, gestalt, 80-20, progressive-disclosure, forgiveness, chunking, hierarchy]
+sources:
+  - title: "Universal Principles of Design"
+    author: William Lidwell, Kritina Holden, Jill Butler
+    url: https://www.rockynook.com/shop/design/universal-principles-of-design/
+related:
+  - packs/ux/laws-of-ux
+  - packs/ux/don-norman
+  - packs/ux/refactoring-ui
+  - packs/ux/steve-krug

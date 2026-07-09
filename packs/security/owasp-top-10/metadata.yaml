@@ -1,0 +1,14 @@
+name: owasp-top-10
+domain: security
+authority-level: 1
+version: 1.0.0
+tags: [security, owasp, injection, access-control, authentication, ssrf, cryptography]
+sources:
+  - title: "OWASP Top 10:2021"
+    author: OWASP Foundation
+    url: https://owasp.org/Top10/
+related:
+  - packs/security/owasp-api-top-10
+  - packs/security/owasp-asvs
+  - packs/security/nist-ssdf
+  - packs/backend/supabase

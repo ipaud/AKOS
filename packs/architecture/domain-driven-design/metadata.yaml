@@ -1,0 +1,16 @@
+name: domain-driven-design
+domain: architecture
+authority-level: 3
+version: 1.0.0
+tags: [ddd, bounded-context, ubiquitous-language, aggregate, entity, value-object, domain-modeling]
+sources:
+  - title: "Domain-Driven Design: Tackling Complexity in the Heart of Software"
+    author: Eric Evans
+    url: https://www.domainlanguage.com/ddd/
+  - title: "Implementing Domain-Driven Design"
+    author: Vaughn Vernon
+    url: https://vaughnvernon.com/
+related:
+  - packs/architecture/clean-architecture
+  - packs/architecture/solid
+  - packs/architecture/martin-fowler-refactoring

@@ -1,0 +1,12 @@
+name: graphql
+domain: backend
+authority-level: 2
+version: 1.0.0
+tags: [graphql, schema-design, resolvers, n-plus-one, query-complexity, dataloader]
+sources:
+  - title: "GraphQL Specification"
+    author: GraphQL Foundation
+    url: https://spec.graphql.org/
+related:
+  - packs/backend/rest
+  - packs/security/owasp-api-top-10

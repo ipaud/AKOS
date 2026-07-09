@@ -1,0 +1,14 @@
+name: design-systems
+domain: frontend
+authority-level: 2
+version: 1.0.0
+tags: [design-tokens, component-library, documentation, theming, api-design]
+sources:
+  - title: "Design Systems Handbook"
+    author: DesignBetter / InVision
+    url: https://www.designbetter.co/design-systems-handbook
+related:
+  - packs/ux/refactoring-ui
+  - packs/ux/material-design
+  - packs/frontend/css
+  - packs/frontend/react

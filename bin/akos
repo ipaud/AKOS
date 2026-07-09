@@ -1,0 +1,252 @@
+#!/usr/bin/env bash
+#
+# akos — AI Knowledge Operating System CLI
+# Tool-agnostic. Generates project integration files; does not call an LLM.
+#
+set -euo pipefail
+
+# --- Resolve AKOS_HOME (the repo root), following symlinks ---
+resolve_akos_home() {
+  local src="${BASH_SOURCE[0]}"
+  while [ -h "$src" ]; do
+    local dir
+    dir="$(cd -P "$(dirname "$src")" >/dev/null 2>&1 && pwd)"
+    src="$(readlink "$src")"
+    [[ "$src" != /* ]] && src="$dir/$src"
+  done
+  # bin/akos → repo root is one level up
+  cd -P "$(dirname "$src")/.." >/dev/null 2>&1 && pwd
+}
+AKOS_HOME="${AKOS_HOME:-$(resolve_akos_home)}"
+
+MARK_START="<!-- AKOS:START -->"
+MARK_END="<!-- AKOS:END -->"
+
+c_bold=$'\033[1m'; c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_red=$'\033[31m'; c_reset=$'\033[0m'
+info()  { printf '%s\n' "$*"; }
+ok()    { printf '%s✓%s %s\n' "$c_green" "$c_reset" "$*"; }
+warn()  { printf '%s!%s %s\n' "$c_yellow" "$c_reset" "$*"; }
+err()   { printf '%s✗%s %s\n' "$c_red" "$c_reset" "$*" >&2; }
+
+# --- Marker-safe file section writer ---
+# Writes a section between AKOS:START/END markers. Creates file if absent,
+# appends the section if markers absent, replaces between markers if present.
+# Never touches content outside the markers.
+write_marked_section() {
+  local file="$1"; local body="$2"
+  local block
+  block="$(printf '%s\n%s\n%s\n' "$MARK_START" "$body" "$MARK_END")"
+
+  if [ ! -f "$file" ]; then
+    mkdir -p "$(dirname "$file")"
+    printf '%s\n' "$block" > "$file"
+    ok "created $file"
+    return
+  fi
+  if grep -qF "$MARK_START" "$file" 2>/dev/null; then
+    # Replace between markers using awk (portable).
+    local tmp; tmp="$(mktemp)"
+    awk -v start="$MARK_START" -v end="$MARK_END" -v repl="$block" '
+      $0 ~ start {print repl; skip=1; next}
+      $0 ~ end && skip {skip=0; next}
+      !skip {print}
+    ' "$file" > "$tmp"
+    mv "$tmp" "$file"
+    ok "updated AKOS section in $file"
+  else
+    printf '\n%s\n' "$block" >> "$file"
+    ok "appended AKOS section to $file"
+  fi
+}
+
+cmd_help() {
+  cat <<EOF
+${c_bold}akos${c_reset} — AI Knowledge Operating System CLI
+
+Usage: akos <command> [args]
+
+Commands:
+  help                 Show this help
+  doctor               Run the AKOS health check
+  install-project      Add AKOS integration files to the current project
+  link-project         Alias for install-project (current directory)
+  list-packs           List all knowledge packs
+  list-agents          List all review agents
+  show-profile [name]  Show a reasoning profile (or list them)
+  review <domain>      Print the prompt to run a review (ux|security|architecture|full)
+  create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the 16-file structure
+
+AKOS_HOME: $AKOS_HOME
+EOF
+}
+
+cmd_doctor() {
+  bash "$AKOS_HOME/doctor.sh"
+}
+
+cmd_list_packs() {
+  info "${c_bold}Knowledge packs${c_reset} (in $AKOS_HOME/packs):"
+  local domain
+  for domain in "$AKOS_HOME"/packs/*/; do
+    [ -d "$domain" ] || continue
+    local dname; dname="$(basename "$domain")"
+    printf '  %s%s%s\n' "$c_bold" "$dname" "$c_reset"
+    local pack
+    for pack in "$domain"*/; do
+      [ -d "$pack" ] || continue
+      printf '    - %s\n' "$(basename "$pack")"
+    done
+  done
+}
+
+cmd_list_agents() {
+  info "${c_bold}Review agents${c_reset} (in $AKOS_HOME/agents):"
+  local a
+  for a in "$AKOS_HOME"/agents/*.md; do
+    [ -f "$a" ] || continue
+    printf '  - %s\n' "$(basename "$a" .md)"
+  done
+}
+
+cmd_show_profile() {
+  local name="${1:-}"
+  local pf="$AKOS_HOME/core/reasoning-profiles.md"
+  if [ -z "$name" ]; then
+    info "Available profiles (see $pf):"
+    info "  Prototype · Startup MVP · Production · Enterprise · Game Dev · Internal Tool"
+    info "Run: akos show-profile \"Production\""
+    return
+  fi
+  info "Profile '$name' — full definition in:"
+  info "  $pf"
+  # Print the matching section heading region if present.
+  awk -v want="### $name" '
+    $0 ~ "^### " {show = ($0 == want)}
+    show {print}
+  ' "$pf" 2>/dev/null || true
+}
+
+cmd_review() {
+  local domain="${1:-}"
+  case "$domain" in
+    ux)           cat "$AKOS_HOME/prompts/run-ux-review.md" ;;
+    security)     cat "$AKOS_HOME/prompts/run-security-review.md" ;;
+    architecture) cat "$AKOS_HOME/prompts/run-architecture-review.md" ;;
+    full)         cat "$AKOS_HOME/prompts/run-full-review.md" ;;
+    *)
+      err "Unknown review domain: '${domain:-}'. Use: ux | security | architecture | full"
+      return 1 ;;
+  esac
+}
+
+cmd_install_project() {
+  local dir="${1:-$PWD}"
+  info "Installing AKOS integration into: $dir"
+
+  local claude_body agents_body cursor_body config_body
+  claude_body=$(cat <<'BODY'
+## AKOS — AI Knowledge Operating System
+
+This project uses AKOS (global knowledge system at `~/DEV/AKOS`). Before working on user-facing features, architecture, security, or data, load the relevant AKOS knowledge.
+
+Bootstrap (read in order): `~/DEV/AKOS/core/constitution.md`, `authority-model.md`, `reasoning-profiles.md`, `review-pipeline.md`, then `~/DEV/AKOS/packs/personal/pau-avila/`. Load the 2-5 task-relevant packs from `~/DEV/AKOS/packs/`. For reviews use `~/DEV/AKOS/agents/` and the unified Review Summary format.
+
+Safety floor (never waived, any profile): security, accessibility basics, data integrity.
+Defaults: four async states (empty/loading/error/success); mobile-responsive by default; Supabase RLS at table creation for deployed projects; challenge unnecessary complexity; anti-template UI; direct actionable output.
+
+Active profile and overrides: `.akos/config.md`.
+BODY
+)
+  agents_body="$claude_body"
+  cursor_body=$(cat <<'BODY'
+---
+description: AKOS knowledge system integration
+alwaysApply: true
+---
+
+# AKOS
+
+This project uses AKOS (global knowledge system at ~/DEV/AKOS). For user-facing features, architecture, security, or data work, load the relevant AKOS knowledge first.
+
+Bootstrap: ~/DEV/AKOS/core/{constitution,authority-model,reasoning-profiles,review-pipeline}.md, then ~/DEV/AKOS/packs/personal/pau-avila/. Load the 2-5 relevant packs from ~/DEV/AKOS/packs/. For reviews use ~/DEV/AKOS/agents/ and the unified Review Summary format.
+
+Safety floor (never waived): security, accessibility basics, data integrity.
+Defaults: four async states; mobile-responsive by default; Supabase RLS at table creation (deployed); challenge complexity; anti-template UI; direct actionable output.
+BODY
+)
+  config_body=$(cat <<'BODY'
+# AKOS Project Config
+
+## Reasoning profile
+profile: Startup MVP
+
+## Project context
+- Stack:
+- Deployed: no
+- Primary surface:
+
+## Profile overrides
+
+## Packs to always load
+
+## Style direction
+
+## Notes
+BODY
+)
+
+  write_marked_section "$dir/CLAUDE.md" "$claude_body"
+  write_marked_section "$dir/AGENTS.md" "$agents_body"
+  write_marked_section "$dir/.cursor/rules/akos.mdc" "$cursor_body"
+  write_marked_section "$dir/.akos/config.md" "$config_body"
+
+  ok "AKOS integration installed. Edit .akos/config.md to set the profile and style direction."
+}
+
+cmd_create_pack() {
+  local path="${1:-}"
+  if [ -z "$path" ]; then err "Usage: akos create-pack <domain>/<name>"; return 1; fi
+  local dest="$AKOS_HOME/packs/$path"
+  if [ -d "$dest" ]; then err "Pack already exists: $dest"; return 1; fi
+  mkdir -p "$dest"
+  local name; name="$(basename "$path")"
+  local domain; domain="$(dirname "$path")"
+
+  local files=(README.md philosophy.md mental-models.md principles.md heuristics.md \
+    engineering-rules.md decision-framework.md anti-patterns.md review-checklist.md \
+    examples.md prompt-fragments.md scoring-rubric.md glossary.md references.md)
+  local f
+  for f in "${files[@]}"; do
+    printf '# %s — %s\n\n<!-- Fill per core/knowledge-schema.md. Distill, never copy (core/source-policy.md). -->\n' \
+      "${f%.md}" "$name" > "$dest/$f"
+  done
+  printf '1.0.0\n' > "$dest/VERSION"
+  printf '# Changelog — %s\n\n## [1.0.0]\n\n### Added\n\n- Scaffolded.\n' "$name" > "$dest/CHANGELOG.md"
+  cat > "$dest/metadata.yaml" <<EOF
+name: $name
+domain: $domain
+authority-level: 3
+version: 1.0.0
+tags: []
+sources: []
+related: []
+EOF
+  ok "Scaffolded pack at $dest (16 files). Fill principles.md first; then run ./doctor.sh"
+}
+
+main() {
+  local cmd="${1:-help}"; shift || true
+  case "$cmd" in
+    help|-h|--help)     cmd_help ;;
+    doctor)             cmd_doctor ;;
+    install-project)    cmd_install_project "$@" ;;
+    link-project)       cmd_install_project "$@" ;;
+    list-packs)         cmd_list_packs ;;
+    list-agents)        cmd_list_agents ;;
+    show-profile)       cmd_show_profile "$@" ;;
+    review)             cmd_review "$@" ;;
+    create-pack)        cmd_create_pack "$@" ;;
+    *)                  err "Unknown command: $cmd"; echo; cmd_help; exit 1 ;;
+  esac
+}
+main "$@"

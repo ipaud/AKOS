@@ -1,0 +1,3 @@
+# Philosophy — Deployment Pack
+
+A deployment's risk isn't binary (works/doesn't) — it's a blast radius question: if this release has a bug, how many users are affected, for how long, before it's caught and reversed? Progressive rollout strategies (canary, blue-green, rolling) exist to shrink that blast radius deliberately, trading a small amount of release-speed for a large reduction in worst-case impact. Migrations deserve the same discipline as code: a schema change that locks a production table or a data migration that can't be safely reversed is a deployment risk regardless of how well-tested the application code above it is.

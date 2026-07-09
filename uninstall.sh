@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+#
+# uninstall.sh — Remove AKOS symlinks. Does NOT delete knowledge packs
+# unless the user explicitly confirms with a typed phrase.
+#
+set -uo pipefail
+
+AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_red=$'\033[31m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
+ok()   { printf '%s✓%s %s\n' "$c_green" "$c_reset" "$*"; }
+warn() { printf '%s!%s %s\n' "$c_yellow" "$c_reset" "$*"; }
+
+printf '%sUninstalling AKOS%s\n\n' "$c_bold" "$c_reset"
+
+# 1. Remove the ~/bin/akos symlink (only if it's a symlink).
+if [ -L "$HOME/bin/akos" ]; then
+  rm -f "$HOME/bin/akos" && ok "removed ~/bin/akos symlink"
+else
+  warn "~/bin/akos is not a symlink (or absent) — leaving it"
+fi
+
+# 2. Remove the ~/DEV symlink ONLY if it's a symlink we could have created.
+if [ -L "$HOME/DEV" ]; then
+  target="$(readlink "$HOME/DEV")"
+  warn "~/DEV is a symlink → $target"
+  warn "Leaving it in place (it may be used by other projects). Remove manually if desired:  rm ~/DEV"
+else
+  [ -e "$HOME/DEV" ] && warn "~/DEV is a real directory — leaving it untouched"
+fi
+
+ok "Symlinks handled. Knowledge packs at $AKOS_HOME are UNTOUCHED."
+
+# 3. Optional content deletion — requires explicit typed confirmation.
+printf '\n%sTo also DELETE all AKOS content at %s%s%s:\n' "$c_bold" "$c_red" "$AKOS_HOME" "$c_reset"
+printf 'Type exactly:  DELETE AKOS  (or press Enter to keep everything): '
+read -r answer || answer=""
+if [ "$answer" = "DELETE AKOS" ]; then
+  # Preserve the personal layer even on full delete — copy it out first.
+  if [ -d "$AKOS_HOME/packs/personal" ]; then
+    keep="$HOME/akos-personal-backup-$(date +%Y%m%d%H%M%S)"
+    cp -R "$AKOS_HOME/packs/personal" "$keep"
+    ok "personal layer preserved at $keep"
+  fi
+  rm -rf "$AKOS_HOME"
+  ok "AKOS content deleted (personal layer backed up above)."
+else
+  ok "Kept all AKOS content. Nothing deleted."
+fi

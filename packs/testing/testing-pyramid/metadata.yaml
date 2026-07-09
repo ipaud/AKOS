@@ -1,0 +1,13 @@
+name: testing-pyramid
+domain: testing
+authority-level: 2
+version: 1.0.0
+tags: [testing-strategy, unit-tests, integration-tests, e2e, test-balance]
+sources:
+  - title: "The Practical Test Pyramid"
+    author: Martin Fowler (via Ham Vocke)
+    url: https://martinfowler.com/articles/practical-test-pyramid.html
+related:
+  - packs/testing/tdd
+  - packs/testing/playwright
+  - packs/testing/qa-checklists

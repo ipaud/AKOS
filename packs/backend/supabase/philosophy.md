@@ -1,0 +1,3 @@
+# Philosophy — Supabase Pack
+
+Supabase's core proposition — direct client-to-database access via a generated API — inverts the traditional backend-mediates-all-access model, which means the database's own access control (Row-Level Security) *is* the application's authorization layer, not a backup to an application-server check that doesn't exist. RLS-off-by-default or RLS-with-gaps isn't a minor oversight in this architecture — it's the equivalent of shipping an API with no authorization at all, because the client genuinely can query the table directly. This is why RLS discipline gets constitutional-floor treatment ([AKOS security floor](../../../core/constitution.md)) for any Supabase table holding real user data, at every reasoning profile beyond pure local Prototype.

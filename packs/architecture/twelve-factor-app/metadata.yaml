@@ -1,0 +1,14 @@
+name: twelve-factor-app
+domain: architecture
+authority-level: 2
+version: 1.0.0
+tags: [deployment, config, statelessness, cloud-native, devops, portability, disposability]
+sources:
+  - title: "The Twelve-Factor App"
+    author: "Adam Wiggins / Heroku"
+    url: https://12factor.net/
+related:
+  - packs/architecture/clean-architecture
+  - packs/devops/ci-cd
+  - packs/devops/deployment
+  - packs/security/nist-ssdf

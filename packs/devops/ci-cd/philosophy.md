@@ -1,0 +1,3 @@
+# Philosophy — CI/CD Pack
+
+The core discipline of continuous integration is keeping main always in a releasable state — every merge to main passes the full verification gate, so "can we ship right now" is always answerable with yes, not "let us stabilize for a week first." This is what makes deployment boring (a good thing): frequent small releases from a continuously-verified main carry far less risk than infrequent big-bang releases from a branch that's been diverging and untested for weeks. Fast feedback (fail the pipeline in seconds/minutes, not hours) is what makes the discipline sustainable — a slow pipeline gets bypassed under pressure.

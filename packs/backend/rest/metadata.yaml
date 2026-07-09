@@ -1,0 +1,13 @@
+name: rest
+domain: backend
+authority-level: 2
+version: 1.0.0
+tags: [rest, http, api-design, pagination, versioning, status-codes]
+sources:
+  - title: "RFC 9110 — HTTP Semantics"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9110
+related:
+  - packs/backend/graphql
+  - packs/security/owasp-api-top-10
+  - packs/performance/network-performance

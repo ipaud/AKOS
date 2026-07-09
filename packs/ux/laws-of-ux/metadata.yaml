@@ -1,0 +1,14 @@
+name: laws-of-ux
+domain: ux
+authority-level: 2
+version: 1.0.0
+tags: [psychology, cognition, hick, fitts, jakob, miller, tesler, peak-end, von-restorff, goal-gradient]
+sources:
+  - title: "Laws of UX (site and book: Laws of UX — Using Psychology to Design Better Products & Services)"
+    author: Jon Yablonski
+    url: https://lawsofux.com/
+related:
+  - packs/ux/don-norman
+  - packs/ux/nielsen-norman-group
+  - packs/ux/steve-krug
+  - packs/ux/refactoring-ui

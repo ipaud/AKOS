@@ -1,0 +1,17 @@
+name: css
+domain: frontend
+authority-level: 2
+version: 1.0.0
+tags: [css, flexbox, grid, custom-properties, responsive, animation, container-queries]
+sources:
+  - title: "CSS specifications"
+    author: W3C
+    url: https://www.w3.org/Style/CSS/
+  - title: "MDN CSS"
+    author: Mozilla
+    url: https://developer.mozilla.org/en-US/docs/Web/CSS
+related:
+  - packs/frontend/html
+  - packs/frontend/design-systems
+  - packs/ux/refactoring-ui
+  - packs/performance/browser-rendering

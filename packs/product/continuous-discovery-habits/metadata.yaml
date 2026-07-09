@@ -1,0 +1,13 @@
+name: continuous-discovery-habits
+domain: product
+authority-level: 3
+version: 1.0.0
+tags: [discovery, opportunity-solution-tree, customer-interviews, assumption-testing, weekly-cadence]
+sources:
+  - title: "Continuous Discovery Habits: Discover Products that Create Customer Value and Business Value"
+    author: Teresa Torres
+    url: https://www.producttalk.org/continuous-discovery-habits-book/
+related:
+  - packs/product/inspired
+  - packs/product/lean-startup
+  - packs/product/escaping-the-build-trap

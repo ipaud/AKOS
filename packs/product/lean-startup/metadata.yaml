@@ -1,0 +1,13 @@
+name: lean-startup
+domain: product
+authority-level: 3
+version: 1.0.0
+tags: [mvp, validated-learning, build-measure-learn, pivot, vanity-metrics, hypothesis-testing]
+sources:
+  - title: "The Lean Startup: How Today's Entrepreneurs Use Continuous Innovation to Create Radically Successful Businesses"
+    author: Eric Ries
+    url: http://theleanstartup.com/
+related:
+  - packs/product/inspired
+  - packs/product/escaping-the-build-trap
+  - packs/product/continuous-discovery-habits

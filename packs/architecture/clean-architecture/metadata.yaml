@@ -1,0 +1,14 @@
+name: clean-architecture
+domain: architecture
+authority-level: 3
+version: 1.0.0
+tags: [architecture, dependency-inversion, layering, testability, hexagonal, ports-and-adapters]
+sources:
+  - title: "Clean Architecture: A Craftsman's Guide to Software Structure and Design"
+    author: Robert C. Martin
+    url: https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
+related:
+  - packs/architecture/solid
+  - packs/architecture/domain-driven-design
+  - packs/architecture/martin-fowler-refactoring
+  - packs/architecture/twelve-factor-app

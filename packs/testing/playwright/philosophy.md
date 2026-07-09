@@ -1,0 +1,3 @@
+# Philosophy — Playwright Pack
+
+E2E flakiness is almost never random — it's nearly always a timing assumption that happened to hold often enough to seem reliable until CI load, network variance, or a slightly slower render exposed it. Playwright's auto-waiting model exists to eliminate the entire class of "sleep and hope" timing bugs by waiting on actual application state (element visible, network idle, specific text present) rather than arbitrary durations. Selectors resilient to markup changes (role/text-based, not CSS class chains) keep tests testing behavior, not implementation — the same discipline [TDD](../tdd/principles.md) applies at the unit level, applied to E2E.

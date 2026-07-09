@@ -1,0 +1,14 @@
+name: web-dev
+domain: performance
+authority-level: 1
+version: 1.0.0
+tags: [performance, bundle-size, code-splitting, lazy-loading, images, fonts, caching]
+sources:
+  - title: "web.dev — Performance"
+    author: Google
+    url: https://web.dev/learn/performance
+related:
+  - packs/performance/core-web-vitals
+  - packs/performance/browser-rendering
+  - packs/performance/network-performance
+  - packs/frontend/typescript

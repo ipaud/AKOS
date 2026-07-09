@@ -1,0 +1,3 @@
+# Decision Framework — Design Systems Pack
+
+Add to the shared system vs. keep local: used in ≥2 places or clearly reusable → promote to the system with full docs/tokens/a11y. Used once, uncertain reusability → keep local, revisit on second occurrence (rule of three cousin). API design: favor composition (children, slots) for components with high visual/structural variance; favor props for components with a small closed set of variants (button emphasis levels). Token layer to touch: changing a brand color → reference layer; changing what a role means in dark mode → system layer; one-off component tweak → component layer, narrowly scoped.

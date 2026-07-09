@@ -1,0 +1,12 @@
+name: tdd
+domain: testing
+authority-level: 2
+version: 1.0.0
+tags: [tdd, red-green-refactor, kent-beck, test-first]
+sources:
+  - title: "Test-Driven Development: By Example"
+    author: Kent Beck
+    url: https://www.oreilly.com/library/view/test-driven-development/0321146530/
+related:
+  - packs/testing/testing-pyramid
+  - packs/architecture/martin-fowler-refactoring

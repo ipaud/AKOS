@@ -1,0 +1,3 @@
+# Philosophy — HTML Pack
+
+Semantic HTML is a free API: the right element ships correct accessibility-tree representation, correct keyboard behavior, and correct default styling hooks, at zero implementation cost — a `<button>` is focusable, activatable by Enter/Space, and announced as a button to every assistive technology, automatically. A `<div>` reimplementing the same behavior costs real engineering effort to reach parity and routinely falls short ([WCAG div-soup anti-pattern](../../ux/wcag/anti-patterns.md)). Choosing semantic elements first isn't purism — it's the cheapest path to a working interface.

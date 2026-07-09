@@ -1,0 +1,15 @@
+name: material-design
+domain: ux
+authority-level: 1
+platform-scope: [android, material-web]
+version: 1.0.0
+tags: [material, android, components, elevation, motion, states, tokens, density]
+sources:
+  - title: "Material Design 3"
+    author: Google
+    url: https://m3.material.io/
+related:
+  - packs/ux/apple-hig
+  - packs/ux/wcag
+  - packs/ux/refactoring-ui
+  - packs/frontend/design-systems

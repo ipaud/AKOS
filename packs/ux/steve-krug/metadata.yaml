@@ -1,0 +1,18 @@
+name: steve-krug
+domain: ux
+authority-level: 2
+version: 1.0.0
+tags: [usability, web, cognitive-load, navigation, testing, copywriting, mobile]
+sources:
+  - title: "Don't Make Me Think, Revisited: A Common Sense Approach to Web Usability"
+    author: Steve Krug
+    url: https://sensible.com/dont-make-me-think/
+  - title: "Rocket Surgery Made Easy"
+    author: Steve Krug
+    url: https://sensible.com/rocket-surgery-made-easy/
+related:
+  - packs/ux/nielsen-norman-group
+  - packs/ux/don-norman
+  - packs/ux/laws-of-ux
+  - packs/ux/wcag
+  - packs/ux/refactoring-ui

@@ -1,0 +1,13 @@
+name: react
+domain: frontend
+authority-level: 2
+version: 1.0.0
+tags: [react, hooks, rendering, server-components, composition, nextjs]
+sources:
+  - title: "React documentation"
+    author: Meta
+    url: https://react.dev/
+related:
+  - packs/frontend/typescript
+  - packs/performance/core-web-vitals
+  - packs/testing/tdd

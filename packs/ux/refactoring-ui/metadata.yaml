@@ -1,0 +1,14 @@
+name: refactoring-ui
+domain: ux
+authority-level: 3
+version: 1.0.0
+tags: [visual-design, hierarchy, spacing, typography, color, shadows, polish, design-tokens]
+sources:
+  - title: "Refactoring UI"
+    author: Adam Wathan & Steve Schoger
+    url: https://www.refactoringui.com/
+related:
+  - packs/ux/steve-krug
+  - packs/ux/wcag
+  - packs/ux/laws-of-ux
+  - packs/frontend/design-systems

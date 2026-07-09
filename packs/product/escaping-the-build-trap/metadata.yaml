@@ -1,0 +1,13 @@
+name: escaping-the-build-trap
+domain: product
+authority-level: 3
+version: 1.0.0
+tags: [feature-factory, product-strategy, product-kata, org-design, product-led]
+sources:
+  - title: "Escaping the Build Trap: How Effective Product Management Creates Real Value"
+    author: Melissa Perri
+    url: https://www.melissaperri.com/escaping-the-build-trap
+related:
+  - packs/product/inspired
+  - packs/product/lean-startup
+  - packs/product/continuous-discovery-habits

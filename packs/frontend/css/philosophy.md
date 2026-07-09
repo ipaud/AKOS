@@ -1,0 +1,3 @@
+# Philosophy — CSS Pack
+
+CSS's layout algorithms (Flexbox for one dimension, Grid for two) exist to express layout *intent* declaratively — fighting them with manual positioning/margins reproduces their behavior worse and more brittle. Design tokens as custom properties turn the [Refactoring UI systems doctrine](../../ux/refactoring-ui/philosophy.md) into an enforceable mechanism: a value defined once, referenced everywhere, themeable by swapping the definition. Performance and maintainability both improve when CSS expresses structure and constraint rather than pixel-pushing every value by hand.

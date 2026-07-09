@@ -1,0 +1,16 @@
+name: martin-fowler-refactoring
+domain: architecture
+authority-level: 2
+version: 1.0.0
+tags: [refactoring, code-smells, technical-debt, testing, incremental-improvement]
+sources:
+  - title: "Refactoring: Improving the Design of Existing Code (2nd ed.)"
+    author: Martin Fowler
+    url: https://martinfowler.com/books/refactoring.html
+  - title: "martinfowler.com — articles"
+    author: Martin Fowler
+    url: https://martinfowler.com/
+related:
+  - packs/architecture/solid
+  - packs/architecture/clean-architecture
+  - packs/testing/tdd

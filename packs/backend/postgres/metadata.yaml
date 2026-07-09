@@ -1,0 +1,13 @@
+name: postgres
+domain: backend
+authority-level: 2
+version: 1.0.0
+tags: [postgresql, sql, indexing, migrations, normalization, query-optimization]
+sources:
+  - title: "PostgreSQL Documentation"
+    author: PostgreSQL Global Development Group
+    url: https://www.postgresql.org/docs/
+related:
+  - packs/backend/supabase
+  - packs/architecture/domain-driven-design
+  - packs/security/owasp-top-10

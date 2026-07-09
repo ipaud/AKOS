@@ -1,0 +1,3 @@
+# Decision Framework — TDD Pack
+
+When to apply strict TDD: business logic, algorithms, bug fixes (write the regression test first), anything with clear input/output behavior. When to relax it: exploratory/spike code (prototype first, then write tests for the design that emerges — "spike and stabilize"), pure UI layout/styling work (visual, better verified by [design-review](../../../workflows/ui-screen-review.md) than unit tests), one-off scripts. Profile scaling: Prototype — TDD optional, tests-after acceptable; MVP — TDD encouraged on core logic; Production — TDD expected on business logic and bug fixes; Enterprise — TDD expected, enforced via review.

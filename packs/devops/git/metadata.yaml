@@ -1,0 +1,12 @@
+name: git
+domain: devops
+authority-level: 2
+version: 1.0.0
+tags: [git, version-control, branching, commits, conventional-commits]
+sources:
+  - title: "Pro Git"
+    author: Scott Chacon & Ben Straub
+    url: https://git-scm.com/book/en/v2
+related:
+  - packs/devops/ci-cd
+  - packs/architecture/martin-fowler-refactoring

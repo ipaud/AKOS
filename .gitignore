@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs / temp
+*.log
+/tmp/
+.cache/
+
+# Local project-integration output (AKOS writes these INTO other projects,
+# not here — listed defensively in case someone runs install-project at the root)
+/.akos/
+/CLAUDE.md.local
+
+# Node (in case tooling is added later)
+node_modules/

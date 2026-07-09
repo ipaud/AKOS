@@ -1,0 +1,13 @@
+name: typescript
+domain: frontend
+authority-level: 2
+version: 1.0.0
+tags: [typescript, type-safety, strict-mode, discriminated-unions, schema-validation]
+sources:
+  - title: "TypeScript Handbook"
+    author: Microsoft
+    url: https://www.typescriptlang.org/docs/handbook/intro.html
+related:
+  - packs/frontend/react
+  - packs/backend/rest
+  - packs/testing/tdd

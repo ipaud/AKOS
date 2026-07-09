@@ -1,0 +1,13 @@
+name: design-patterns
+domain: architecture
+authority-level: 3
+version: 1.0.0
+tags: [design-patterns, gof, creational, structural, behavioral, strategy, factory, observer]
+sources:
+  - title: "Design Patterns: Elements of Reusable Object-Oriented Software"
+    author: "Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides (Gang of Four)"
+    url: https://en.wikipedia.org/wiki/Design_Patterns
+related:
+  - packs/architecture/solid
+  - packs/architecture/clean-architecture
+  - packs/architecture/martin-fowler-refactoring

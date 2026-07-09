@@ -1,0 +1,17 @@
+name: don-norman
+domain: ux
+authority-level: 2
+version: 1.0.0
+tags: [interaction-design, affordances, signifiers, feedback, conceptual-models, errors, human-centered-design]
+sources:
+  - title: "The Design of Everyday Things (Revised & Expanded)"
+    author: Don Norman
+    url: https://www.nngroup.com/books/design-everyday-things-revised/
+  - title: "Emotional Design"
+    author: Don Norman
+    url: https://jnd.org/books/
+related:
+  - packs/ux/steve-krug
+  - packs/ux/nielsen-norman-group
+  - packs/ux/laws-of-ux
+  - packs/ux/apple-hig

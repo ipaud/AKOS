@@ -1,0 +1,3 @@
+# Philosophy — React Pack
+
+React's mental model is UI as a pure function of state — the discipline (immutable updates, no side effects during render, hooks called unconditionally) exists to keep that function pure and predictable. Every violation (mutating state directly, conditional hooks, side effects in render) breaks the guarantee that lets React safely re-render, batch updates, and eventually support concurrent rendering. Server/client component boundaries (in RSC-capable frameworks) extend the same discipline to a new axis: which code runs where is now a first-class architectural decision, not an afterthought.

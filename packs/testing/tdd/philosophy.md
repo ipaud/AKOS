@@ -1,0 +1,3 @@
+# Philosophy — TDD Pack
+
+Writing the test first forces a design decision most implementation-first code defers: what does "correct" actually mean, expressed as a concrete, checkable assertion, before any code exists to bias the answer. The red step (watch it fail) isn't ceremony — it verifies the test can actually fail, catching tests that would pass regardless of implementation (a false safety net). The discipline compounds: a codebase built test-first accumulates a real regression suite as a byproduct of normal development, rather than as separately-scheduled "write tests" work that competes with feature deadlines and usually loses.

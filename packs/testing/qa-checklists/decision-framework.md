@@ -1,0 +1,3 @@
+# Decision Framework — QA Checklists Pack
+
+Depth of QA pass by profile: Prototype — happy path only; MVP — four states + basic boundary values on primary flows; Production — full QA1-QA7 on all changed surfaces; Enterprise — full pass + formal exploratory charter sessions + regression suite. Manual vs automated: repeatable checks (four-state sweep, boundary values) should graduate to automated tests over time; exploratory/judgment-based testing (does this feel right, is this confusing) stays manual — automating exploratory testing defeats its purpose. Browser/device matrix sizing: top 3-5 combinations by real traffic share covers the large majority of real users; expand only for specific known-risky features (heavy CSS, canvas/WebGL, complex forms).

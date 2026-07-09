@@ -1,0 +1,17 @@
+name: core-web-vitals
+domain: performance
+authority-level: 1
+version: 1.0.0
+tags: [performance, lcp, inp, cls, web-vitals, loading, interactivity, layout-shift]
+sources:
+  - title: "Web Vitals"
+    author: Google / web.dev
+    url: https://web.dev/articles/vitals
+  - title: "Core Web Vitals"
+    author: Google Search Central
+    url: https://developers.google.com/search/docs/appearance/core-web-vitals
+related:
+  - packs/performance/web-dev
+  - packs/performance/browser-rendering
+  - packs/performance/network-performance
+  - packs/frontend/react

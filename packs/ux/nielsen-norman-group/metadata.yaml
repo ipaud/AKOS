@@ -1,0 +1,20 @@
+name: nielsen-norman-group
+domain: ux
+authority-level: 2
+version: 1.0.0
+tags: [usability, heuristics, heuristic-evaluation, severity, research, discount-usability]
+sources:
+  - title: "10 Usability Heuristics for User Interface Design"
+    author: Jakob Nielsen
+    url: https://www.nngroup.com/articles/ten-usability-heuristics/
+  - title: "Nielsen Norman Group — Articles & Research"
+    author: Nielsen Norman Group
+    url: https://www.nngroup.com/articles/
+  - title: "Severity Ratings for Usability Problems"
+    author: Jakob Nielsen
+    url: https://www.nngroup.com/articles/how-to-rate-the-severity-of-usability-problems/
+related:
+  - packs/ux/steve-krug
+  - packs/ux/don-norman
+  - packs/ux/laws-of-ux
+  - packs/ux/wcag

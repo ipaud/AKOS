@@ -1,0 +1,85 @@
+# Review Pipeline
+
+Every user-facing feature passes through twelve review lenses before it's considered done. The active [reasoning profile](reasoning-profiles.md) decides which steps are strict, light, or skipped — the pipeline order never changes.
+
+## The twelve steps
+
+| # | Lens | Agent | Core question |
+|---|------|-------|---------------|
+| 1 | Product clarity | [product-reviewer](../agents/product-reviewer.md) | Does this solve a real user problem? Is the outcome defined? |
+| 2 | UX clarity | [ux-reviewer](../agents/ux-reviewer.md) | Can a first-time user accomplish the task without thinking? |
+| 3 | Accessibility | [accessibility-reviewer](../agents/accessibility-reviewer.md) | Keyboard, contrast, names, focus, semantics — does it pass? |
+| 4 | Mobile/responsive | [mobile-reviewer](../agents/mobile-reviewer.md) | Does it work at 320px, with touch, on slow networks? |
+| 5 | Copywriting | [copy-reviewer](../agents/copy-reviewer.md) | Is every word earning its place? Are labels honest and obvious? |
+| 6 | Frontend quality | [frontend-reviewer](../agents/frontend-reviewer.md) | Semantic HTML, state handling, component hygiene, visual polish? |
+| 7 | Architecture | [architecture-reviewer](../agents/architecture-reviewer.md) | Right-sized structure? Dependencies point the right way? |
+| 8 | Security | [security-reviewer](../agents/security-reviewer.md) | AuthN/AuthZ, injection, secrets, RLS, OWASP pass? |
+| 9 | Performance | [performance-reviewer](../agents/performance-reviewer.md) | Web Vitals / frame budget within target? Payloads sane? |
+| 10 | Testing | [testing-reviewer](../agents/testing-reviewer.md) | Are the critical paths tested at the right level of the pyramid? |
+| 11 | Personal rules | (all agents) | Do `packs/personal/` conventions hold — states, stack, identity? |
+| 12 | Release readiness | [release-reviewer](../agents/release-reviewer.md) | Migrations, rollback, monitoring, docs — can this ship and unship? |
+
+## Profile configuration
+
+Strictness per step comes from the profile weight table in [reasoning-profiles.md](reasoning-profiles.md):
+
+- **Weight 3** — full checklist, findings can block.
+- **Weight 2** — standard checklist, CRITICAL blocks, HIGH becomes fix-soon.
+- **Weight 1** — quick pass on the agent's top-5 checks only.
+- **Weight 0** — skipped; noted in the report as skipped-by-profile.
+
+Steps 2, 3, 8 never drop below weight 1 in any profile (the safety floor plus "obvious UX").
+
+## Running the pipeline
+
+**Full run** (pre-release, new feature done): execute steps in order. Later steps assume earlier findings are addressed or accepted.
+
+**Targeted run**: any single step can run alone via its agent file or `prompts/run-*.md`.
+
+**Lightweight loop** (during development): steps 2, 5, 6 after each UI iteration; steps 3, 4 before calling a screen done; the rest at feature completion.
+
+## Unified report format
+
+Every agent, every step, same output:
+
+```markdown
+# Review Summary
+
+## Context
+## Strengths
+## Critical Issues
+## High Priority Fixes
+## Medium Priority Fixes
+## Low Priority Improvements
+## Tradeoffs
+## Relevant Knowledge Packs Used
+## Scores
+- UX:
+- Accessibility:
+- Architecture:
+- Security:
+- Performance:
+- Product:
+- Maintainability:
+- Overall:
+## Recommended Next Iteration
+## Final Decision
+PASS / PASS WITH FIXES / BLOCKED
+```
+
+Scoring rules: [scoring-model.md](scoring-model.md). Agents fill only the score lines they can honestly assess; others get `n/a`.
+
+## Severity levels
+
+- **CRITICAL** — safety floor violation or data loss risk. Always blocks, every profile.
+- **HIGH** — real user harm or defect likely. Blocks at weight 3; fix-soon at weight 2.
+- **MEDIUM** — maintainability or quality concern. Scheduled, not blocking.
+- **LOW** — polish. Optional.
+
+## Decision semantics
+
+- **PASS** — no CRITICAL/HIGH open.
+- **PASS WITH FIXES** — HIGH findings exist, are enumerated, and the profile permits shipping with a fix commitment.
+- **BLOCKED** — CRITICAL open, or HIGH open at weight 3.
+
+A multi-step run's final decision is the worst individual decision.

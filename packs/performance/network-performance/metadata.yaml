@@ -1,0 +1,14 @@
+name: network-performance
+domain: performance
+authority-level: 1
+version: 1.0.0
+tags: [network, http2, http3, compression, cdn, dns, tls, offline, service-worker]
+sources:
+  - title: "Network Performance guides"
+    author: Google / web.dev
+    url: https://web.dev/explore/network-connectivity
+related:
+  - packs/performance/core-web-vitals
+  - packs/performance/web-dev
+  - packs/backend/rest
+  - packs/architecture/twelve-factor-app
