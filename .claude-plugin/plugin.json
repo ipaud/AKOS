@@ -12,5 +12,6 @@
   "repository": "https://github.com/ipaud/AKOS",
   "license": "MIT",
   "keywords": ["knowledge", "review", "ux", "accessibility", "security", "architecture"],
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "agents": "./agents/"
 }

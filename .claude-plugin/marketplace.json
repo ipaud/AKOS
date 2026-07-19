@@ -17,7 +17,8 @@
       "license": "MIT",
       "category": "productivity",
       "keywords": ["knowledge", "review", "ux", "accessibility", "security", "architecture"],
-      "skills": ["./skills/"]
+      "skills": ["./skills/"],
+      "agents": ["./agents/"]
     }
   ]
 }

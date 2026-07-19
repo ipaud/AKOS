@@ -1,3 +1,9 @@
+---
+name: akos-performance-reviewer
+description: AKOS lens 9 — performance. Core Web Vitals, bundle and resource discipline, rendering-pipeline cost, network efficiency. Use for the AKOS performance review.
+tools: Read, Grep, Glob
+---
+
 # Agent: Performance Reviewer
 
 ## Purpose

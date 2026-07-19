@@ -51,9 +51,20 @@ Read `packs/personal/pau-avila/` — Level 0, always applies (pipeline step 11).
 migration, query, or RLS work, routed from lens 7 or 8.
 
 - **Targeted run** — the user named a lens ("run the AKOS UX review"). Run that
-  one alone.
+  one alone, inline. Spawning a subagent for a single lens costs more than it saves.
 - **Full run** — execute the lenses in order. Later lenses assume earlier
   findings are addressed or accepted.
+
+  In Claude Code, each lens also exists as a subagent named `akos-<lens>-reviewer`
+  (e.g. `akos-ux-reviewer`). On a full run, **delegate the independent lenses in
+  parallel** — each gets isolated context and loads its own packs without
+  crowding yours. Lenses 1-10 are independent of each other. Run lens 11
+  (personal rules) and lens 12 (release readiness) yourself, last: release
+  readiness has to weigh what every other lens found. Then merge every returned
+  summary into **one** Review Summary — do not emit thirteen of them.
+
+  No subagents available (Codex, or they aren't installed)? Run the lenses
+  inline in order. Same output, more of your context spent.
 - **Lightweight loop** (mid-development) — lenses 2, 5, 6 after each UI
   iteration; 3 and 4 before calling a screen done; the rest at feature
   completion.

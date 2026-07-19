@@ -63,6 +63,30 @@ for skill in akos akos-review; do
   link_skill "$skill" "$HOME/.agents/skills" "Codex CLI"
 done
 
+# 3c. Link the 13 reviewers as Claude Code subagents, so a full pipeline run
+#     can fan out in parallel with isolated context. Claude-only: Codex
+#     subagents use TOML, and the skills already cover Codex.
+agent_linked=0; agent_skipped=0
+mkdir -p "$HOME/.claude/agents"
+for src in "$AKOS_HOME"/agents/*.md; do
+  [ -f "$src" ] || continue
+  dest="$HOME/.claude/agents/akos-$(basename "$src")"
+  if [ -L "$dest" ]; then
+    [ "$(readlink "$dest")" = "$src" ] || ln -sfn "$src" "$dest"
+    agent_linked=$((agent_linked+1))
+  elif [ -e "$dest" ]; then
+    warn "agents: $dest is a real file — leaving it untouched"
+    agent_skipped=$((agent_skipped+1))
+  else
+    ln -s "$src" "$dest" && agent_linked=$((agent_linked+1))
+  fi
+done
+if [ "$agent_skipped" -gt 0 ]; then
+  ok "Claude Code: $agent_linked reviewer subagents linked ($agent_skipped skipped)"
+else
+  ok "Claude Code: $agent_linked reviewer subagents linked"
+fi
+
 # 4. PATH hint.
 case ":$PATH:" in
   *":$HOME/bin:"*) ok "~/bin is on PATH" ;;
@@ -85,9 +109,9 @@ cat <<EOF
 
 ${c_bold}AKOS installed.${c_reset}
   Packs:   $packs
-  Agents:  $agents
-  Skills:  akos · akos-review   (Claude Code + Codex CLI)
-  CLI:     akos help   (via ~/bin/akos)
+  Skills:  akos · akos-review            (Claude Code + Codex CLI)
+  Agents:  akos-*-reviewer × $agents        (Claude Code subagents)
+  CLI:     akos help                     (via ~/bin/akos)
 
 Next:
   akos doctor                  # health check

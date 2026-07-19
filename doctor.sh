@@ -106,14 +106,35 @@ if [ -f "$akos_skill" ]; then
   missing_packs=0
   for pack in "$AKOS_HOME"/packs/*/*/; do
     [ -d "$pack" ] || continue
-    pname="$(basename "$pack")"
-    grep -qwF "$pname" "$akos_skill" || {
-      fail "pack '$pname' is not listed in skills/akos/SKILL.md routing table"
+    # Match the full domain/pack path, so a pack filed under the wrong domain
+    # in the table is caught too.
+    rel="${pack#"$AKOS_HOME/packs/"}"; rel="${rel%/}"
+    grep -qF "$rel" "$akos_skill" || {
+      fail "pack '$rel' is not listed in skills/akos/SKILL.md routing table"
       missing_packs=$((missing_packs+1))
     }
   done
   [ "$missing_packs" -eq 0 ] && ok "all packs listed in skills/akos/SKILL.md"
 fi
+
+# --- Reviewer subagents (Claude Code) ---
+printf '\n%sReviewer subagents%s\n' "$c_bold" "$c_reset"
+agent_issues=0; agent_n=0
+for a in "$AKOS_HOME"/agents/*.md; do
+  [ -f "$a" ] || continue
+  agent_n=$((agent_n+1))
+  base="$(basename "$a" .md)"
+  if [ "$(head -n 1 "$a")" != "---" ]; then
+    fail "agents/$base.md has no YAML frontmatter"; agent_issues=$((agent_issues+1)); continue
+  fi
+  afm="$(awk 'NR==1 && $0=="---" {next} $0=="---" {exit} {print}' "$a")"
+  aname="$(printf '%s\n' "$afm" | sed -n 's/^name:[[:space:]]*//p' | head -n 1)"
+  adesc="$(printf '%s\n' "$afm" | sed -n 's/^description:[[:space:]]*//p' | head -n 1)"
+  # Names are akos-prefixed so they never shadow the user's own reviewers.
+  [ "$aname" = "akos-$base" ] || { fail "agents/$base.md: name '$aname' should be 'akos-$base'"; agent_issues=$((agent_issues+1)); }
+  [ -n "$adesc" ] || { fail "agents/$base.md: missing description"; agent_issues=$((agent_issues+1)); }
+done
+[ "$agent_issues" -eq 0 ] && ok "$agent_n reviewer subagents have valid frontmatter"
 
 # --- Plugin manifests ---
 printf '\n%sPlugin manifests%s\n' "$c_bold" "$c_reset"
@@ -153,6 +174,12 @@ for dir in "$HOME/.claude/skills:Claude Code" "$HOME/.agents/skills:Codex CLI"; 
     else warn "$label: $skill not linked (run ./install.sh)"; fi
   done
 done
+linked_agents=0
+for a in "$AKOS_HOME"/agents/*.md; do
+  [ -e "$HOME/.claude/agents/akos-$(basename "$a")" ] && linked_agents=$((linked_agents+1))
+done
+if [ "$linked_agents" -eq "$agent_n" ]; then ok "Claude Code: $linked_agents reviewer subagents linked"
+else warn "Claude Code: $linked_agents/$agent_n reviewer subagents linked (run ./install.sh)"; fi
 
 # --- Summary ---
 printf '\n%sSummary%s  %s✓ %d%s  %s! %d%s  %s✗ %d%s\n' \
