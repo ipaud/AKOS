@@ -19,14 +19,26 @@ Read in order:
 2. `core/authority-model.md` — L0 personal → L1 standards → L2 industry → L3 books → L4 community.
 3. `core/reasoning-profiles.md` — the six profiles and the agent weight table.
 
-## 2. Set the reasoning profile
+## 2. Read the project config
 
-Read `.akos/config.md` in the current project. If absent or unset, default to
-**Startup MVP**. Profiles: Prototype · Startup MVP · Production · Enterprise ·
-Game Dev · Internal Tool.
+Read `.akos/config.md` in the current project. Every section in it is binding —
+do not stop at the profile:
+
+| Section | What it does |
+|---|---|
+| **Reasoning profile** | Sets strictness. If absent or unset, default to **Startup MVP**. Profiles: Prototype · Startup MVP · Production · Enterprise · Game Dev · Internal Tool. |
+| **Project context** | `Stack:` narrows pack routing in step 4. `Deployed: yes` makes security and Supabase/RLS packs **mandatory**, not optional (personal principle 6). `Primary surface:` decides whether mobile and responsive apply. |
+| **Profile overrides** | Per-lens weight changes with a stated reason. These beat the profile's defaults — and only these; an override never lowers the safety floor. |
+| **Packs to always load** | Load every pack listed here **in addition to** the 2-5 you route to in step 4. The project owner has already decided these are load-bearing. |
+| **Style direction** | The committed visual direction. Every UI surface you build must follow it, so screens stay consistent across the project. Absent? Ask for one before building UI rather than defaulting to generic styling (personal principle 4). |
+| **Notes** | Project-specific facts. Read them; they override your assumptions about the project. |
 
 State the active profile in your first response. Choosing the wrong profile is
 itself a review finding (Article 6).
+
+No `.akos/config.md`? Default to Startup MVP, say so, and treat the project as
+undeployed until told otherwise. Suggest `akos install-project` once — don't
+nag.
 
 ## 3. Load the Level-0 layer
 
@@ -38,7 +50,11 @@ task touches them.
 
 ## 4. Route to packs
 
-Pick **2-5** packs closest to the task from `packs/<domain>/<pack>/`:
+Load, in this order:
+
+1. Everything under **Packs to always load** in `.akos/config.md` — already decided, not negotiable.
+2. If `Deployed: yes`, the security and Supabase/RLS packs, whether or not the task looks security-shaped (personal principle 6).
+3. **2-5** more packs closest to the task, from the table below. Let `Stack:` narrow the choice — a React + Supabase project routes to `frontend/react` and `backend/supabase`, not to `graphql` or `css` in the abstract.
 
 | Domain | Packs |
 |---|---|
@@ -68,9 +84,26 @@ For each pack selected:
 
 ## 5. Apply
 
+Open with one line naming the active profile and the packs you loaded, so the
+caller can tell AKOS actually ran and correct the routing if it's wrong:
+
+```
+AKOS · Production · packs: backend/supabase, security/owasp-top-10,
+frontend/react, ux/wcag
+```
+
+Then:
+
 - Pack principles and engineering rules are **constraints and defaults**, not
   suggestions. Surface only conflicts, tradeoffs, and deliberate profile-based
   skips.
+- Follow the **Style direction** from `.akos/config.md` on every UI surface. It
+  is the project's committed look — consistency across screens beats a locally
+  prettier one-off, and it is what keeps output from drifting to generic
+  template UI (personal principle 4).
+- Apply any **Profile overrides** from the config over the profile's default
+  weights. An override can raise strictness or lower ceremony; it can never
+  lower the safety floor.
 - Cite the authority level (L0–L4) on load-bearing guidance.
 - On conflict between sources, follow `core/conflict-resolution.md` and state
   the tradeoff. Never silently pick a winner (Article 3).
