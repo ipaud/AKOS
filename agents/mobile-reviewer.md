@@ -18,10 +18,12 @@ Reviews responsive/mobile behavior — run by default on every web surface per t
 
 ## Packs to load
 
-- [ux/steve-krug](../packs/ux/steve-krug/README.md) — mobile heuristics, thumb zones
-- [ux/wcag](../packs/ux/wcag/README.md) — reflow (1.4.10), target size (2.5.8)
+- [mobile/responsive-web](../packs/mobile/responsive-web/README.md) — **primary**. Layout across sizes, the 320px floor, and the reflow→restructure ladder. A surface the user must read *while acting* on it is the rule that catches wide editable tables.
+- [mobile/touch-ergonomics](../packs/mobile/touch-ergonomics/README.md) — **primary**. Target sizes and the non-overlap gap formula, thumb zones, hover-free design, virtual keyboard and locale input parsing.
+- [ux/wcag](../packs/ux/wcag/README.md) — reflow (1.4.10), target size (2.5.8): where mobile meets the safety floor
 - [performance/network-performance](../packs/performance/network-performance/README.md) — poor-network resilience
-- [ux/apple-hig](../packs/ux/apple-hig/README.md) / [ux/material-design](../packs/ux/material-design/README.md) — native platform touch
+- [ux/steve-krug](../packs/ux/steve-krug/README.md) — screen-level clarity
+- [ux/apple-hig](../packs/ux/apple-hig/README.md) / [ux/material-design](../packs/ux/material-design/README.md) — native platform touch, when the target is native rather than web
 
 ## Review checklist
 
@@ -36,7 +38,7 @@ Works at 320px with no horizontal scroll; primary actions in thumb-reachable zon
 
 ## Scoring rubric
 
-Feeds UX and Performance scores via Krug mobile deductions, WCAG reflow/target-size, and network-resilience rubrics.
+Per [mobile-score](../scoring/mobile-score.md), combining the [responsive-web](../packs/mobile/responsive-web/scoring-rubric.md) and [touch-ergonomics](../packs/mobile/touch-ergonomics/scoring-rubric.md) rubrics with WCAG reflow/target-size and network resilience. Findings that are floor violations also feed [accessibility-score](../scoring/accessibility-score.md); findings about task completion also feed [ux-score](../scoring/ux-score.md) — deduplicate across the three.
 
 ## Refusal / limits
 

@@ -1,0 +1,25 @@
+# Glossary — Touch Ergonomics Pack
+
+- **Any-pointer / pointer** — CSS media features reporting input capability. `pointer` describes the *primary* pointer; `any-pointer` describes whether *any* available pointer has that quality. Sizing follows `any-pointer: coarse`; hover enhancements follow `hover: hover`.
+- **Backstop rule** — a broad stylesheet rule that corrects bypasses of a primitive at runtime (for example, forcing ≥16px on every form control under a coarse pointer). Rung 3 of the enforcement surface: weaker than a primitive, stronger than a doc.
+- **Bleed** — the distance a hit-expanding pseudo-element extends beyond its visual control, `(F − w)/2` per side. The value that must be checked against neighbours.
+- **Coarse pointer** — an input whose accuracy is limited, principally a finger. Reported by `(any-pointer: coarse)` / `(pointer: coarse)`.
+- **Contact patch** — the ellipse of skin touching the screen, from which the system derives the single coordinate the interface receives. The user sees neither.
+- **Contested strip** — the band where two hit areas overlap, resolved by paint or stacking order rather than by design. Width = required gap − actual gap.
+- **Dynamic viewport units** — `dvh`, `svh`, `lvh`. Track the viewport as browser chrome shows and hides, unlike `vh`, which is fixed to the large viewport and overshoots on mobile.
+- **Ergonomic target** — the platform-recommended touch size: 44×44 pt (Apple) or 48×48 dp (Material). What designs are built to. Distinct from the conformance floor.
+- **Enforcement surface** — where a rule physically lives, ranked: impossible (primitive) → build-time check → runtime backstop → human review → documentation. Fixes are graded by which rung they install.
+- **Hit area** — the region that actually activates a control, including padding and any expanding pseudo-element. Measured from client rects; frequently different from the visual box, and the difference is invisible.
+- **`inputmode`** — the attribute selecting which on-screen keyboard is shown. Presentational only: it changes keys, restricts nothing, and never substitutes for validation.
+- **Legal floor / conformance floor** — 24×24 CSS px, WCAG 2.2 SC 2.5.8 (Minimum), Level AA, with named exceptions (spacing, inline, equivalent, user-agent, essential). A compliance boundary, not a design goal.
+- **Occlusion cone** — the region hidden by the hand and arm around and below the contact point. Feedback rendered inside it is not delivered.
+- **`overscroll-behavior`** — the CSS property controlling scroll chaining and overscroll effects. `contain` stops an inner scroller from moving the page, triggering pull-to-refresh, or triggering back-navigation on horizontal overscroll.
+- **Pointer cancellation** — the ability to abort an activation by moving off the target before release. Required by SC 2.5.2; lost when handlers act on the down-event.
+- **Safe-area inset** — `env(safe-area-inset-*)`, the space reserved for device chrome such as the home indicator and notch. Bottom-anchored controls must respect it.
+- **Silent coercion** — a conversion that turns invalid input into a plausible value without error: `Number("12,50")` → `NaN` → `|| 0` → `0`. The mechanism behind money-loss defects on localized keypads.
+- **Spacing exception** — the SC 2.5.8 escape allowing an undersized target when a 24px-diameter circle centred on it does not intersect the circle of any adjacent target. The source of the non-overlap requirement.
+- **System gesture strip** — the screen-edge regions reserved by the operating system for back, home, and switcher gestures. Custom interactions anchored there lose.
+- **Thumb arc** — the sweep a thumb can cover while the device is held one-handed. Defines the reach gradient: free at the bottom and inner side, costly at the top, unreachable in the far top corner.
+- **`touch-action`** — the CSS property declaring which default touch behaviours the browser may apply. `manipulation` removes double-tap-zoom delay on tappables; `none` disables browser handling entirely and is for custom-gesture surfaces only.
+- **Up-event activation** — firing an action on release rather than press, which preserves the user's ability to slide off and cancel.
+- **Visual viewport** — the currently visible portion of the page, exposed via `window.visualViewport`. Shrinks when the virtual keyboard opens even where the layout viewport does not.

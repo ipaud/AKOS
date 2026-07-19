@@ -1,0 +1,55 @@
+name: touch-ergonomics
+domain: mobile
+authority-level: 2
+version: 1.0.0
+tags:
+  [
+    touch,
+    mobile,
+    ergonomics,
+    target-size,
+    thumb-zones,
+    hit-area,
+    hover,
+    pointer-events,
+    virtual-keyboard,
+    inputmode,
+    locale-input,
+    gestures,
+    touch-action,
+    accidental-activation,
+    accessibility,
+  ]
+sources:
+  - title: "Web Content Accessibility Guidelines (WCAG) 2.2 — SC 2.5.8 Target Size (Minimum)"
+    org: W3C
+    url: https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
+  - title: "Web Content Accessibility Guidelines (WCAG) 2.2 — SC 2.5.1 Pointer Gestures"
+    org: W3C
+    url: https://www.w3.org/WAI/WCAG22/Understanding/pointer-gestures.html
+  - title: "Web Content Accessibility Guidelines (WCAG) 2.2 — SC 2.5.2 Pointer Cancellation"
+    org: W3C
+    url: https://www.w3.org/WAI/WCAG22/Understanding/pointer-cancellation.html
+  - title: "Human Interface Guidelines — Gestures"
+    org: Apple
+    url: https://developer.apple.com/design/human-interface-guidelines/gestures
+  - title: "Human Interface Guidelines — Accessibility"
+    org: Apple
+    url: https://developer.apple.com/design/human-interface-guidelines/accessibility
+  - title: "Material Design — Accessibility (touch target guidance)"
+    org: Google
+    url: https://m2.material.io/design/usability/accessibility.html
+  - title: "Material Design 3 — Accessibility basics"
+    org: Google
+    url: https://m3.material.io/foundations/accessible-design/accessibility-basics
+  - title: "Pointer events"
+    org: MDN Web Docs (Mozilla)
+    url: https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events
+  - title: "inputmode — HTML global attribute"
+    org: MDN Web Docs (Mozilla)
+    url: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inputmode
+related:
+  - packs/mobile/responsive-web
+  - packs/ux/wcag
+  - packs/ux/apple-hig
+  - packs/ux/material-design

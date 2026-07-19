@@ -1,0 +1,51 @@
+name: responsive-web
+domain: mobile
+authority-level: 2
+version: 1.0.0
+tags:
+  [
+    responsive,
+    mobile-first,
+    layout,
+    breakpoints,
+    container-queries,
+    fluid-typography,
+    clamp,
+    reflow,
+    wcag-1-4-10,
+    viewport-units,
+    dvh,
+    safe-area,
+    responsive-images,
+    art-direction,
+    horizontal-scroll,
+    data-tables,
+    density,
+    cls,
+  ]
+sources:
+  - title: "Responsive design"
+    author: MDN Web Docs contributors
+    org: Mozilla
+    url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Responsive_Design
+  - title: "CSS container queries"
+    author: MDN Web Docs contributors
+    org: Mozilla
+    url: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries
+  - title: "Learn Responsive Design"
+    org: Google / web.dev
+    url: https://web.dev/learn/design
+  - title: "CSS Containment Module Level 3"
+    org: W3C CSS Working Group
+    url: https://www.w3.org/TR/css-contain-3/
+  - title: "CSS Values and Units Module Level 4 — viewport-relative lengths"
+    org: W3C CSS Working Group
+    url: https://www.w3.org/TR/css-values-4/#viewport-relative-lengths
+  - title: "Understanding SC 1.4.10: Reflow"
+    org: W3C Web Accessibility Initiative
+    url: https://www.w3.org/WAI/WCAG22/Understanding/reflow.html
+related:
+  - packs/mobile/touch-ergonomics
+  - packs/ux/wcag
+  - packs/frontend/css
+  - packs/performance/core-web-vitals

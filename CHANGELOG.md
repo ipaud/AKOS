@@ -3,6 +3,26 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.3.0] — 2026-07-19
+
+Closes the second of the two lenses that had no domain of their own, and validates the first against a real production screen.
+
+### Added
+
+- **New `mobile/` domain — 2 packs, 2618 lines.** `mobile-reviewer` was running on borrowed platform-design and usability packs while Article 9 makes responsive review mandatory for every web surface.
+  - `mobile/responsive-web` (L2) — layout and adaptation: breakpoint strategy from content, fluid type, container queries, the 320px floor and WCAG reflow, and a five-rung **reflow→restructure ladder** whose rule is that "we made it scroll" is not a rung. Two distinguishing principles: anything the user must read *while acting* must be visible while they act, and precedent transfers only with its conditions (read-only → editable voids the exemption).
+  - `mobile/touch-ergonomics` (L2) — the hand and the device: a computable non-overlap rule `gap ≥ F − (wA + wB)/2`, thumb zones, hover-free design, the virtual keyboard, and locale input parsing. Silent coercion of a locale decimal into `0` is scored as a correctness defect, not an ergonomics nit. Its **enforcement-surface** model ranks where a rule lives — primitive, build check, runtime backstop, review, doc — and caps a documented-but-bypassable rule at 79.
+- **`scoring/mobile-score.md`** — pipeline step 4 had no score file, unlike every other scored lens. Now it has one, with caps for untested viewports and unenforceable rules.
+- `agents/mobile-reviewer.md` loads both packs as primary and scores against the new file.
+
+### Changed
+
+- `agents/copy-reviewer.md`: `content/gov-uk-content-design` is now **conditional, not a default load**. Validated on a real control-dense editor where it fired on one finding out of nineteen while `ux-writing` produced the rest — loading it there costs context and returns almost nothing.
+
+### Validated
+
+The `content/` packs were re-run against the same production screen reviewed before they existed: **69 / PASS WITH FIXES → 52 / BLOCKED**. The packs found defects judgment alone had missed — six confirmations fired before their mutation settles, two of which fire when the handler provably did nothing, one of them navigating to a URL built from `undefined`. The prior review had seen only the visible symptom, "a double toast". The difference was not insight but insistence: the rubric prices a confirmation that can fire on a failed operation as a correctness defect and refuses the trade a human reviewer would have negotiated.
+
 ## [1.2.0] — 2026-07-19
 
 ### Added
