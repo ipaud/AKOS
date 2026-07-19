@@ -10,10 +10,23 @@ directory two levels above this file. Every path below is relative to it.
 
 ## 1. Bootstrap
 
-Read `core/constitution.md` and `core/review-pipeline.md`. Then set the active
-profile from `.akos/config.md` (default **Startup MVP**) using
-`core/reasoning-profiles.md` — the profile's weight table decides which lenses
-are strict, light, or skipped. The pipeline order never changes.
+Read `core/constitution.md` and `core/review-pipeline.md`, then `.akos/config.md`
+in the project. Every section of the config shapes the review — not just the
+profile:
+
+- **Reasoning profile** (default **Startup MVP**) — its weight table in
+  `core/reasoning-profiles.md` decides which lenses are strict, light, or
+  skipped. The pipeline order never changes.
+- **Profile overrides** — apply over the profile's default weights. An override
+  can raise a lens's strictness or lower ceremony; it can never lower the safety
+  floor. Report which lenses ran at an overridden weight.
+- **Project context** — `Deployed: yes` makes the security lens strict and
+  Supabase/RLS review mandatory regardless of profile (personal principle 6).
+  `Primary surface:` decides whether the mobile lens applies.
+- **Packs to always load** — include these alongside each lens's own packs.
+- **Style direction** — the frontend lens judges consistency against *this*,
+  not against generic taste. A screen that ignores the committed direction is a
+  finding.
 
 Read `packs/personal/pau-avila/` — Level 0, always applies (pipeline step 11).
 
