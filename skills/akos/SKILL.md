@@ -72,7 +72,9 @@ is really about visual craft wastes a slot.
 | `ux/apple-hig` | Building for iOS or macOS specifically. |
 | `ux/material-design` | Building for Android, or adopting Material as the system. |
 | `content/ux-writing` | Words inside the UI: button labels, error messages, empty states, voice and tone. Any screen whose copy you are writing or changing. |
-| `content/gov-uk-content-design` | Prose the user has to read: guidance, help, onboarding, docs. Plain language, front-loading, readability, retiring stale content. |
+| `content/gov-uk-content-design` | Prose the user has to read: guidance, help, onboarding, docs. Not for control-dense screens — those are `ux-writing`. |
+| `mobile/responsive-web` | Layout across sizes: breakpoints, fluid type, container queries, 320px reflow, when to restructure instead of scroll. |
+| `mobile/touch-ergonomics` | The hand and the device: target sizes and spacing, thumb zones, no-hover, virtual keyboard, locale input parsing, gestures. |
 | `frontend/react` | React or Next.js: hooks, rendering, server components, composition. |
 | `frontend/typescript` | Types are loose or wrong. Strict mode, unions, schema validation at boundaries. |
 | `frontend/css` | Layout and motion: grid, flexbox, custom properties, container queries. |

@@ -1,0 +1,31 @@
+# Glossary — Responsive Web Pack
+
+- **320 floor** — 320 CSS pixels, the width at which every surface must remain fully operable. Simultaneously the small-phone width and the width a 1280px desktop page occupies at 400% zoom.
+- **Art direction** — serving a genuinely different image per size — different crop, aspect ratio, or subject framing — rather than a different resolution of the same file. Implemented with `<picture>` + `<source media>`. Distinct from *resolution switching*.
+- **Blind editing** — operating a control whose identifying context has been scrolled off-screen by the act of reaching it. The flagship defect this pack prevents.
+- **Breakpoint** — a width at which the layout's *arrangement* changes. Legitimate breakpoints come from content symptoms; device-named breakpoints are findings.
+- **Chrome** — headers, toolbars, filter bars, breadcrumbs, and action clusters; everything on the screen that is not the content the user came for.
+- **Chrome budget** — the bounded share of viewport height that chrome may occupy above the primary content at the narrowest width.
+- **Co-visibility** — the property that a control and the value the user must read while operating it are on screen at the same time. See *read-while-acting pair*.
+- **Container query** — a conditional rule evaluated against a component's own container size (`@container`), rather than the viewport. The correct mechanism for component-level adaptation.
+- **`cqi` / `cqw`** — container-relative length units; the container-scoped equivalents of `vi`/`vw`.
+- **Difference in kind** — a change that voids an existing pattern's preconditions rather than merely stretching them: read-only becoming editable, display becoming decision, a region becoming a document.
+- **`dvh` / `svh` / `lvh`** — dynamic, small, and large viewport-height units. `dvh` tracks the current visible height; `svh` assumes browser chrome is showing; `lvh` assumes it is hidden.
+- **Fluid sizing** — values that vary continuously with available space, typically `clamp(min, preferred, max)`. Handles the range *between* breakpoints.
+- **Gutter** — the inline padding between content and the viewport edge; the thing standing between the layout and the bezel at 320px.
+- **Identity column** — the column that tells the user which record a row is. The column that must stay pinned whenever a table scrolls horizontally.
+- **Measure** — line length, expressed in `ch`. Target 45–75.
+- **Precedent laundering** — reusing an established pattern across a difference in kind, justified by consistency, without restating the conditions that made the pattern correct.
+- **Read-while-acting pair** — a control plus the value the user must read while operating it. Pairs must be co-visible at every supported width.
+- **Recompose** — rung 3 of the ladder: same information, rearranged parts (toolbar → menu, nav → drawer).
+- **Reflow** — rung 2: the same components rearranged for the available space — columns stacking, a sidebar dropping below. Also the name of WCAG SC 1.4.10.
+- **Re-scope** — rung 5: deliberately offering a different, smaller task at this size, with the full task explicitly available elsewhere. Requires a recorded decision.
+- **Rescale** — rung 1: same layout, fluid sizes. Never sufficient on its own.
+- **Resolution switching** — serving the same image at different pixel densities or sizes via `srcset` + `sizes`. Distinct from *art direction*.
+- **Restructure** — rung 4: replacing the component with a different presentation of the same data (table → per-record cards), preserving every capability.
+- **Safe area** — the region of the screen not occluded by notches, rounded corners, or a home indicator. Queried with `env(safe-area-inset-*)`, which returns zero unless `viewport-fit=cover` is set.
+- **Scroll gate** — the five conditions a horizontal scroll region must satisfy: exempt content type, region-scoped, pinned identity, keyboard-operable and named, no unanchored interactive cells.
+- **`sizes`** — the attribute telling the browser how wide an image will actually be rendered at each breakpoint, so it can pick from `srcset`. A `sizes` value disagreeing with the layout ships the wrong file at every width.
+- **Squeeze** — producing a narrow layout by proportional reduction rather than by deciding what the screen is for at that size. The most common source of responsive defects.
+- **Two-dimensional scrolling** — requiring scroll in both axes to read or operate content. A WCAG 1.4.10 failure, with a narrow exemption list.
+- **Untested middle** — the 700–1100px range that a "mobile and desktop" test matrix never opens, and where two-column layouts are most fragile.
