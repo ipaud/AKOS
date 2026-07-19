@@ -1,0 +1,41 @@
+name: gov-uk-content-design
+domain: content
+authority-level: 2
+version: 1.0.0
+tags:
+  [
+    content-design,
+    plain-language,
+    readability,
+    user-needs,
+    front-loading,
+    information-architecture,
+    accessibility,
+    content-lifecycle,
+    editorial,
+    government,
+  ]
+sources:
+  - title: "Content design: planning, writing and managing content"
+    author: Government Digital Service
+    url: https://www.gov.uk/guidance/content-design
+  - title: "Writing for GOV.UK"
+    author: Government Digital Service
+    url: https://www.gov.uk/guidance/content-design/writing-for-gov-uk
+  - title: "GOV.UK style guide"
+    author: Government Digital Service
+    url: https://www.gov.uk/guidance/style-guide
+  - title: "Government Design Principles"
+    author: Government Digital Service
+    url: https://www.gov.uk/guidance/government-design-principles
+  - title: "Government Digital Service blog"
+    author: Government Digital Service
+    url: https://gds.blog.gov.uk/
+  - title: "GOV.UK Service Manual"
+    author: Government Digital Service
+    url: https://www.gov.uk/service-manual
+related:
+  - packs/content/ux-writing
+  - packs/ux/steve-krug
+  - packs/ux/wcag
+  - packs/ux/nielsen-norman-group

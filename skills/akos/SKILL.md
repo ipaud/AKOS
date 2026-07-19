@@ -71,6 +71,8 @@ is really about visual craft wastes a slot.
 | `ux/wcag` | Conformance is the question. Contrast, keyboard, ARIA, focus order, AA criteria. |
 | `ux/apple-hig` | Building for iOS or macOS specifically. |
 | `ux/material-design` | Building for Android, or adopting Material as the system. |
+| `content/ux-writing` | Words inside the UI: button labels, error messages, empty states, voice and tone. Any screen whose copy you are writing or changing. |
+| `content/gov-uk-content-design` | Prose the user has to read: guidance, help, onboarding, docs. Plain language, front-loading, readability, retiring stale content. |
 | `frontend/react` | React or Next.js: hooks, rendering, server components, composition. |
 | `frontend/typescript` | Types are loose or wrong. Strict mode, unions, schema validation at boundaries. |
 | `frontend/css` | Layout and motion: grid, flexbox, custom properties, container queries. |
