@@ -1,3 +1,9 @@
+---
+name: akos-testing-reviewer
+description: AKOS lens 10 — testing. Pyramid balance, TDD discipline, E2E reliability, QA-checklist completeness. Judges whether critical paths are tested at the right level. Use for the AKOS testing review.
+tools: Read, Grep, Glob
+---
+
 # Agent: Testing Reviewer
 
 ## Purpose

@@ -56,18 +56,57 @@ Load, in this order:
 2. If `Deployed: yes`, the security and Supabase/RLS packs, whether or not the task looks security-shaped (personal principle 6).
 3. **2-5** more packs closest to the task, from the table below. Let `Stack:` narrow the choice — a React + Supabase project routes to `frontend/react` and `backend/supabase`, not to `graphql` or `css` in the abstract.
 
-| Domain | Packs |
+Several packs cover the same domain from different angles. Route on the **reach
+for it when** column, not on the name — picking `laws-of-ux` when the question
+is really about visual craft wastes a slot.
+
+| Pack | Reach for it when |
 |---|---|
-| `architecture` | clean-architecture · design-patterns · domain-driven-design · martin-fowler-refactoring · solid · twelve-factor-app |
-| `backend` | graphql · postgres · rest · supabase |
-| `devops` | ci-cd · deployment · git · sre |
-| `frontend` | css · design-systems · html · react · typescript |
-| `performance` | browser-rendering · core-web-vitals · network-performance · web-dev |
-| `product` | continuous-discovery-habits · escaping-the-build-trap · inspired · lean-startup |
-| `security` | nist-ssdf · owasp-api-top-10 · owasp-asvs · owasp-top-10 |
-| `testing` | playwright · qa-checklists · tdd · testing-pyramid |
-| `ux` | apple-hig · don-norman · laws-of-ux · material-design · nielsen-norman-group · refactoring-ui · steve-krug · universal-principles-of-design · wcag |
-| `personal` | pau-avila — Level 0, always loaded (step 3) |
+| `ux/steve-krug` | Web usability: is the screen self-evident? Forms, navigation, button copy. |
+| `ux/don-norman` | The user's mental model is wrong. Affordances, feedback, error-proofing. |
+| `ux/laws-of-ux` | Too many choices, too much to remember, targets too small. Cognitive load. |
+| `ux/nielsen-norman-group` | You need a systematic heuristic sweep with severity ratings. |
+| `ux/universal-principles-of-design` | Grouping, progressive disclosure, chunking — design theory behind a layout. |
+| `ux/refactoring-ui` | It works but looks amateur. Hierarchy, spacing, type, color, depth. |
+| `ux/wcag` | Conformance is the question. Contrast, keyboard, ARIA, focus order, AA criteria. |
+| `ux/apple-hig` | Building for iOS or macOS specifically. |
+| `ux/material-design` | Building for Android, or adopting Material as the system. |
+| `frontend/react` | React or Next.js: hooks, rendering, server components, composition. |
+| `frontend/typescript` | Types are loose or wrong. Strict mode, unions, schema validation at boundaries. |
+| `frontend/css` | Layout and motion: grid, flexbox, custom properties, container queries. |
+| `frontend/html` | Semantics and forms before styling. Landmarks, native elements. |
+| `frontend/design-systems` | Tokens, shared component library, theming, versioned component APIs. |
+| `backend/supabase` | Supabase in the stack. **Mandatory when deployed** — RLS, auth, storage. |
+| `backend/postgres` | Schema, indexing, migrations, slow queries. |
+| `backend/rest` | Designing or changing an HTTP API: resources, status codes, pagination, versioning. |
+| `backend/graphql` | GraphQL specifically: schema, resolvers, N+1, query cost. |
+| `security/owasp-top-10` | Any deployed web surface. Injection, access control, auth, secrets, SSRF. |
+| `security/owasp-api-top-10` | The surface is an API. Object-level authz, mass assignment, rate limits. |
+| `security/owasp-asvs` | You need verifiable security requirements at a stated level. |
+| `security/nist-ssdf` | Securing the pipeline itself: supply chain, SBOM, vulnerability response. |
+| `performance/core-web-vitals` | Page feels slow to load or shifts. LCP, INP, CLS budgets. |
+| `performance/web-dev` | Bundle too big, images and fonts unoptimized, caching absent. |
+| `performance/browser-rendering` | Animation janks or scrolling stutters. Frame budget, reflow, compositing. |
+| `performance/network-performance` | Transport is the bottleneck: CDN, compression, HTTP/2-3, offline. |
+| `architecture/clean-architecture` | Business logic is tangled with framework or database code. |
+| `architecture/solid` | Class and module design: coupling, cohesion, dependency direction. |
+| `architecture/domain-driven-design` | The domain is genuinely complex and the language is inconsistent. |
+| `architecture/design-patterns` | A recurring structural problem has a known named solution. |
+| `architecture/martin-fowler-refactoring` | Code works but resists change. Smells, incremental restructuring. |
+| `architecture/twelve-factor-app` | Config, statelessness, and portability for a deployed service. |
+| `testing/tdd` | Writing new logic — tests lead the implementation. |
+| `testing/testing-pyramid` | Deciding *what level* to test at; the suite is slow or top-heavy. |
+| `testing/playwright` | Writing or stabilizing E2E browser tests. |
+| `testing/qa-checklists` | Pre-release exploratory sweep: edge cases, states, cross-browser. |
+| `product/inspired` | Is this the right thing to build? Discovery, risk, empowered-team practice. |
+| `product/lean-startup` | The assumption is unvalidated. MVP scope, hypothesis, measure-learn. |
+| `product/continuous-discovery-habits` | Setting up a real customer-contact cadence and opportunity mapping. |
+| `product/escaping-the-build-trap` | Shipping features but not outcomes. Strategy and org shape. |
+| `devops/deployment` | Rollout and rollback: canary, blue-green, migration safety. |
+| `devops/ci-cd` | Pipeline design and what gates a merge. |
+| `devops/sre` | Reliability as a target: SLOs, error budgets, alerting, incidents. |
+| `devops/git` | Branching model, commit hygiene, history strategy. |
+| `personal/pau-avila` | Level 0 — always loaded in step 3, never a routing choice. |
 
 For each pack selected:
 

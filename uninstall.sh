@@ -32,6 +32,17 @@ for dir in "$HOME/.claude/skills" "$HOME/.agents/skills"; do
   done
 done
 
+# 1c. Remove the reviewer subagent symlinks (Claude Code only).
+agents_removed=0
+for src in "$AKOS_HOME"/agents/*.md; do
+  [ -f "$src" ] || continue
+  link="$HOME/.claude/agents/akos-$(basename "$src")"
+  if [ -L "$link" ] && [ "$(readlink "$link")" = "$src" ]; then
+    rm -f "$link" && agents_removed=$((agents_removed+1))
+  fi
+done
+[ "$agents_removed" -gt 0 ] && ok "removed $agents_removed reviewer subagent symlinks"
+
 # 2. Remove the ~/DEV symlink ONLY if it's a symlink we could have created.
 if [ -L "$HOME/DEV" ]; then
   target="$(readlink "$HOME/DEV")"

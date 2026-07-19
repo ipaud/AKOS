@@ -1,3 +1,9 @@
+---
+name: akos-product-reviewer
+description: AKOS lens 1 — product clarity. Does this solve a real user problem with a defined, validated outcome? Guards against feature-factory thinking. Use for the AKOS product review, or as part of a full AKOS pipeline run.
+tools: Read, Grep, Glob
+---
+
 # Agent: Product Reviewer
 
 ## Purpose

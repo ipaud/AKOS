@@ -1,3 +1,9 @@
+---
+name: akos-backend-reviewer
+description: AKOS backend lens. REST and GraphQL design correctness, resolver and query performance, twelve-factor deployment discipline. Security routes to akos-security-reviewer, schema to akos-database-reviewer. Use for the AKOS backend review.
+tools: Read, Grep, Glob
+---
+
 # Agent: Backend Reviewer
 
 ## Purpose
