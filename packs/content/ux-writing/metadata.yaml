@@ -1,0 +1,39 @@
+name: ux-writing
+domain: content
+authority-level: 3
+version: 1.0.0
+tags:
+  [
+    ux-writing,
+    microcopy,
+    interface-copy,
+    voice-and-tone,
+    labels,
+    error-messages,
+    empty-states,
+    forms,
+    notifications,
+    terminology,
+    localization,
+  ]
+sources:
+  - title: "Strategic Writing for UX: Drive Engagement, Conversion, and Retention with Every Word"
+    author: Torrey Podmajersky
+    org: O'Reilly Media
+    url: https://www.oreilly.com/library/view/strategic-writing-for/9781492049382/
+  - title: "Microcopy: The Complete Guide"
+    author: Kinneret Yifrah
+    url: https://www.microcopybook.com/
+  - title: "Writing for the Web — research topic"
+    author: Nielsen Norman Group
+    url: https://www.nngroup.com/topic/writing-web/
+  - title: "Polaris — Content guidelines"
+    author: Shopify
+    url: https://polaris.shopify.com/content
+  - title: "Mailchimp Content Style Guide"
+    author: Mailchimp (Intuit)
+    url: https://styleguide.mailchimp.com/
+related:
+  - packs/content/gov-uk-content-design
+  - packs/ux/steve-krug
+  - packs/ux/nielsen-norman-group

@@ -1,0 +1,24 @@
+# Glossary — GOV.UK Content Design Pack
+
+- **Assisted digital** — the situation of a reader who cannot or does not use the content unaided: someone reads it to them, interprets it, or completes the task on their behalf. Content must survive being spoken aloud and paraphrased.
+- **Content decay** — the silent process by which correct content becomes wrong as prices, dates, systems and terminology change. Fails without erroring, so only scheduled review catches it.
+- **Content design** — deciding what information a person needs and in what form, then delivering it. Distinct from writing: the output can be a table, three steps, or a deleted page.
+- **Content estate** — the full set of live pages an organisation owns. Has a carrying cost: search competition, maintenance load, and drift between duplicates.
+- **Content lifecycle** — publish → review → revise → retire. A page that never leaves the first stage is unmanaged, not stable.
+- **Front-loading** — putting the most important element first: first sentence of the page, first sentence of the section, first three words of a heading or link.
+- **Formal filler** — phrases that add length without information ("in order to", "please note that", "with regard to"). Usually deletes to nothing or one short word.
+- **Hidden actor** — a construction that omits who performs an action ("applications will be reviewed"). A factual omission, not a stylistic one.
+- **Inverted pyramid** — structuring content answer-first, with context, qualifications and exceptions in descending order of importance.
+- **Jargon laundering** — replacing specialist terms with vaguer synonyms while leaving the explanation unchanged. Looks like plain language, meets no need.
+- **One page, one need** — the rule that a page answers a single user question completely, and splits when a second audience or task appears.
+- **Plain language** — language whose decoding cost is minimal for any reader, including specialists. A cost reduction, not a reading-level concession.
+- **Reading age** — the approximate age at which a text can be understood on first read; the working general-audience target here is 9, roughly Flesch–Kincaid grade level 6.
+- **Retirement** — the deliberate removal of content that no longer meets a need, executed as a redirect to the nearest correct answer, with the reason recorded. Never a 404, never an orphan.
+- **Review date** — the date by which a page's facts must be re-verified. Set at publication. Past that date, content is presumed stale.
+- **Scan path** — the route a reader's attention actually takes: title, headings, list items, the paragraph that looks like their case. Never linear.
+- **Search demand** — what people actually type; the cheapest available evidence of both the need and the vocabulary. Outranks internal terminology preference.
+- **Specialist term** — a word the reader genuinely must know because it is binding or is the term they will encounter elsewhere. Survives the plain-language pass, but is defined at first use.
+- **Stale content** — content past its review date without re-verification. Treated as suspect by default, and as a defect on a task-critical path.
+- **Task page** — a page that moves a reader from a situation to a resolution. Opposite of a topic page.
+- **Topic page** — a page collecting everything known about a subject, leaving the reader to extract their own case. Feels comprehensive, reliably fails.
+- **User need statement** — *as a [person in a situation], I need to [do or know something], so that [outcome]*. The justification for any piece of content's existence.

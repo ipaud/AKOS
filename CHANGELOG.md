@@ -3,6 +3,21 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.2.0] — 2026-07-19
+
+### Added
+
+- **New `content/` domain — 2 packs, 2073 lines.** `copy-reviewer` was one of the twelve pipeline lenses running entirely on borrowed UX packs, with no domain of its own. It now has one.
+  - `content/ux-writing` (L3) — interface words: labels, error anatomy, empty states, voice and tone, confirmation copy, writing for translation. Its spine is that a label is a promise the code must keep, so the truthfulness pass reads the handler rather than the string. Anti-patterns are a named taxonomy: the lying label, phantom confirmation, capability cosplay, synonym drift, tooltip-only meaning, the dead-end empty state.
+  - `content/gov-uk-content-design` (L2) — content design as meeting a user need: plain language, front-loading, readability targets, scanning, and retiring stale content. Numeric targets are checkable rules rather than advice.
+  - Both grounded in real production-audit findings so they catch defects instead of reading as editorial taste. Scope boundary is explicit in each README, and they cross-link rather than overlap.
+- `agents/copy-reviewer.md` loads them as primary, ahead of the borrowed UX packs.
+- Both listed in the `akos` routing table with their "reach for it when" clause.
+
+### Changed
+
+- Routing hints, subagents, config-reading and the technical-pack fragments shipped since 1.1.0 were never versioned. This release carries them.
+
 ## [1.1.0] — 2026-07-19
 
 AKOS is now directly invocable as a skill in Claude Code and Codex CLI, instead of relying on an instruction block telling the agent to go read files.

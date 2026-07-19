@@ -1,0 +1,27 @@
+# Glossary — UX Writing Pack
+
+- **Anxiety point** — a moment of irreversibility, cost, exposure, or data handover, where microcopy does its highest-value work.
+- **Blocklist (copy)** — the set of words that must not appear in user-facing strings: developer vocabulary plus the banned synonyms from the terminology ledger. Enforced by grep or CI.
+- **Capability claim** — a label asserting that a feature does something ("AI", "import", "sync", "auto-"). Requires an implementation to be legitimate.
+- **Commitment point** — the control at which a user makes an irreversible or costly choice; the copy attached to it must answer what happens, reversibility, visibility, and cost.
+- **Confirmation** — a message stating that an action completed. Distinct from a *confirmation dialog*, which asks before the action.
+- **Empty state** — the copy shown when a surface holds no data. Four distinct kinds; see *zero state*.
+- **Front-loading** — placing the decisive words at the start of a label or message, because interface text is scanned mid-task.
+- **Happy talk** — welcoming or self-congratulatory copy that carries no user value; identifiable because it would fit any product unchanged.
+- **Hint** — persistent text that helps a user complete an input, shown before typing, adjacent to the field. Not a placeholder, not an error.
+- **Interrupt cost** — the attention price of a message, rising with intrusiveness (inline → toast → banner → modal → push). Must be exceeded by the message's value.
+- **Label-behaviour contract** — the match between what a control's words promise and what its handler does. The pack's central check.
+- **Lying label** — a control whose words describe an effect the code does not produce.
+- **Microcopy** — the small functional strings attached to controls and states: labels, hints, errors, empties, confirmations, toasts.
+- **Microcopy ladder** — the ranked responses to user confusion: remove the need → rename → restructure → inline hint → progressive disclosure → documentation.
+- **Phantom confirmation** — a success message emitted for an operation that did not (or may not have) succeeded.
+- **Pseudo-localization** — replacing strings with lengthened, accented variants to reveal truncation and layout failures before translation.
+- **Reading budget** — the small number of words a user will actually read before acting; spent in order of what they clicked and what changed.
+- **Register** — the level of warmth, brevity, and formality in a message; what tone adjusts while voice stays fixed.
+- **Synonym drift** — the same concept named by different words across a product; each variant reads as a separate feature.
+- **Terminology ledger** — the checked-in record mapping each concept to its one approved term and its banned synonyms.
+- **Three questions** — the structure of any message about an event: what happened → why → what now.
+- **Tone** — the situational setting of a message, chosen from the user's emotional state. Variable.
+- **Transcreation** — recreating a string's intent in another language rather than translating it; reserved for isolated high-visibility copy.
+- **Voice** — the product's constant way of sounding, defined once as adjectives with their opposites. Fixed.
+- **Zero state** — any state with no content to show. Four kinds: first-run (nothing created yet), no-results (filtered out), cleared (user emptied it), failed-to-load (an error state, not an empty one).
