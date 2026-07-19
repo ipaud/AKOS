@@ -1,21 +1,38 @@
 # Codex Instructions Template (AKOS integration)
 
-For OpenAI Codex CLI. Codex reads `AGENTS.md` by default; use this if you want a standalone instructions file, or copy the section into `AGENTS.md` (see [AGENTS.md template](AGENTS.md)).
+For OpenAI Codex CLI. Codex supports the same open agent-skills format as Claude Code, so the primary integration is the **skill**, not an instructions file.
 
-```markdown
-# AKOS Integration (Codex)
+## Primary path — skills
 
-This project uses AKOS, a tool-agnostic knowledge system at `~/DEV/AKOS`.
+`./install.sh` links AKOS's skills into `~/.agents/skills/`:
 
-Before non-trivial work:
-1. Read `~/DEV/AKOS/core/constitution.md`, `authority-model.md`, `reasoning-profiles.md`, `review-pipeline.md`.
-2. Read `~/DEV/AKOS/packs/personal/pau-avila/` (highest-priority personal rules).
-3. Load the 2-5 packs from `~/DEV/AKOS/packs/` relevant to the current file/task.
-
-Apply pack principles as build-mode constraints. For reviews, follow `~/DEV/AKOS/agents/*.md` and output the unified Review Summary (severity-ranked findings, scores, PASS/PASS WITH FIXES/BLOCKED).
-
-Non-negotiable floor: security, accessibility basics, data integrity.
-Defaults: four async states; mobile-responsive by default; Supabase RLS at table creation (deployed); challenge complexity; anti-template UI; direct actionable output.
-
-Active profile: `.akos/config.md`.
 ```
+~/.agents/skills/akos          → <AKOS>/skills/akos
+~/.agents/skills/akos-review   → <AKOS>/skills/akos-review
+```
+
+Codex discovers skills at `$CWD/.agents/skills`, `$REPO_ROOT/.agents/skills`, `$HOME/.agents/skills`, and `/etc/codex/skills`. Once linked:
+
+- `/skills` lists them
+- `$akos` invokes the loader explicitly; `$akos-review` runs the review pipeline
+- Both also fire implicitly when the task matches their description
+
+Verify with `akos list-skills` or `./doctor.sh`.
+
+## Alternative — install as a plugin
+
+```bash
+codex plugin marketplace add ipaud/AKOS
+```
+
+This installs a copy into `~/.codex/plugins/cache/`. Use it to try AKOS or to share it; use the symlinks above for your own working copy, since a plugin cache does not track edits to your packs.
+
+## Project marker
+
+`akos install-project` writes a four-line block into the project's `AGENTS.md` — see [AGENTS.md template](AGENTS.md). It only signals that AKOS applies here; the skill carries the bootstrap.
+
+## Fallback
+
+For a Codex setup without skills, paste [prompts/load-akos.md](../prompts/load-akos.md) or use the long-form block in [generic-agent-instructions.md](generic-agent-instructions.md).
+
+`~/.codex/prompts/*.md` custom prompts still work but are deprecated by OpenAI in favour of skills — do not build the AKOS integration on them.

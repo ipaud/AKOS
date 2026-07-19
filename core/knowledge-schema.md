@@ -1,6 +1,6 @@
 # Knowledge Schema
 
-Every knowledge pack in `packs/` follows the same 16-file contract. Uniform structure is what makes packs machine-loadable: an agent can fetch exactly the file type it needs (`heuristics.md` for a quick pass, `review-checklist.md` for a review) from any pack without reading the whole thing.
+Every knowledge pack in `packs/` follows the same 17-file contract. Uniform structure is what makes packs machine-loadable: an agent can fetch exactly the file type it needs (`heuristics.md` for a quick pass, `review-checklist.md` for a review) from any pack without reading the whole thing.
 
 ## The contract
 
@@ -69,4 +69,4 @@ When unsure, ask: could a linter check it? → engineering rule. Would an expert
 2. Write `principles.md` first — it forces the distillation.
 3. Derive `review-checklist.md` and `engineering-rules.md` from the principles.
 4. Fill the rest; link related packs in the relevant `graphs/` file.
-5. Run `./doctor.sh` — it verifies the 16-file contract.
+5. Run `./doctor.sh` — it verifies the 17-file contract.

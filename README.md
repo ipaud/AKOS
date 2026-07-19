@@ -10,7 +10,7 @@ AI coding agents write plausible code but make junior decisions: unclear navigat
 
 ## How it works
 
-1. **Knowledge packs** (`packs/`) distill one source or domain each (e.g. `packs/ux/steve-krug/`, `packs/security/owasp-top-10/`). Every pack has the same 16-file structure — see [core/knowledge-schema.md](core/knowledge-schema.md).
+1. **Knowledge packs** (`packs/`) distill one source or domain each (e.g. `packs/ux/steve-krug/`, `packs/security/owasp-top-10/`). Every pack has the same 17-file structure — see [core/knowledge-schema.md](core/knowledge-schema.md).
 2. **The core layer** (`core/`) defines how agents reason with the packs: [authority hierarchy](core/authority-model.md), [conflict resolution](core/conflict-resolution.md), [reasoning profiles](core/reasoning-profiles.md) (Prototype → Enterprise), and the [review pipeline](core/review-pipeline.md).
 3. **Agents** (`agents/`) are reviewer role definitions — which packs to load, what to check, severity levels, and a unified report format.
 4. **Workflows** (`workflows/`) chain agents for concrete tasks: new project, new feature, pre-release review.
@@ -45,7 +45,8 @@ Clone it anywhere — `install.sh` symlinks the canonical `~/DEV/AKOS` path for 
 ```bash
 git clone git@github.com:ipaud/AKOS.git ~/DEV/AKOS
 cd ~/DEV/AKOS
-./install.sh      # verifies structure, chmods scripts, symlinks ~/DEV/AKOS + ~/bin/akos
+./install.sh      # verifies structure, chmods scripts, symlinks ~/DEV/AKOS + ~/bin/akos,
+                  # and links the skills into Claude Code and Codex CLI
 ./doctor.sh       # health check
 ```
 
@@ -67,31 +68,55 @@ akos install-project
 
 This creates or updates `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/akos.mdc`, and `.akos/config.md` — appending AKOS sections between `<!-- AKOS:START -->` / `<!-- AKOS:END -->` markers. Existing content is never overwritten; reruns replace only the marked section.
 
-The generated files tell agents to read:
+On tools with skills (Claude Code, Codex CLI) the block is four lines — it just marks the project as AKOS-governed and points at `.akos/config.md`. The skills carry the bootstrap and load on demand, so nothing sits in context until it's needed. On Cursor and other rule-file tools the block keeps the full long-form bootstrap.
 
-- `~/DEV/AKOS/core/constitution.md`
-- `~/DEV/AKOS/core/authority-model.md`
-- `~/DEV/AKOS/core/reasoning-profiles.md`
-- `~/DEV/AKOS/core/review-pipeline.md`
-- `~/DEV/AKOS/agents/` (as needed)
-- `~/DEV/AKOS/packs/` (as needed)
-- `~/DEV/AKOS/packs/personal/pau-avila/` (always)
+## Skills
+
+AKOS ships two skills in `skills/`, using the open agent-skills format that **both Claude Code and Codex CLI** read — the same files serve both tools.
+
+| Skill | What it does |
+|---|---|
+| `akos` | Build mode. Loads the constitution, sets the reasoning profile, loads the Level-0 personal layer, and routes to the 2-5 relevant packs. |
+| `akos-review` | Review mode. Runs the twelve-lens pipeline (full or a single targeted lens) and emits the unified Review Summary. |
+
+`./install.sh` links them into `~/.claude/skills/` and `~/.agents/skills/` as symlinks, so edits to your packs are live in both tools immediately. Check with:
+
+```bash
+akos list-skills
+```
 
 ## Use with specific tools
 
-- **Claude Code** — `akos install-project` writes the AKOS section into `CLAUDE.md`. Claude reads it automatically. To run a review: paste `prompts/run-ux-review.md` or ask "run the AKOS UX review on this screen".
-- **Codex CLI** — copy `templates/codex-instructions.md` into the project (or `AGENTS.md`, which Codex reads).
-- **Cursor** — `akos install-project` creates `.cursor/rules/akos.mdc` (always-on rule pointing at AKOS).
+- **Claude Code** — invoke `akos` or `akos-review`; both also fire automatically when the task matches. `akos install-project` marks the project and sets the profile.
+- **Codex CLI** — same two skills via `~/.agents/skills/`. `/skills` lists them; `$akos` invokes explicitly. Details in `templates/codex-instructions.md`.
+- **Cursor** — `akos install-project` creates `.cursor/rules/akos.mdc` (always-on rule with the full bootstrap; Cursor has no skills).
 - **Gemini CLI** — use `templates/gemini-instructions.md` as `GEMINI.md`.
-- **Anything else** — `templates/generic-agent-instructions.md`.
+- **Anything else** — `templates/generic-agent-instructions.md`, or paste `prompts/load-akos.md`.
+
+## Install as a plugin
+
+Instead of cloning, AKOS can be installed as a plugin in either tool:
+
+```bash
+# Claude Code
+/plugin marketplace add ipaud/AKOS
+/plugin install akos@akos
+
+# Codex CLI
+codex plugin marketplace add ipaud/AKOS
+```
+
+A plugin install is a **copy** in a cache directory. That is right for trying AKOS or sharing it; for your own working copy prefer the clone + `install.sh` symlinks above, so edits to your packs take effect immediately.
 
 ## Run a review
 
 Ask your agent, in any project with AKOS installed:
 
-> Load AKOS. Act as `agents/ux-reviewer.md` with the Production profile and review the checkout screen.
+> Run the AKOS UX review on the checkout screen.
 
-Or use prompts in `prompts/` (`run-full-review.md`, `run-ux-review.md`, `run-security-review.md`, `run-architecture-review.md`). Every review agent produces the same report format with severity levels, scores, and a PASS / PASS WITH FIXES / BLOCKED decision.
+That fires `akos-review`, which resolves the lens, loads `agents/ux-reviewer.md` and its packs, and reports. Say "run the full AKOS review" for all twelve lenses.
+
+On tools without skills, use the prompts in `prompts/` (`run-full-review.md`, `run-ux-review.md`, `run-security-review.md`, `run-architecture-review.md`). Every review agent produces the same report format with severity levels, scores, and a PASS / PASS WITH FIXES / BLOCKED decision.
 
 ## Add a new pack
 
@@ -99,7 +124,7 @@ Or use prompts in `prompts/` (`run-full-review.md`, `run-ux-review.md`, `run-sec
 akos create-pack ux/my-new-source
 ```
 
-This scaffolds the 16-file structure. Fill it following [core/knowledge-schema.md](core/knowledge-schema.md) and the copyright rules in [core/source-policy.md](core/source-policy.md): distill, never copy; cite by title/author/URL only. `prompts/create-new-pack.md` is a ready prompt to have an agent draft it.
+This scaffolds the 17-file structure. Fill it following [core/knowledge-schema.md](core/knowledge-schema.md) and the copyright rules in [core/source-policy.md](core/source-policy.md): distill, never copy; cite by title/author/URL only. `prompts/create-new-pack.md` is a ready prompt to have an agent draft it.
 
 ## Add personal rules
 
@@ -118,9 +143,10 @@ Edit files under `packs/personal/pau-avila/`. They are authority Level 0 — the
 core/        how agents reason (constitution, authority, profiles, pipeline, scoring model)
 packs/       knowledge packs by domain + personal layer
 agents/      13 reviewer role definitions
+skills/      akos + akos-review (Claude Code and Codex CLI)
 workflows/   task-level review flows
 templates/   per-tool integration templates
-prompts/     ready-to-paste prompts
+prompts/     ready-to-paste prompts (fallback for tools without skills)
 graphs/      concept cross-links between packs
 scoring/     0–100 rubrics per dimension
 bin/akos     CLI

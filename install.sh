@@ -40,6 +40,29 @@ else
   ln -s "$AKOS_HOME/bin/akos" "$HOME/bin/akos" && ok "symlinked ~/bin/akos"
 fi
 
+# 3b. Link skills into Claude Code (~/.claude/skills) and Codex CLI
+#     (~/.agents/skills). Symlinks, not copies — edits to packs go live in both
+#     tools immediately. Never clobbers a real directory.
+link_skill() {
+  local skill="$1" dest_dir="$2" tool="$3"
+  local src="$AKOS_HOME/skills/$skill" dest="$dest_dir/$skill"
+  [ -d "$src" ] || { warn "skill '$skill' not found at $src"; return; }
+  mkdir -p "$dest_dir"
+  if [ -L "$dest" ]; then
+    if [ "$(readlink "$dest")" = "$src" ]; then ok "$tool: $skill already linked"; return; fi
+    ln -sfn "$src" "$dest" && ok "$tool: relinked $skill"
+  elif [ -e "$dest" ]; then
+    warn "$tool: $dest is a real directory — leaving it untouched (link manually if intended)"
+  else
+    ln -s "$src" "$dest" && ok "$tool: linked $skill"
+  fi
+}
+
+for skill in akos akos-review; do
+  link_skill "$skill" "$HOME/.claude/skills" "Claude Code"
+  link_skill "$skill" "$HOME/.agents/skills" "Codex CLI"
+done
+
 # 4. PATH hint.
 case ":$PATH:" in
   *":$HOME/bin:"*) ok "~/bin is on PATH" ;;
@@ -63,9 +86,13 @@ cat <<EOF
 ${c_bold}AKOS installed.${c_reset}
   Packs:   $packs
   Agents:  $agents
+  Skills:  akos · akos-review   (Claude Code + Codex CLI)
   CLI:     akos help   (via ~/bin/akos)
 
 Next:
   akos doctor                  # health check
   cd <your-project> && akos install-project   # wire AKOS into a project
+
+Skills are live in both tools — start a new session and invoke 'akos'
+(Codex: '\$akos') or 'akos-review'.
 EOF

@@ -11,7 +11,7 @@ AKOS is a personal, reusable knowledge system, but it's structured so contributi
 ## Adding a knowledge pack
 
 ```bash
-akos create-pack <domain>/<name>     # scaffolds the 16-file structure
+akos create-pack <domain>/<name>     # scaffolds the 17-file structure
 ```
 
 Then, per [core/knowledge-schema.md](core/knowledge-schema.md):
@@ -21,7 +21,8 @@ Then, per [core/knowledge-schema.md](core/knowledge-schema.md):
 3. Derive `review-checklist.md` and `engineering-rules.md` from the principles.
 4. Fill the rest: philosophy, mental-models, heuristics, decision-framework, anti-patterns, examples (invented), prompt-fragments, scoring-rubric, glossary, references, README.
 5. Link the pack in the relevant [graphs/](graphs/) file.
-6. Run `./doctor.sh` — the 16-file contract must pass, no empty files.
+6. Add the pack to the routing table in [skills/akos/SKILL.md](skills/akos/SKILL.md) — a pack that isn't listed there is a pack agents can't route to.
+7. Run `./doctor.sh` — the 17-file contract must pass, every pack must appear in the routing table, no empty files.
 
 ## Distinguishing content types
 
@@ -47,7 +48,7 @@ Core files ([core/](core/)) govern how every agent reasons. Changes here ripple 
 
 - [ ] `./doctor.sh` passes (structure + no empty files)
 - [ ] No copied source text; sources cited by pointer only
-- [ ] New packs linked in the relevant graph
+- [ ] New packs linked in the relevant graph and listed in `skills/akos/SKILL.md`
 - [ ] Content is operational — an agent reading it can *act*
 
 ## Versioning

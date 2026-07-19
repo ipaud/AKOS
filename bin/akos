@@ -72,9 +72,10 @@ Commands:
   link-project         Alias for install-project (current directory)
   list-packs           List all knowledge packs
   list-agents          List all review agents
+  list-skills          List the agent skills (Claude Code + Codex CLI)
   show-profile [name]  Show a reasoning profile (or list them)
   review <domain>      Print the prompt to run a review (ux|security|architecture|full)
-  create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the 16-file structure
+  create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the 17-file structure
 
 AKOS_HOME: $AKOS_HOME
 EOF
@@ -106,6 +107,20 @@ cmd_list_agents() {
     [ -f "$a" ] || continue
     printf '  - %s\n' "$(basename "$a" .md)"
   done
+}
+
+cmd_list_skills() {
+  info "${c_bold}Agent skills${c_reset} (in $AKOS_HOME/skills):"
+  local s name desc
+  for s in "$AKOS_HOME"/skills/*/SKILL.md; do
+    [ -f "$s" ] || continue
+    name="$(basename "$(dirname "$s")")"
+    desc="$(sed -n 's/^description:[[:space:]]*//p' "$s" | head -n 1 | cut -c1-72)"
+    printf '  - %s%s%s — %s…\n' "$c_bold" "$name" "$c_reset" "$desc"
+  done
+  info ""
+  info "Linked into: ~/.claude/skills (Claude Code) · ~/.agents/skills (Codex CLI)"
+  info "Not linked? Run ./install.sh"
 }
 
 cmd_show_profile() {
@@ -144,17 +159,13 @@ cmd_install_project() {
   info "Installing AKOS integration into: $dir"
 
   local claude_body agents_body cursor_body config_body
+  # Short block: the `akos` skill carries the bootstrap in Claude Code and
+  # Codex CLI, so this only needs to signal that AKOS applies here.
   claude_body=$(cat <<'BODY'
-## AKOS — AI Knowledge Operating System
-
-This project uses AKOS (global knowledge system at `~/DEV/AKOS`). Before working on user-facing features, architecture, security, or data, load the relevant AKOS knowledge.
-
-Bootstrap (read in order): `~/DEV/AKOS/core/constitution.md`, `authority-model.md`, `reasoning-profiles.md`, `review-pipeline.md`, then `~/DEV/AKOS/packs/personal/pau-avila/`. Load the 2-5 task-relevant packs from `~/DEV/AKOS/packs/`. For reviews use `~/DEV/AKOS/agents/` and the unified Review Summary format.
-
-Safety floor (never waived, any profile): security, accessibility basics, data integrity.
-Defaults: four async states (empty/loading/error/success); mobile-responsive by default; Supabase RLS at table creation for deployed projects; challenge unnecessary complexity; anti-template UI; direct actionable output.
-
-Active profile and overrides: `.akos/config.md`.
+## AKOS
+This project uses AKOS. Invoke the `akos` skill before non-trivial work on
+user-facing features, architecture, security, or data; `akos-review` to review.
+Active profile and overrides: `.akos/config.md`
 BODY
 )
   agents_body="$claude_body"
@@ -231,7 +242,8 @@ tags: []
 sources: []
 related: []
 EOF
-  ok "Scaffolded pack at $dest (16 files). Fill principles.md first; then run ./doctor.sh"
+  ok "Scaffolded pack at $dest (17 files). Fill principles.md first."
+  warn "Add '$name' to the routing table in skills/akos/SKILL.md, then run ./doctor.sh"
 }
 
 main() {
@@ -243,6 +255,7 @@ main() {
     link-project)       cmd_install_project "$@" ;;
     list-packs)         cmd_list_packs ;;
     list-agents)        cmd_list_agents ;;
+    list-skills)        cmd_list_skills ;;
     show-profile)       cmd_show_profile "$@" ;;
     review)             cmd_review "$@" ;;
     create-pack)        cmd_create_pack "$@" ;;
