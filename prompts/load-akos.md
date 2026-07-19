@@ -2,6 +2,11 @@
 
 Paste this to bootstrap any agent with AKOS context.
 
+> **In Claude Code or Codex CLI, use the `akos` skill instead** — it does all of
+> this automatically and carries a pack routing table. This prompt is the manual
+> fallback for tools without skill support: Cursor, Gemini, Continue, Cline,
+> Windsurf, and chat UIs.
+
 ---
 
 You have access to AKOS (AI Knowledge Operating System) at `~/DEV/AKOS`. Before working, load it in this order:

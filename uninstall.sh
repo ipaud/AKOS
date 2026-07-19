@@ -19,6 +19,19 @@ else
   warn "~/bin/akos is not a symlink (or absent) — leaving it"
 fi
 
+# 1b. Remove the skill symlinks from Claude Code and Codex CLI.
+#     Only removes links that point back into this repo.
+for dir in "$HOME/.claude/skills" "$HOME/.agents/skills"; do
+  for skill in akos akos-review; do
+    link="$dir/$skill"
+    if [ -L "$link" ] && [ "$(readlink "$link")" = "$AKOS_HOME/skills/$skill" ]; then
+      rm -f "$link" && ok "removed $link"
+    elif [ -e "$link" ]; then
+      warn "$link is not an AKOS symlink — leaving it"
+    fi
+  done
+done
+
 # 2. Remove the ~/DEV symlink ONLY if it's a symlink we could have created.
 if [ -L "$HOME/DEV" ]; then
   target="$(readlink "$HOME/DEV")"

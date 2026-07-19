@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # doctor.sh — AKOS health check.
-# Verifies directory structure, the 16-file pack contract, executable bits,
+# Verifies directory structure, the 17-file pack contract, executable bits,
 # symlinks, and empty files. Exits non-zero on any failure.
 #
 set -uo pipefail
@@ -35,8 +35,8 @@ for cf in "${core_files[@]}"; do
   if [ -f "$AKOS_HOME/core/$cf.md" ]; then ok "core/$cf.md"; else fail "missing core/$cf.md"; fi
 done
 
-# --- Pack 16-file contract ---
-printf '\n%sPacks (16-file contract)%s\n' "$c_bold" "$c_reset"
+# --- Pack 17-file contract ---
+printf '\n%sPacks (17-file contract)%s\n' "$c_bold" "$c_reset"
 pack_files=(README.md metadata.yaml philosophy.md mental-models.md principles.md \
   heuristics.md engineering-rules.md decision-framework.md anti-patterns.md \
   review-checklist.md examples.md prompt-fragments.md scoring-rubric.md glossary.md \
@@ -80,6 +80,62 @@ count_check graphs 5 "graphs"
 count_check prompts 6 "prompts"
 count_check templates 6 "templates"
 
+# --- Skills (Claude Code + Codex CLI, same open agent-skills format) ---
+printf '\n%sSkills%s\n' "$c_bold" "$c_reset"
+akos_skill="$AKOS_HOME/skills/akos/SKILL.md"
+for skill in akos akos-review; do
+  sf="$AKOS_HOME/skills/$skill/SKILL.md"
+  if [ ! -f "$sf" ]; then fail "missing skills/$skill/SKILL.md"; continue; fi
+  if [ "$(head -n 1 "$sf")" != "---" ]; then
+    fail "skills/$skill/SKILL.md does not open with YAML frontmatter"
+    continue
+  fi
+  # Frontmatter is everything up to the second '---'.
+  fm="$(awk 'NR==1 && $0=="---" {next} $0=="---" {exit} {print}' "$sf")"
+  fm_name="$(printf '%s\n' "$fm" | sed -n 's/^name:[[:space:]]*//p' | head -n 1)"
+  fm_desc="$(printf '%s\n' "$fm" | sed -n 's/^description:[[:space:]]*//p' | head -n 1)"
+  if [ "$fm_name" = "$skill" ]; then ok "skills/$skill: name matches directory"
+  else fail "skills/$skill: frontmatter name '$fm_name' != directory '$skill'"; fi
+  if [ -n "$fm_desc" ]; then ok "skills/$skill: description present"
+  else fail "skills/$skill: empty or missing description"; fi
+done
+
+# Every pack must appear in the akos skill's routing table, or the model
+# cannot route to it. This replaces a generated index — fail loudly on drift.
+if [ -f "$akos_skill" ]; then
+  missing_packs=0
+  for pack in "$AKOS_HOME"/packs/*/*/; do
+    [ -d "$pack" ] || continue
+    pname="$(basename "$pack")"
+    grep -qwF "$pname" "$akos_skill" || {
+      fail "pack '$pname' is not listed in skills/akos/SKILL.md routing table"
+      missing_packs=$((missing_packs+1))
+    }
+  done
+  [ "$missing_packs" -eq 0 ] && ok "all packs listed in skills/akos/SKILL.md"
+fi
+
+# --- Plugin manifests ---
+printf '\n%sPlugin manifests%s\n' "$c_bold" "$c_reset"
+for m in .claude-plugin/plugin.json .claude-plugin/marketplace.json \
+         .codex-plugin/plugin.json .agents/plugins/marketplace.json; do
+  if [ ! -f "$AKOS_HOME/$m" ]; then fail "missing $m"; continue; fi
+  if python3 -m json.tool "$AKOS_HOME/$m" >/dev/null 2>&1; then ok "$m parses"
+  else fail "$m is not valid JSON"; fi
+done
+# Manifest versions must track VERSION, or installs ship a stale label.
+if [ -f "$AKOS_HOME/VERSION" ]; then
+  ver="$(tr -d '[:space:]' < "$AKOS_HOME/VERSION")"
+  ver_issues=0
+  for m in .claude-plugin/plugin.json .claude-plugin/marketplace.json \
+           .codex-plugin/plugin.json .agents/plugins/marketplace.json; do
+    [ -f "$AKOS_HOME/$m" ] || continue
+    grep -qF "\"version\": \"$ver\"" "$AKOS_HOME/$m" || {
+      fail "$m version does not match VERSION ($ver)"; ver_issues=$((ver_issues+1)); }
+  done
+  [ "$ver_issues" -eq 0 ] && ok "manifest versions match VERSION ($ver)"
+fi
+
 # --- Executable bits ---
 printf '\n%sExecutables%s\n' "$c_bold" "$c_reset"
 for s in install.sh update.sh doctor.sh uninstall.sh bin/akos; do
@@ -90,6 +146,13 @@ done
 printf '\n%sSymlinks%s\n' "$c_bold" "$c_reset"
 if [ -e "$HOME/DEV/AKOS" ]; then ok "~/DEV/AKOS resolves"; else warn "~/DEV/AKOS not found (run ./install.sh)"; fi
 if [ -L "$HOME/bin/akos" ]; then ok "~/bin/akos symlink present"; else warn "~/bin/akos symlink absent (run ./install.sh)"; fi
+for dir in "$HOME/.claude/skills:Claude Code" "$HOME/.agents/skills:Codex CLI"; do
+  d="${dir%%:*}"; label="${dir##*:}"
+  for skill in akos akos-review; do
+    if [ -e "$d/$skill" ]; then ok "$label: $skill linked"
+    else warn "$label: $skill not linked (run ./install.sh)"; fi
+  done
+done
 
 # --- Summary ---
 printf '\n%sSummary%s  %s✓ %d%s  %s! %d%s  %s✗ %d%s\n' \

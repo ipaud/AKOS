@@ -1,0 +1,15 @@
+{
+  "name": "akos",
+  "displayName": "AKOS — AI Knowledge Operating System",
+  "version": "1.1.0",
+  "description": "Senior-level UX, product, architecture, security, accessibility, performance, and testing knowledge as loadable packs, with a twelve-lens review pipeline and reasoning profiles.",
+  "author": {
+    "name": "Pau Avila",
+    "url": "https://github.com/ipaud"
+  },
+  "homepage": "https://github.com/ipaud/AKOS",
+  "repository": "https://github.com/ipaud/AKOS",
+  "license": "MIT",
+  "keywords": ["knowledge", "review", "ux", "accessibility", "security", "architecture"],
+  "skills": "./skills/"
+}
