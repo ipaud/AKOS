@@ -10,7 +10,11 @@ permissive convention on top of that).
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "security"))
+from _sql_utils import mask_sql_comments  # noqa: E402
 
 DESTRUCTIVE_RE = re.compile(
     r"\b(DROP\s+TABLE|DROP\s+COLUMN|TRUNCATE\s+TABLE)\b",
@@ -93,8 +97,12 @@ def run(files: list[Path]) -> list[dict]:
         except OSError:
             continue
         lines = text.split("\n")
+        # Search the masked copy: a comment documenting a planned `drop column`
+        # is a plan, not a statement. Its siblings mask; this one did not.
+        # Offsets are preserved, so `lines` and the guard scan stay aligned.
+        masked = mask_sql_comments(text)
 
-        for m in DESTRUCTIVE_RE.finditer(text):
+        for m in DESTRUCTIVE_RE.finditer(masked):
             line_no = text.count("\n", 0, m.start()) + 1
             if has_adjacent_guard(lines, line_no):
                 continue

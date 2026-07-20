@@ -183,3 +183,55 @@ def _git_root(path: Path):
         if (parent / ".git").exists():
             return parent
     return None
+
+
+def mask_js_comments(text: str) -> str:
+    """Blank out //, /* */ and JSX {/* */} comments, preserving byte offsets.
+
+    Line and column numbers stay valid because every masked character is
+    replaced by a space rather than removed — the same contract as
+    _sql_utils.mask_sql_comments.
+
+    Needed because a rule that greps for an identifier finds it in the comment
+    warning against it. On a real repository, SERVICE_ROLE_IN_CLIENT flagged
+    `src/lib/supabase.ts` for a comment reading "A service_role key ... must
+    NEVER be a VITE_* variable" — the detector reported the warning as the
+    defect.
+
+    String literals are skipped so a `//` inside a URL is not treated as a
+    comment.
+    """
+    out = list(text)
+    i, n = 0, len(text)
+    quote = None
+    while i < n:
+        ch = text[i]
+        if quote:
+            if ch == "\\":
+                i += 2
+                continue
+            if ch == quote:
+                quote = None
+            i += 1
+            continue
+        if ch in "\"'`":
+            quote = ch
+            i += 1
+            continue
+        if ch == "/" and i + 1 < n and text[i + 1] == "/":
+            while i < n and text[i] != "\n":
+                out[i] = " "
+                i += 1
+            continue
+        if ch == "/" and i + 1 < n and text[i + 1] == "*":
+            while i < n and not (text[i] == "*" and i + 1 < n and text[i + 1] == "/"):
+                if text[i] != "\n":
+                    out[i] = " "
+                i += 1
+            for _ in range(2):
+                if i < n:
+                    out[i] = " "
+                    i += 1
+            continue
+        i += 1
+    return "".join(out)

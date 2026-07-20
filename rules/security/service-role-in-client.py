@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _secret_utils import JWT_RE, decode_jwt_claims  # noqa: E402
+from _secret_utils import JWT_RE, decode_jwt_claims, mask_js_comments  # noqa: E402
 
 SERVER_PATH_MARKERS = ("api", "server", "functions", "middleware")
 SERVICE_ROLE_RE = re.compile(r"service_role", re.IGNORECASE)
@@ -46,6 +46,10 @@ def run(files: list[Path]) -> list[dict]:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
+        # A comment warning against putting a service_role key here is not a
+        # service_role key being put here. Offsets are preserved, so line
+        # numbers below stay correct.
+        text = mask_js_comments(text)
 
         decodable_hit_lines = set()
         for m in JWT_RE.finditer(text):

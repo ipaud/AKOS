@@ -181,3 +181,99 @@ class TestSecretDetectorRespectsGitignore(FixtureCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestA11yMatchesElementsNotComponents(FixtureCase):
+    """`<input\\b` with IGNORECASE matched `<Input>` — the React component,
+    which JSX capitalises precisely to distinguish it from the element. On a
+    design-system codebase 110 of 122 findings pointed at components, burying
+    the 12 genuine `<input>` elements underneath them."""
+
+    def setUp(self):
+        super().setUp()
+        self.rule = load("rules/accessibility/a11y-input-no-label.py")
+
+    def test_capitalised_component_is_not_an_html_input(self):
+        f = self.write("Form.tsx",
+                       '<Field label="Nom comercial">\n'
+                       '  <Input placeholder="Ex: Tech" {...register("name")} />\n'
+                       "</Field>\n")
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_lowercase_html_input_is_still_reported(self):
+        f = self.write("Form.tsx", '<input type="text" placeholder="Name" />\n')
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+
+class TestCommentsAreNotEvidence(FixtureCase):
+    """Two detectors reported their own warning text. The one that flagged
+    `src/lib/supabase.ts` matched a comment reading 'A service_role key must
+    NEVER be a VITE_* variable' — the warning against the defect, read as the
+    defect."""
+
+    def test_service_role_in_a_comment_is_not_a_finding(self):
+        rule = load("rules/security/service-role-in-client.py")
+        f = self.write("src/lib/supabase.ts",
+                       "/**\n"
+                       " * Only the anon key belongs here. A service_role key\n"
+                       " * must NEVER be a VITE_* variable.\n"
+                       " */\n"
+                       "export const client = createClient(url, anonKey);\n")
+        self.assertEqual(rule.run([f]), [])
+
+    def test_service_role_in_real_code_is_still_reported(self):
+        rule = load("rules/security/service-role-in-client.py")
+        f = self.write("src/lib/admin.ts",
+                       'const key = import.meta.env.VITE_SERVICE_ROLE_KEY;\n')
+        self.assertEqual(len(rule.run([f])), 1)
+
+    def test_drop_column_inside_a_comment_is_not_a_finding(self):
+        rule = load("rules/devops/destructive-migration-no-guard.py")
+        f = self.write("migrations/001.sql",
+                       "-- PLANNED DEBT: a later migration must do\n"
+                       "--   alter table requests drop column \"date\";\n"
+                       "create table notes (id uuid primary key);\n")
+        self.assertEqual(rule.run([f]), [])
+
+    def test_a_real_drop_outside_a_comment_is_still_reported(self):
+        rule = load("rules/devops/destructive-migration-no-guard.py")
+        f = self.write("migrations/001.sql", "drop table activity_log;\n")
+        self.assertEqual(len(rule.run([f])), 1)
+
+
+class TestRlsDetectorUnderstandsDynamicSql(FixtureCase):
+    """RLS enabled by `execute format(...)` over an array literal is stronger
+    than per-table DDL — a table added to the list cannot be half-protected.
+    The detector could not see it and reported 31 CRITICALs on a real
+    repository against tables protected exactly that way."""
+
+    def setUp(self):
+        super().setUp()
+        self.rule = load("rules/security/supabase-rls-disabled.py")
+
+    LOOP = (
+        "do $$\ndeclare t text;\nbegin\n"
+        "  foreach t in array array['clients','contacts'] loop\n"
+        "    execute format('alter table %I enable row level security;', t);\n"
+        "  end loop;\nend $$;\n"
+    )
+
+    def test_tables_in_the_loop_array_are_not_reported(self):
+        f = self.write("001.sql",
+                       "create table clients (id uuid primary key);\n"
+                       "create table contacts (id uuid primary key);\n" + self.LOOP)
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_a_table_outside_the_loop_array_is_still_reported(self):
+        """The fix must not become a blanket amnesty for any file that
+        happens to contain a dynamic-RLS loop."""
+        f = self.write("001.sql",
+                       "create table clients (id uuid primary key);\n"
+                       "create table forgotten (id uuid primary key);\n" + self.LOOP)
+        findings = self.rule.run([f])
+        self.assertEqual(len(findings), 1)
+        self.assertIn("forgotten", findings[0]["evidence"][0]["snippet"])
+
+    def test_no_dynamic_loop_means_normal_behaviour(self):
+        f = self.write("001.sql", "create table public.notes (id uuid primary key);\n")
+        self.assertEqual(len(self.rule.run([f])), 1)
