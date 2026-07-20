@@ -81,7 +81,7 @@ akos eval --report .akos/reviews/<id>/report.md --case <case-id>
 
 ## Known gaps, stated rather than left to be discovered
 
-- **Eight cases across six lenses** (security ×3, testing, release, accessibility, architecture, mobile). Six lenses have no coverage: product, UX, copy, frontend, performance, database. A green run says nothing about those.
+- **Ten cases across eight lenses** (security ×3, testing, release, accessibility, architecture, mobile, copy, frontend). Four lenses have no coverage: product, UX, performance, database. A green run says nothing about those.
 - **No held-out set.** The cases were written by the same process that fixed the detectors they exercise. That is the contamination `agent-evals` warns about; it is bounded here because the fixtures come from real code the author did not write, but it is not eliminated.
-- **No variance measurement.** Nothing here runs the same review twice to see how far apart the results land. Until that exists, "the score means the same thing next month" remains an aspiration in `core/scoring-model.md` rather than a measured property.
+- **No variance measurement, and it cannot be produced from inside a single session.** Measuring how far apart two reviews of the same fixture land requires the second one not to be informed by the first. An agent reviewing a fixture it reviewed an hour ago is not producing an independent sample, and a number derived that way would be contaminated in the flattering direction. This needs two separate sessions, or two different reviewers, and until then `core/scoring-model.md`'s "a 75 that means the same thing next month" stays an aspiration rather than a measured property. Stated here rather than satisfied with a number that looks like evidence.
 - **Recall is measured; precision is not.** A report that lists thirty findings, one of which is correct, passes. Grading unlisted findings needs a judge, which needs its own calibration.
