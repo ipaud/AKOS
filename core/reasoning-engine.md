@@ -25,7 +25,7 @@ How an agent actually thinks with AKOS loaded: the loop that connects task → p
 
 Loading everything defeats the system — context fills with noise and the agent averages sources instead of ranking them. Selection rules:
 
-- **Always:** `packs/personal/pau-avila/` (Level 0), the constitution's loading order.
+- **Always:** `packs/personal/<personal_profile>/` (Level 0, default `pau-avila` — see `.akos/config.md`), the constitution's loading order.
 - **By task domain:** the agent definition in `agents/*.md` names its packs; use that list for reviews.
 - **By file type touched:** UI files → ux packs; queries/migrations → postgres/supabase + security; API routes → rest/security.
 - **Depth by need:** quick pass → `heuristics.md` + `review-checklist.md` only; deep review → add `principles.md`, `anti-patterns.md`, `engineering-rules.md`; teaching → add `philosophy.md`, `mental-models.md`.

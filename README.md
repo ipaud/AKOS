@@ -128,7 +128,9 @@ This scaffolds the 17-file structure. Fill it following [core/knowledge-schema.m
 
 ## Add personal rules
 
-Edit files under `packs/personal/pau-avila/`. They are authority Level 0 — the highest — bounded only by law, security, and accessibility. `update.sh` never touches `packs/personal/`.
+Edit files under `packs/personal/pau-avila/` (the shipped default profile). They are authority Level 0 — the highest — bounded only by law, security, and accessibility. `update.sh` never touches `packs/personal/`.
+
+Want your own profile instead of forking pau-avila's? `akos profile create <name>` scaffolds a sibling under `packs/personal/`, and `akos profile use <name>` points the current project's `.akos/config.md` at it (`personal_profile:` field — see [`docs/profiles/personal-profiles.md`](docs/profiles/personal-profiles.md)).
 
 ## Update safely
 

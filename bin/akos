@@ -44,13 +44,24 @@ write_marked_section() {
     return
   fi
   if grep -qF "$MARK_START" "$file" 2>/dev/null; then
-    # Replace between markers using awk (portable).
+    # Replace between markers via sed line ranges — NOT awk -v with a
+    # multi-line value. Confirmed: BSD awk (macOS's stock /usr/bin/awk)
+    # cannot accept an embedded newline in a `-v var=value` assignment; it
+    # exits nonzero with "newline in string" and prints nothing. Under
+    # `set -e` that aborts before `mv` runs, so it never corrupts the file —
+    # but it also never updates it, silently, which is worse: every rerun of
+    # `install-project` against an already-marked file was a silent no-op.
+    local start_line end_line total_lines
+    start_line="$(grep -nF "$MARK_START" "$file" | head -n1 | cut -d: -f1)"
+    end_line="$(grep -nF "$MARK_END" "$file" | head -n1 | cut -d: -f1)"
+    total_lines="$(wc -l < "$file" | tr -d ' ')"
     local tmp; tmp="$(mktemp)"
-    awk -v start="$MARK_START" -v end="$MARK_END" -v repl="$block" '
-      $0 ~ start {print repl; skip=1; next}
-      $0 ~ end && skip {skip=0; next}
-      !skip {print}
-    ' "$file" > "$tmp"
+    {
+      [ "$start_line" -gt 1 ] && sed -n "1,$((start_line - 1))p" "$file"
+      printf '%s\n' "$block"
+      [ "$end_line" -lt "$total_lines" ] && sed -n "$((end_line + 1)),\$p" "$file"
+      true
+    } > "$tmp"
     mv "$tmp" "$file"
     ok "updated AKOS section in $file"
   else
@@ -77,6 +88,7 @@ Commands:
   review <domain>      Print the prompt to run a review (ux|security|architecture|full)
   create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the 17-file structure
   validate [target]    Validate packs/agents/workflows against their schemas (--format json)
+  profile <sub>        list|show <name>|create <name>|use <name> [dir] — personal profiles
 
 AKOS_HOME: $AKOS_HOME
 EOF
@@ -187,7 +199,7 @@ alwaysApply: true
 
 This project uses AKOS (global knowledge system at ~/DEV/AKOS). For user-facing features, architecture, security, or data work, load the relevant AKOS knowledge first.
 
-Bootstrap: ~/DEV/AKOS/core/{constitution,authority-model,reasoning-profiles,review-pipeline}.md, then ~/DEV/AKOS/packs/personal/pau-avila/. Load the 2-5 relevant packs from ~/DEV/AKOS/packs/. For reviews use ~/DEV/AKOS/agents/ and the unified Review Summary format.
+Bootstrap: ~/DEV/AKOS/core/{constitution,authority-model,reasoning-profiles,review-pipeline}.md, then the personal layer named in .akos/config.md (personal_profile field, default pau-avila) at ~/DEV/AKOS/packs/personal/<profile>/. Load the 2-5 relevant packs from ~/DEV/AKOS/packs/. For reviews use ~/DEV/AKOS/agents/ and the unified Review Summary format.
 
 Safety floor (never waived): security, accessibility basics, data integrity.
 Defaults: four async states; mobile-responsive by default; Supabase RLS at table creation (deployed); challenge complexity; anti-template UI; direct actionable output.
@@ -198,6 +210,9 @@ BODY
 
 ## Reasoning profile
 profile: Startup MVP
+
+## Personal profile
+personal_profile: pau-avila
 
 ## Project context
 - Stack:
@@ -269,6 +284,85 @@ EOF
   warn "Add '$name' to the routing table in skills/akos/SKILL.md, then run ./doctor.sh"
 }
 
+cmd_profile() {
+  local sub="${1:-}"; shift || true
+  case "$sub" in
+    list)   cmd_profile_list ;;
+    show)   cmd_profile_show "$@" ;;
+    create) cmd_profile_create "$@" ;;
+    use)    cmd_profile_use "$@" ;;
+    *)      err "Usage: akos profile <list|show|create|use> [name]"; return 1 ;;
+  esac
+}
+
+cmd_profile_list() {
+  info "${c_bold}Personal profiles${c_reset} (in $AKOS_HOME/packs/personal):"
+  local p name
+  for p in "$AKOS_HOME"/packs/personal/*/; do
+    [ -d "$p" ] || continue
+    name="$(basename "$p")"
+    [ "$name" = "_template" ] && continue
+    printf '  - %s\n' "$name"
+  done
+}
+
+cmd_profile_show() {
+  local name="${1:-}"
+  if [ -z "$name" ]; then err "Usage: akos profile show <name>"; return 1; fi
+  local dir="$AKOS_HOME/packs/personal/$name"
+  if [ ! -d "$dir" ]; then err "No such profile: $name (run 'akos profile list')"; return 1; fi
+  cat "$dir/README.md"
+  echo
+  cat "$dir/principles.md"
+}
+
+cmd_profile_create() {
+  local name="${1:-}"
+  if [ -z "$name" ]; then err "Usage: akos profile create <name>"; return 1; fi
+  local dir="$AKOS_HOME/packs/personal/$name"
+  if [ -d "$dir" ]; then err "Profile already exists: $dir"; return 1; fi
+  cp -R "$AKOS_HOME/packs/personal/_template" "$dir"
+  # Fill in the placeholder name across the copied files. Shells to python3
+  # rather than `sed -i` — BSD and GNU sed diverge on the in-place suffix
+  # argument; python3 is already the repo's one accepted dependency.
+  python3 -c "
+import pathlib
+d = pathlib.Path('$dir')
+for f in d.glob('*.md'):
+    text = f.read_text()
+    f.write_text(text.replace('<your name>', '$name'))
+"
+  ok "Scaffolded personal profile at $dir (10 files). Fill principles.md first."
+  warn "Run 'akos profile use $name' in a project to activate it there."
+}
+
+cmd_profile_use() {
+  local name="${1:-}"
+  local dir="${2:-$PWD}"
+  if [ -z "$name" ]; then err "Usage: akos profile use <name> [project-dir]"; return 1; fi
+  if [ ! -d "$AKOS_HOME/packs/personal/$name" ]; then
+    err "No such profile: $name (run 'akos profile list')"; return 1
+  fi
+  local config="$dir/.akos/config.md"
+  if [ ! -f "$config" ]; then
+    err "$config not found — run 'akos install-project' in $dir first"; return 1
+  fi
+  local body
+  body="$(awk -v start="$MARK_START" -v end="$MARK_END" '
+    $0 ~ start {f=1; next} $0 ~ end {f=0} f {print}
+  ' "$config")"
+  if [ -z "$body" ]; then
+    err "$config has no AKOS-managed section — run 'akos install-project' first"; return 1
+  fi
+  if printf '%s\n' "$body" | grep -q '^personal_profile:'; then
+    body="$(printf '%s\n' "$body" | sed "s/^personal_profile:.*/personal_profile: $name/")"
+  else
+    body="$(printf '%s\n\n## Personal profile\npersonal_profile: %s\n' "$body" "$name")"
+  fi
+  write_marked_section "$config" "$body"
+  ok "personal_profile set to '$name' in $config"
+}
+
 main() {
   local cmd="${1:-help}"; shift || true
   case "$cmd" in
@@ -283,6 +377,7 @@ main() {
     validate)           cmd_validate "$@" ;;
     review)             cmd_review "$@" ;;
     create-pack)        cmd_create_pack "$@" ;;
+    profile)            cmd_profile "$@" ;;
     *)                  err "Unknown command: $cmd"; echo; cmd_help; exit 1 ;;
   esac
 }

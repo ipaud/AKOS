@@ -60,5 +60,6 @@ An agent bootstrapping AKOS reads, in order:
 2. [authority-model.md](authority-model.md)
 3. [reasoning-profiles.md](reasoning-profiles.md) — then picks or asks for the profile
 4. [review-pipeline.md](review-pipeline.md)
-5. `packs/personal/pau-avila/` — the Level 0 layer
+5. `packs/personal/<personal_profile>/` — the Level 0 layer (named in
+   `.akos/config.md`'s `personal_profile` field; default `pau-avila`)
 6. Whatever packs the task or agent definition requires

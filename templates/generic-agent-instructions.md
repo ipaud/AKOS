@@ -14,7 +14,7 @@ Before non-trivial work, read in order:
 2. `~/DEV/AKOS/core/authority-model.md` — source ranking (L0 personal rules highest, then L1 standards → L4 community; a security/accessibility/data-integrity floor sits above all).
 3. `~/DEV/AKOS/core/reasoning-profiles.md` — determine the profile (`.akos/config.md`).
 4. `~/DEV/AKOS/core/review-pipeline.md` — the review structure.
-5. `~/DEV/AKOS/packs/personal/pau-avila/` — Level-0 personal rules, always apply.
+5. `~/DEV/AKOS/packs/personal/<personal_profile>/` — Level-0 personal rules, always apply. `<personal_profile>` is named in this project's `.akos/config.md`; default `pau-avila` if absent.
 6. The 2-5 task-relevant packs under `~/DEV/AKOS/packs/` (organized by domain: ux, architecture, product, security, performance, frontend, backend, testing, devops).
 
 ## Applying

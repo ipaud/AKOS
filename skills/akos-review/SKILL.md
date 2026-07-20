@@ -17,6 +17,8 @@ profile:
 - **Reasoning profile** (default **Startup MVP**) — its weight table in
   `core/reasoning-profiles.md` decides which lenses are strict, light, or
   skipped. The pipeline order never changes.
+- **Personal profile** — which `packs/personal/<name>/` step 11 applies.
+  Default **pau-avila** if absent or unset.
 - **Profile overrides** — apply over the profile's default weights. An override
   can raise a lens's strictness or lower ceremony; it can never lower the safety
   floor. Report which lenses ran at an overridden weight.
@@ -28,7 +30,8 @@ profile:
   not against generic taste. A screen that ignores the committed direction is a
   finding.
 
-Read `packs/personal/pau-avila/` — Level 0, always applies (pipeline step 11).
+Read `packs/personal/<personal_profile>/` — Level 0, always applies (pipeline
+step 11).
 
 ## 2. Resolve the lens
 
@@ -44,7 +47,7 @@ Read `packs/personal/pau-avila/` — Level 0, always applies (pipeline step 11).
 | 8 | Security | `security-reviewer.md` |
 | 9 | Performance | `performance-reviewer.md` |
 | 10 | Testing | `testing-reviewer.md` |
-| 11 | Personal rules | all agents — `packs/personal/pau-avila/` |
+| 11 | Personal rules | all agents — `packs/personal/<personal_profile>/` |
 | 12 | Release readiness | `release-reviewer.md` |
 
 `agents/database-reviewer.md` sits outside the twelve — run it on schema,

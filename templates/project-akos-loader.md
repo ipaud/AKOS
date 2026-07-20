@@ -10,6 +10,15 @@ Written to a project's `.akos/config.md` by `akos install-project`. This is the 
 <!-- One of: Prototype | Startup MVP | Production | Enterprise | Game Dev | Internal Tool -->
 profile: Startup MVP
 
+## Personal profile
+
+<!-- Which packs/personal/<name>/ to load as the Level-0 layer.
+     Default if this section is absent: pau-avila (unchanged from before
+     this field existed — every project scaffolded before this section
+     was added keeps working identically). Run `akos profile list` to see
+     what's available, `akos profile create <name>` to make a new one. -->
+personal_profile: pau-avila
+
 ## Project context
 
 - **Stack:** <!-- e.g. React + Tailwind + Supabase; Godot; etc. -->
