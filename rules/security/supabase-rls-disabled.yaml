@@ -1,0 +1,23 @@
+id: SUPABASE_RLS_DISABLED
+title: Table created without Row Level Security enabled
+domain: security
+level: A
+severity:
+  default: CRITICAL
+  profiles:
+    Prototype: HIGH
+    Game Dev: HIGH
+    Internal Tool: HIGH
+confidence: Certain
+related_packs:
+  - backend/supabase
+  - security/owasp-top-10
+detector: rules/security/supabase-rls-disabled.py
+applies_to:
+  glob: ["**/*.sql"]
+  target: project-source
+recommendation: Add ALTER TABLE <table> ENABLE ROW LEVEL SECURITY in the same migration, right after CREATE TABLE and before any GRANTs.
+references:
+  - packs/backend/supabase/engineering-rules.md
+version: 1
+status: stable

@@ -1,0 +1,17 @@
+id: PACK_EXPIRED
+title: Knowledge pack is past its review_after date
+domain: meta
+level: A
+severity:
+  default: MEDIUM
+confidence: Certain
+related_packs: []
+detector: rules/meta/pack-expired.py
+applies_to:
+  glob: ["packs/*/*/metadata.yaml"]
+  target: akos-packs
+recommendation: Re-verify this pack's principles and engineering rules against its sources are still accurate, then update last_reviewed (and review_after) in metadata.yaml.
+references:
+  - docs/maintenance/freshness.md
+version: 1
+status: stable

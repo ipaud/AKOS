@@ -1,0 +1,19 @@
+id: SERVICE_ROLE_IN_CLIENT
+title: service_role reference reachable from client-side code
+domain: security
+level: A
+severity:
+  default: HIGH
+confidence: High
+related_packs:
+  - backend/supabase
+  - security/owasp-top-10
+detector: rules/security/service-role-in-client.py
+applies_to:
+  glob: ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "app/**/*.ts", "app/**/*.tsx", "pages/**/*.ts", "pages/**/*.tsx", "client/**/*.ts", "client/**/*.tsx"]
+  target: project-source
+recommendation: service_role bypasses RLS entirely — it must only be referenced server-side (edge functions, API routes), gated by a caller-identity check. Move this reference behind a server boundary.
+references:
+  - packs/backend/supabase/engineering-rules.md
+version: 1
+status: stable

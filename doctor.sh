@@ -205,6 +205,28 @@ else
   fi
 fi
 
+# --- Pack freshness (advisory) ---
+# Same PACK_EXPIRED detector `akos rules` uses, called directly — repo
+# self-maintenance a maintainer should see on a routine health check, not
+# only when explicitly running the rules command.
+printf '\n%sPack freshness%s\n' "$c_bold" "$c_reset"
+if [ "$HAVE_PYTHON3" -eq 0 ]; then
+  warn "python3 not found — skipping pack freshness check"
+else
+  expired_out="$(python3 "$AKOS_HOME/rules/runner.py" "$AKOS_HOME" --rule PACK_EXPIRED --format json 2>&1)"
+  expired_rc=$?
+  if [ "$expired_rc" -eq 1 ]; then
+    fail "PACK_EXPIRED rule failed to run (exit $expired_rc)"
+  else
+    expired_count="$(printf '%s' "$expired_out" | python3 -c "import json,sys; print(len(json.load(sys.stdin)))" 2>/dev/null || echo "?")"
+    if [ "$expired_count" = "0" ]; then
+      ok "no packs past their review_after date"
+    else
+      warn "$expired_count pack(s) past review_after — run 'akos freshness --expired' for detail"
+    fi
+  fi
+fi
+
 # --- Executable bits ---
 printf '\n%sExecutables%s\n' "$c_bold" "$c_reset"
 for s in install.sh update.sh doctor.sh uninstall.sh bin/akos; do
