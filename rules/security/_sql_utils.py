@@ -124,3 +124,28 @@ def dynamically_rls_enabled_tables(masked_sql: str) -> set[str]:
     names = {n.lower() for m in ARRAY_LITERAL_RE.finditer(masked_sql)
              for n in QUOTED_IDENT_RE.findall(m.group(1))}
     return names or {n.lower() for n in QUOTED_IDENT_RE.findall(masked_sql)}
+
+
+# A table can be closed by revoking every grant instead of by RLS. That is
+# rarer than the non-exposed-schema case but it is a real pattern — and it is
+# strictly stronger, since no policy can be mis-written later. Reporting it
+# as "no RLS" is a false positive on code that is more locked down than the
+# rule's own happy path.
+REVOKE_ALL_RE = re.compile(
+    r"REVOKE\s+ALL\b[^;]*?\bON\s+(?:TABLE\s+)?"
+    r'("?[\w$]+"?(?:\."?[\w$]+"?)?)'
+    r"[^;]*?\bFROM\b([^;]*);",
+    re.IGNORECASE | re.DOTALL)
+# The roles that can reach a table through PostgREST. If all of them are
+# revoked, the API cannot see it whatever RLS says.
+API_ROLES = {"anon", "authenticated", "public"}
+
+
+def revoke_all_locked_tables(masked_sql: str) -> set[str]:
+    """Tables whose access is revoked from every API-reachable role."""
+    locked: dict[str, set[str]] = {}
+    for m in REVOKE_ALL_RE.finditer(masked_sql):
+        table = normalize_table_name(m.group(1))
+        roles = {r.strip().strip('"').lower() for r in m.group(2).split(",")}
+        locked.setdefault(table, set()).update(roles)
+    return {t for t, roles in locked.items() if API_ROLES <= roles}

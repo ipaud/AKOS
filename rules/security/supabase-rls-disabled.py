@@ -12,10 +12,10 @@ predicted. Dynamic SQL whose table list cannot be read still degrades to a
 false negative, which is the correct direction for a gating rule.
 
 Only tables in an API-exposed schema are considered — see API_EXPOSED_SCHEMAS
-in _sql_utils. A second known gap, stated rather than hidden: a table in
-`public` protected by `REVOKE ALL` rather than by RLS is still reported. That
-is a rarer shape than the non-exposed-schema case and needs grant tracking to
-resolve properly, so it is left as a suppression-comment case for now.
+in _sql_utils. A table in `public` closed by revoking every API-reachable role rather than
+by RLS is also understood — that is stronger than a policy, since there is
+nothing to mis-write later. A partial revoke (one role, not all) is still
+reported, which is the correct direction.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from _sql_utils import (  # noqa: E402
     TABLE_CREATE_RE, RLS_ENABLE_RE, API_EXPOSED_SCHEMAS,
     mask_sql_comments, line_of_offset, normalize_table_name, schema_of,
-    dynamically_rls_enabled_tables,
+    dynamically_rls_enabled_tables, revoke_all_locked_tables,
 )
 
 
@@ -59,6 +59,10 @@ def run(files: list[Path]) -> list[dict]:
         # RLS enabled through `execute format(...)` over an array literal —
         # see dynamically_rls_enabled_tables for why this counts.
         rls_on |= dynamically_rls_enabled_tables(masked)
+
+        # Closed by revoking every API-reachable role instead of by RLS —
+        # stronger, since there is no policy to get wrong later.
+        rls_on |= revoke_all_locked_tables(masked)
 
     findings = []
     for table, (path, line) in sorted(created.items()):

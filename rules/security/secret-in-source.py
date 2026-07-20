@@ -35,6 +35,16 @@ def run(files: list[Path]) -> list[dict]:
         if str(path.resolve()) in ignored:
             continue
         path_str = str(path)
+        # A key in a test fixture is not the same as a key in shipping code,
+        # but it is not nothing either — a real credential pasted into a test
+        # file is still committed. So fixtures downgrade rather than suppress:
+        # the finding survives, it stops gating a deploy, and it says why.
+        #
+        # This exclusion previously applied only to the generic
+        # high-entropy branch, so the vendor-pattern and JWT branches
+        # reported AKOS's own benchmark fixtures as CRITICAL leaks and
+        # `akos rules run .` exited 2 on this repository.
+        in_fixture = is_fixture_or_doc_path(path_str)
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
@@ -44,9 +54,12 @@ def run(files: list[Path]) -> list[dict]:
             for m in pattern.finditer(text):
                 line = text.count("\n", 0, m.start()) + 1
                 severity_override = "MEDIUM" if vendor == "stripe_test_key" else None
+                if in_fixture:
+                    severity_override = "LOW"
+                note = " (in a fixture or doc path — verify it is synthetic)" if in_fixture else ""
                 findings.append({
                     "evidence": [{"path": path_str, "line_start": line, "line_end": line,
-                                  "snippet": f"{vendor} pattern matched"}],
+                                  "snippet": f"{vendor} pattern matched{note}"}],
                     "confidence_override": "Certain",
                     **({"severity_override": severity_override} if severity_override else {}),
                 })
@@ -62,14 +75,15 @@ def run(files: list[Path]) -> list[dict]:
             if role != "service_role":
                 continue
             line = text.count("\n", 0, m.start()) + 1
+            note = " (in a fixture or doc path — verify it is synthetic)" if in_fixture else ""
             findings.append({
                 "evidence": [{"path": path_str, "line_start": line, "line_end": line,
-                              "snippet": f"JWT with role={role!r}"}],
+                              "snippet": f"JWT with role={role!r}{note}"}],
                 "confidence_override": "Certain",
-                "severity_override": "CRITICAL",
+                "severity_override": "LOW" if in_fixture else "CRITICAL",
             })
 
-        if is_fixture_or_doc_path(path_str):
+        if in_fixture:
             continue
         for m in GENERIC_ASSIGNMENT_RE.finditer(text):
             value = m.group(1)
