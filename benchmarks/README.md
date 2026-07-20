@@ -38,6 +38,14 @@ The printed recall/precision is computed **only** over this benchmark's curated 
 
 Optional and graded weakly on purpose — see `providers/README.md`. The default and CI-only provider is `mock`, deterministic and offline. A Level C case's `expected.yaml` has `level: C`, a `prompt`, and `must_mention: [phrase, ...]` checked against the provider's raw response text via simple substring match. This is explicitly not a rigorous grading method — it exists to prove the plumbing works end to end, not to claim semantic understanding.
 
+## Two kinds of case
+
+**Synthetic** (21) — written alongside the detectors, from the rule's own description. They are a regression guard: they catch a detector that stops doing what it did yesterday.
+
+**Real-shape** (7, prefixed `real-`) — copied from actual repositories, and every one is a false positive that shipped. They exist because the synthetic corpus reported **precision 100%** while three real repositories each produced a distinct set of wrong findings the corpus could not contain. A corpus written by the same process that wrote the detectors cannot surface a failure mode its author did not already have in mind; these were added the only way that gap closes, by running the rules on code nobody wrote them against.
+
+Six of the seven are `must_not_detect` cases. The seventh, `real-rls-dynamic-loop-gap`, is the anti-amnesty pair for `real-rls-dynamic-loop`: a table created outside the dynamic loop's array must still be reported, so the fix for the false positive cannot become a blanket pass.
+
 ## Adding a case
 
 1. Pick the rule (or Level C behavior) you're covering.

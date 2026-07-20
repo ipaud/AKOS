@@ -42,3 +42,20 @@ cases:
     path: cases/level-c-mock-ux-review
   - id: level-c-mock-security-review
     path: cases/level-c-mock-security-review
+  # Shapes taken from real repositories, each one a false positive that
+  # actually shipped. Added after three real runs showed the synthetic corpus
+  # reported precision 100% while every Level-A finding on real code was wrong.
+  - id: real-rls-dynamic-loop
+    path: cases/real-rls-dynamic-loop
+  - id: real-rls-dynamic-loop-gap
+    path: cases/real-rls-dynamic-loop-gap
+  - id: real-a11y-jsx-component
+    path: cases/real-a11y-jsx-component
+  - id: real-service-role-in-comment
+    path: cases/real-service-role-in-comment
+  - id: real-destructive-in-comment
+    path: cases/real-destructive-in-comment
+  - id: real-policy-dropped-later
+    path: cases/real-policy-dropped-later
+  - id: real-secret-in-gitignored-env
+    path: cases/real-secret-in-gitignored-env

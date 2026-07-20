@@ -1,0 +1,10 @@
+case_id: real-rls-dynamic-loop-gap
+domain: security
+level: A
+rules_under_test: [SUPABASE_RLS_DISABLED]
+source: constructed alongside real-rls-dynamic-loop as its anti-amnesty pair
+must_detect:
+  - rule_id: SUPABASE_RLS_DISABLED
+    path: fixture/supabase/migrations/0002_rls.sql
+    line: 4
+must_not_detect: []

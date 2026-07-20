@@ -22,6 +22,14 @@ already sitting in `main`.
 
   `akos eval --report PATH --case ID`. `--case` is required, not a filter — see below.
 
+### Added
+
+- **Seven benchmark cases carrying shapes from real repositories** (`real-` prefix), closing the gap that made the suite's own precision number misleading. The 21 synthetic cases were written alongside the detectors they exercise, so they reported **precision 100%** while three real repositories each produced a *distinct* set of false positives the corpus could not contain. Six of the new cases are `must_not_detect`: RLS enabled by a dynamic `execute format` loop, `<Input>` the React component versus `<input>` the element, `service_role` inside the comment warning against it, a `drop column` documented in a comment, a policy a later migration drops, and a key in a gitignored `.env`. The seventh is the anti-amnesty pair — a table created *outside* the dynamic loop's array must still be reported, so a fix for a false positive cannot become a blanket pass.
+
+  **Each was sabotage-verified**: the corresponding fix was reverted one at a time and the case confirmed to go red, then restored. That caught a real defect in the first draft of the accessibility case — it left `must_not_detect` empty, so it passed with the bug reintroduced. Split across two fixture files, because `LINE_TOLERANCE` is 3 and a `must_detect` and `must_not_detect` in the same file can match each other's finding and pass either way.
+
+  The runner's summary line now states the ratio rather than a bare percentage: *"7 of 28 cases carry shapes taken from real repositories; the rest are synthetic and were written alongside the detectors they exercise. This number read 100% while every Level-A finding on three real repositories was a false positive."*
+
 ### Fixed
 
 - **Detector precision, round two — measured on a third real repository.** A Production Supabase app with 471 files and 65 migrations produced **162 findings including 32 CRITICALs, and none of the 40 non-accessibility findings held.** Five more causes, each now fixed with a regression test asserting both directions:

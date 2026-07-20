@@ -1,0 +1,12 @@
+case_id: real-a11y-jsx-component
+domain: accessibility
+level: B
+rules_under_test: [A11Y_INPUT_NO_LABEL]
+source: RAK, verified by hand 2026-07-20 — 110 of 122 findings pointed at components
+notes: "Split across two files on purpose: LINE_TOLERANCE is 3, so a must_not_detect and a must_detect in the same file could match each other's finding and the case would pass either way."
+must_detect:
+  - rule_id: A11Y_INPUT_NO_LABEL
+    path: fixture/src/RealInput.tsx
+must_not_detect:
+  - rule_id: A11Y_INPUT_NO_LABEL
+    path: fixture/src/ComponentUsage.tsx

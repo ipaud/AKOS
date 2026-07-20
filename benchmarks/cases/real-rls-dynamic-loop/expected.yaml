@@ -1,0 +1,9 @@
+case_id: real-rls-dynamic-loop
+domain: security
+level: A
+rules_under_test: [SUPABASE_RLS_DISABLED]
+source: RAK, verified by hand 2026-07-20 — produced 31 false CRITICALs
+must_detect: []
+must_not_detect:
+  - rule_id: SUPABASE_RLS_DISABLED
+    path: fixture/supabase/migrations/0002_rls.sql
