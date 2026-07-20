@@ -1,7 +1,7 @@
 case_id: level-c-mock-security-review
 domain: security
 level: C
-prompt: Review this Supabase schema note for RLS and service_role concerns.
+prompt: Review this schema and report any security gaps you find.
 must_mention:
   - rls
   - service_role

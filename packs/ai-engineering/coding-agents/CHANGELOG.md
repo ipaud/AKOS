@@ -1,5 +1,11 @@
 # Changelog — coding-agents
 
+## [1.1.0] — 2026-07-20
+
+### Fixed
+
+- `examples.md` held up commit `4c3e854` as its CA18/CAE75 honesty exemplar on the strength of one candid sentence, without checking the rest of the message. Four lines earlier the same commit claims every referenced command "was already exercised directly", including `python3 rules/runner.py list` — a subcommand that does not exist and therefore never ran. The section now carries both facts, because the honest sentence is what made the unverified one read as trustworthy, and that is the actual lesson: CAE52 applies to commit messages themselves.
+
 ## [1.0.0] — 2026-07-20
 
 ### Added
