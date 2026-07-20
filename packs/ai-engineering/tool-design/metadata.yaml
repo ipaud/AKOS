@@ -1,0 +1,30 @@
+name: tool-design
+domain: ai-engineering
+authority-level: 2
+version: 1.0.0
+tags: [tool-design, agent-tools, tool-descriptions, structured-inputs, structured-outputs, error-design, idempotency, dry-run, pagination, stable-references, model-context-protocol, agent-computer-interface]
+sources:
+  - title: "Writing Effective Tools for AI Agents"
+    author: Anthropic
+    org: Anthropic
+    url: https://www.anthropic.com/engineering/writing-tools-for-agents
+  - title: "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering"
+    author: Yang et al.
+    org: arXiv
+    url: https://arxiv.org/abs/2405.15793
+  - title: "Model Context Protocol Specification"
+    author: Anthropic
+    org: Model Context Protocol
+    url: https://modelcontextprotocol.io/specification/2025-11-25
+related:
+  - packs/ai-engineering/agent-foundations
+  - packs/ai-engineering/context-engineering
+  - packs/backend/rest
+  - packs/architecture/design-patterns
+id: ai-engineering/tool-design
+status: draft
+last_reviewed: 2026-07-20
+review_after: 2027-07-20
+maintainer: core
+license: MIT
+deprecated: false
