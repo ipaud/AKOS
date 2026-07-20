@@ -127,3 +127,37 @@ class TestGraderExitCodes(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestProximityMatching(unittest.TestCase):
+    """Matching over the whole document made a phrase in one finding satisfy
+    a spec about another. A report correctly saying "the sanity step cannot
+    fail" and separately "shellcheck is fine as-is" tripped a trap keyed on
+    `shellcheck` + `cannot fail`, because both appeared somewhere."""
+
+    def test_terms_far_apart_do_not_match(self):
+        spec = {"match_all": ["shellcheck"], "match_any": ["cannot fail"]}
+        report = grade.normalize("cannot fail " + ("x " * 400) + " shellcheck")
+        self.assertFalse(grade.matches(report, spec))
+
+    def test_terms_close_together_match(self):
+        spec = {"match_all": ["shellcheck"], "match_any": ["cannot fail"]}
+        self.assertTrue(grade.matches(
+            grade.normalize("the shellcheck step cannot fail the build"), spec))
+
+    def test_a_later_occurrence_still_matches(self):
+        """Anchored on every occurrence of the first term, not just the
+        first: a word used once in passing must not shadow the real finding
+        further down."""
+        spec = {"match_all": ["cache"], "match_any": ["permissive"]}
+        report = grade.normalize(
+            "cache is mentioned here " + ("x " * 300) + " the cache policy is permissive")
+        self.assertTrue(grade.matches(report, spec))
+
+    def test_proximity_alone_does_not_rescue_a_badly_worded_trap(self):
+        """Recorded because it is the real lesson: a trap whose terms are
+        phrases a CORRECT report uses about a different finding collides
+        however tight the window. The fix is wording, not distance."""
+        spec = {"match_all": ["shellcheck"], "match_any": ["cannot fail"]}
+        self.assertTrue(grade.matches(
+            grade.normalize("shellcheck is advisory, and the other step cannot fail"), spec))

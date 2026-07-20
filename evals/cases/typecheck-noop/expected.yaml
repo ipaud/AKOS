@@ -1,0 +1,19 @@
+case_id: typecheck-noop
+lens: testing
+profile: Production
+source: "RAK, verified by hand 2026-07-20 — `tsc --noEmit` exits 0 on a repo with a real type error"
+
+must_find:
+  - id: root-typecheck-validates-nothing
+    concept: the CI script's `tsc --noEmit` validates zero files and its green means nothing
+    match_all: ["tsc --noEmit"]
+    match_any: ["zero", "no files", "nothing", "files: []", "solution", "always", "meaningless", "vacuous"]
+    min_severity: HIGH
+    why: "The root tsconfig has files: [] and references, so `tsc --noEmit` type-checks nothing and exits 0. The `ci` script gates on it. src/broken.ts holds a real type error the gate will never surface. `tsc -b` is the command that checks anything."
+
+must_not_find:
+  - id: typecheck-declared-adequate
+    concept: reporting the typecheck step as adequate coverage
+    match_all: ["tsc --noEmit"]
+    match_any: ["covers", "adequate", "sufficient", "passes cleanly", "good coverage"]
+    why: "A review that reads the green as coverage has repeated the defect rather than found it."

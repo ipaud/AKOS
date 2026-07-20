@@ -1,0 +1,7 @@
+{
+  "name": "app",
+  "scripts": {
+    "typecheck": "tsc -b",
+    "ci": "npm run lint && tsc --noEmit && npm test"
+  }
+}
