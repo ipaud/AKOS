@@ -90,6 +90,7 @@ Commands:
   validate [target]    Validate packs/agents/workflows against their schemas (--format json)
   profile <sub>        list|show <name>|create <name>|use <name> [dir] — personal profiles
   rules <sub>          list|run <dir> [--rule ID] [--domain D] [--profile P]|explain <ID>
+  freshness [opts]     Pack review-freshness report (--expired|--due-soon|--pack ID|--fail-on BAND)
 
 AKOS_HOME: $AKOS_HOME
 EOF
@@ -364,6 +365,10 @@ cmd_profile_use() {
   ok "personal_profile set to '$name' in $config"
 }
 
+cmd_freshness() {
+  python3 "$AKOS_HOME/schemas/freshness.py" "$@"
+}
+
 cmd_rules() {
   local sub="${1:-}"; shift || true
   case "$sub" in
@@ -417,6 +422,7 @@ main() {
     create-pack)        cmd_create_pack "$@" ;;
     profile)            cmd_profile "$@" ;;
     rules)              cmd_rules "$@" ;;
+    freshness)          cmd_freshness "$@" ;;
     *)                  err "Unknown command: $cmd"; echo; cmd_help; exit 1 ;;
   esac
 }
