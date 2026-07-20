@@ -39,6 +39,7 @@ Platform guidelines are Level 1 *on their platform*. Apple HIG doesn't govern an
 - Martin Fowler (refactoring, architecture)
 - Kent Beck (TDD, XP)
 - Google / Stripe engineering practice (as published)
+- Anthropic / OpenAI engineering practice (as published — building agents, tool design, context and eval engineering)
 
 When Level 2 sources conflict with each other, prefer the one closer to the domain (Krug on web usability, Fowler on refactoring) and say so.
 
@@ -49,6 +50,7 @@ When Level 2 sources conflict with each other, prefer the one closer to the doma
 - Inspired (Cagan), Lean Startup (Ries), Escaping the Build Trap (Perri), Continuous Discovery Habits (Torres)
 - Clean Architecture (Martin), Domain-Driven Design (Evans), Design Patterns (GoF)
 - Refactoring UI (Wathan & Schoger), Universal Principles of Design
+- Peer-reviewed / widely-replicated agent methodology papers (e.g. ReAct, Reflexion), once cross-verified against practice per [source-policy.md](source-policy.md) — a paper alone doesn't earn this level, corroborated adoption does
 
 Agents apply Level 3 ideas as decision frameworks, not commandments. Each Level 3 pack includes a "when NOT to use" section for this reason.
 
