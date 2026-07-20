@@ -1,0 +1,23 @@
+name: agent-evals
+domain: ai-engineering
+authority-level: 2
+version: 1.0.0
+tags: [agent-evals, golden-dataset, llm-as-judge, rubric-grading, pairwise-comparison, trajectory-evals, tool-call-evals, groundedness, hallucination-rate, task-completion-rate, regression-threshold, benchmark-contamination]
+sources:
+  - title: "Demystifying Evals for AI Agents"
+    author: Anthropic
+    org: Anthropic
+    url: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
+related:
+  - packs/ai-engineering/agent-foundations
+  - packs/ai-engineering/context-engineering
+  - packs/testing/testing-pyramid
+  - packs/testing/qa-checklists
+  - packs/product/lean-startup
+id: ai-engineering/agent-evals
+status: draft
+last_reviewed: 2026-07-20
+review_after: 2027-07-20
+maintainer: core
+license: MIT
+deprecated: false
