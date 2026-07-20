@@ -1,0 +1,23 @@
+case_id: a11y-wrapper-label
+lens: accessibility
+profile: Production
+source: "RAK, verified by hand 2026-07-20 — 110 of 122 tool findings were wrapped inputs"
+
+must_find:
+  - id: bare-search-input-unlabelled
+    concept: the search input has no accessible name
+    match_all: ["search"]
+    match_any: ["no label", "unlabelled", "unlabeled", "no accessible name", "aria-label", "placeholder is not"]
+    min_severity: MEDIUM
+    why: "It has only a placeholder. A placeholder is not an accessible name — it disappears on focus and screen readers do not reliably announce it."
+
+must_not_find:
+  - id: wrapped-input-called-unlabelled
+    concept: reporting the Field-wrapped input as missing a label
+    match_all: ["nom comercial"]
+    # Only phrasings that ASSERT this specific field lacks a label. Not
+    # "no accessible name" or a bare "no label": a correct report uses those
+    # about the search input two paragraphs up, and the proximity window
+    # reaches them. That rule is in the README and this case violated it.
+    match_any: [both inputs are unlabelled, field has no label, is unlabelled]
+    why: "Field renders a <label htmlFor> bound to the input's id. Reporting it means reading the call site without reading the wrapper — the failure mode that produced 110 false findings on the real repository this came from."

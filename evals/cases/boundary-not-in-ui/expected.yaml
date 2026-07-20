@@ -1,0 +1,19 @@
+case_id: boundary-not-in-ui
+lens: architecture
+profile: Production
+source: "RAK, verified by hand 2026-07-20 — permissions.ts:18 states the boundary correctly"
+
+must_find:
+  - id: boundary-correctly-placed
+    concept: the enforcement boundary is in the database, and the UI layer says so
+    match_all: [rls]
+    match_any: ["real boundary", "enforced", "database", "not the boundary", "defence in depth", "defense in depth", "fast layer"]
+    min_severity: LOW
+    why: "This is a strength, and a review that never mentions it has not understood the design. The UI matrix and the policy encode the same rule, and the code states which one is authoritative — most projects assert the UI check IS the control."
+
+must_not_find:
+  - id: ui-matrix-called-the-control
+    concept: treating the capability matrix as the access-control boundary
+    match_all: ["permissions.ts"]
+    match_any: ["is the access control", "enforces access", "the control is", "protects the data", "prevents access"]
+    why: "The file says otherwise in its own header, and the policy exists. A review that credits the UI layer with enforcement has read one file and stopped."
