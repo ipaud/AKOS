@@ -8,7 +8,7 @@ No pytest, no new dependency — matches this project's own constraint (`python3
 python3 -m unittest discover -s tests/unit -p 'test_*.py' -v
 ```
 
-79 tests across the YAML parser, the schema validator, the metadata migration, all 8 rule detectors, freshness banding, and review history. A recurring pattern worth naming: **every detector's test file locks down the specific bug that detector's own construction found** — e.g. `test_a11y_input_no_label` asserts `htmlFor` (not just `for`) is recognized, because that was a real false-positive this session hit before shipping. A test that only asserts the happy path wouldn't have caught any of these; the near-miss case is the one that matters.
+82 tests across the YAML parser, the schema validator, the metadata migration, all 8 rule detectors, freshness banding, and review history. A recurring pattern worth naming: **every detector's test file locks down the specific bug that detector's own construction found** — e.g. `test_a11y_input_no_label` asserts `htmlFor` (not just `for`) is recognized, because that was a real false-positive this session hit before shipping. A test that only asserts the happy path wouldn't have caught any of these; the near-miss case is the one that matters.
 
 ## Integration (`tests/integration/`, bash)
 

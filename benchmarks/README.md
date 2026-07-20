@@ -44,7 +44,9 @@ Optional and graded weakly on purpose — see `providers/README.md`. The default
 2. `benchmarks/cases/<id>/fixture/` — the smallest synthetic project that exercises it. Invented content only, never real secrets or real project code.
 3. `expected.yaml` — `case_id`, `domain`, `level`, `rules_under_test`, `must_detect`, `must_not_detect` (or `prompt` + `must_mention` for Level C).
 4. Add the case to `benchmarks/manifest.yaml`.
-5. Run `akos benchmark run --case <id>` and confirm it passes — then deliberately break the detector and confirm the case fails, so you know the case is actually testing something (every case in this suite was verified this way before being trusted).
+5. Run `akos benchmark run --case <id>` and confirm it passes — then deliberately break the detector and confirm the case fails, so you know the case is actually testing something.
+
+   **This suite has not been fully verified that way, despite an earlier version of this file claiming it had.** What was actually done when the suite shipped: one case (`supabase-rls-basic`) was sabotage-verified, and the claim was generalized to all 21 without being tested. A later audit sabotaged the whole engine and established that the 19 deterministic cases do go red — so they are live — but it also found that **the 2 Level C cases cannot fail**: their `must_mention` phrases appear in their own `prompt`, the mock echoes the prompt back, and the assertion checks the echo. Removing the fixture entirely still passes. Treat a case as unverified until you have personally watched it go red.
 
 ## Reports
 
