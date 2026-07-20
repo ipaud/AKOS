@@ -12,3 +12,10 @@ related:
   - packs/ux/don-norman
   - packs/ux/refactoring-ui
   - packs/ux/steve-krug
+id: ux/universal-principles-of-design
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2027-04-05
+maintainer: core
+license: MIT
+deprecated: false

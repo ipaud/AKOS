@@ -15,3 +15,10 @@ related:
   - packs/performance/browser-rendering
   - packs/performance/network-performance
   - packs/frontend/react
+id: performance/core-web-vitals
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2028-01-05
+maintainer: core
+license: MIT
+deprecated: false

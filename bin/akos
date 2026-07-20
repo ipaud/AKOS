@@ -232,7 +232,15 @@ cmd_create_pack() {
       "${f%.md}" "$name" > "$dest/$f"
   done
   printf '1.0.0\n' > "$dest/VERSION"
-  printf '# Changelog — %s\n\n## [1.0.0]\n\n### Added\n\n- Scaffolded.\n' "$name" > "$dest/CHANGELOG.md"
+  local today; today="$(date +%Y-%m-%d)"
+  # Cadence matches bin/migrate-pack-metadata.py's CADENCE_DAYS for
+  # authority-level 3 (books/methodologies, the default for a new pack).
+  # Date math shells to python3 rather than bash `date` arithmetic — BSD and
+  # GNU `date` diverge on epoch<->calendar conversion, python3's stdlib
+  # doesn't, and it's already the repo's one accepted dependency.
+  local review_after
+  review_after="$(python3 -c "from datetime import date, timedelta; print((date.today()+timedelta(days=270)).isoformat())" 2>/dev/null || echo "$today")"
+  printf '# Changelog — %s\n\n## [1.0.0] — %s\n\n### Added\n\n- Scaffolded.\n' "$name" "$today" > "$dest/CHANGELOG.md"
   cat > "$dest/metadata.yaml" <<EOF
 name: $name
 domain: $domain
@@ -241,6 +249,13 @@ version: 1.0.0
 tags: []
 sources: []
 related: []
+id: $domain/$name
+status: draft
+last_reviewed: $today
+review_after: $review_after
+maintainer: core
+license: MIT
+deprecated: false
 EOF
   ok "Scaffolded pack at $dest (17 files). Fill principles.md first."
   warn "Add '$name' to the routing table in skills/akos/SKILL.md, then run ./doctor.sh"
