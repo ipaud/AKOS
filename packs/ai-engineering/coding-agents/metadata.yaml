@@ -1,0 +1,23 @@
+name: coding-agents
+domain: ai-engineering
+authority-level: 2
+version: 1.0.0
+tags: [coding-agents, executed-evidence, exit-codes, repository-mapping, search-before-edit, read-before-write, minimal-patch, atomic-commits, migration-discipline, regression-testing, code-review, verification]
+sources:
+  - title: "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering"
+    author: Yang et al.
+    org: arXiv
+    url: https://arxiv.org/abs/2405.15793
+related:
+  - packs/ai-engineering/agent-foundations
+  - packs/ai-engineering/context-engineering
+  - packs/testing/tdd
+  - packs/devops/git
+  - packs/architecture/martin-fowler-refactoring
+id: ai-engineering/coding-agents
+status: draft
+last_reviewed: 2026-07-20
+review_after: 2027-07-20
+maintainer: core
+license: MIT
+deprecated: false

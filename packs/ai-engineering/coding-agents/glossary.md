@@ -1,0 +1,26 @@
+# Glossary — Coding Agents Pack
+
+- **Atomic commit** — a commit containing one coherent change that leaves the repository in a working state. Its operational test is the revert test, not its line count.
+- **Blast radius** — the set of things a change can break, determined by the consumers of what changed rather than by the files the diff touches. The property that decides whether a change is an edit or a migration.
+- **Call site** — a place where a symbol is used, as opposed to where it is defined. The full set of call sites, including non-code ones, is the real scope of an interface change.
+- **Claim ledger** — a pull request description read as a list of assertions, each either backed by an executed command or a bet. An honest ledger tells a reviewer exactly which parts they must check themselves.
+- **Deprecation window** — the period during which an old interface keeps working alongside its replacement so consumers can migrate. Required whenever consumers cannot be updated in the same change.
+- **Evidence ladder** — the ordered rungs a claim can rest on: described, written, parsed, executed, asserted-against-a-known-failure. Only the top two are evidence; the rest are predictions in the grammar of results.
+- **Executed evidence** — the result of running a command against the changed artifact and reading its real output and exit code. The pack's unit of proof, and the only thing that closes a task.
+- **Exit code** — the numeric status a command returns. The verdict on whether it succeeded, as distinct from its output, which is a narrative. Read the code; the two disagree exactly when it matters.
+- **False record** — a completion claim, green check, or description that misrepresents what was verified. Scored as a correctness defect because it suppresses the verification that would have caught the underlying problem.
+- **Green as goal vs. green as signal** — two opposite orientations toward passing checks. As a signal, red is information; as a goal, red is an obstacle, and suppression starts to feel like progress. Visible only in how a red was resolved, never in the final state.
+- **Idempotent orientation** — establishing structure, entry points, and conventions before the first edit rather than discovering them mid-change. A phase with an end, not a background activity.
+- **Migration (interface)** — a change to something with more than one consumer, carrying a required sequence. Atomic when all consumers are in-repo; staged as add-new / migrate / remove-old when any are external.
+- **Minimal patch** — the smallest diff that correctly solves the stated problem, with no opportunistic refactor, cleanup, or formatting bundled in.
+- **Reproduction** — a command or test that exhibits a bug's failure before the fix. Without one, "fixed" cannot be distinguished from "the symptom moved" or "it was never broken as described".
+- **Revert test** — the question that defines a well-drawn commit: could this be undone alone, by someone who did not write it, without taking unrelated work with it and without breaking the build?
+- **Scope contract** — the implicit agreement about what a task will change. Opportunistic improvements renegotiate it silently and weld unrelated work to the fix's fate.
+- **Search-before-edit** — enumerating every reference to a symbol before changing it, on the principle that the first match carries no information about how many there are.
+- **Staged migration** — the three-step sequence used when consumers cannot be updated atomically: add the new form, migrate consumers, remove the old form, each as a separate change.
+- **Stale green** — a passing verification result that predates a later edit. A true statement about a repository state that no longer exists, which makes it harder to detect than an outright false one.
+- **Suppression** — silencing a check rather than fixing what it reported: an ignore directive, a widened type, a skipped test, a file exclusion, a raised threshold, a retry until green. Legitimate only for a demonstrated false positive, and then narrow, in place, and commented.
+- **Targeted edit** — a change against known existing text, as opposed to a whole-file write. Preferred because it fails loudly when its assumption about the file is wrong, where a rewrite succeeds silently.
+- **Test plan** — the section of a change's description listing the exact commands run and their real results. A description of what testing would cover is not a test plan.
+- **Vacuous pass** — a check that passes because it is structurally incapable of failing: an always-true assertion, a matcher matching nothing, a comparison against a nonexistent path. Indistinguishable from a real pass, and self-perpetuating because nothing ever prompts a look.
+- **Verification** — the act of running the project's own command against the changed artifact and reading its exit code. Not a level of care, not a re-read of the diff, not reasoning through the control flow.
