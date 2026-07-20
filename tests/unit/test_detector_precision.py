@@ -356,3 +356,46 @@ class TestRlsDetectorUnderstandsRevokeAll(FixtureCase):
         findings = self.rule.run([f])
         self.assertEqual(len(findings), 1)
         self.assertIn("exposed", findings[0]["evidence"][0]["snippet"])
+
+
+class TestRunnerDowngradesFixturePathsCentrally(FixtureCase):
+    """The fixture downgrade lives in the runner, not in each detector, so a
+    rule cannot quietly opt out — which is how SECRET_IN_SOURCE came to apply
+    it to one of its three branches, leaving AKOS unable to scan its own
+    repository without reporting itself.
+
+    These test the runner because the benchmark corpus no longer can: every
+    benchmark fixture sits under a `fixture/` path, so every benchmark
+    finding is downgraded and a severity regression would not show up there.
+    """
+
+    def setUp(self):
+        super().setUp()
+        sys.path.insert(0, str(AKOS_HOME / "rules"))
+        import runner
+        self.runner = runner
+
+    def _severities(self, rel: str, body: str):
+        self.write(rel, body)
+        rules = [r for r in self.runner.discover_rules(rule_filter={"SUPABASE_RLS_DISABLED"})]
+        findings = self.runner.run_rules(self.dir, rules, "Production")
+        return [f["severity"] for f in findings]
+
+    def test_real_migration_path_keeps_its_severity(self):
+        self.assertEqual(
+            self._severities("supabase/migrations/001.sql",
+                             "create table public.notes (id uuid primary key);\n"),
+            ["CRITICAL"])
+
+    def test_fixture_path_is_downgraded_to_low(self):
+        self.assertEqual(
+            self._severities("tests/fixtures/001.sql",
+                             "create table public.notes (id uuid primary key);\n"),
+            ["LOW"])
+
+    def test_downgrade_does_not_suppress(self):
+        """The load-bearing half. A real migration parked under tests/ is
+        still real; the finding has to survive, just not gate."""
+        sev = self._severities("tests/fixtures/001.sql",
+                               "create table public.notes (id uuid primary key);\n")
+        self.assertEqual(len(sev), 1)
