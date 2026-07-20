@@ -1,0 +1,19 @@
+id: A11Y_INPUT_NO_LABEL
+title: Input with no detectable accessible name
+domain: accessibility
+level: B
+severity:
+  default: MEDIUM
+confidence: Moderate
+related_packs:
+  - ux/wcag
+  - frontend/html
+detector: rules/accessibility/a11y-input-no-label.py
+applies_to:
+  glob: ["**/*.tsx", "**/*.jsx", "**/*.html"]
+  target: project-source
+recommendation: Add a visible <label htmlFor="..."> tied to this input's id, or an aria-label/aria-labelledby, before shipping. This is a heuristic text match, not a DOM-structural check — a wrapping custom component or a spread-props pattern can produce a false positive here; verify by inspecting the rendered DOM.
+references:
+  - packs/ux/wcag/engineering-rules.md
+version: 1
+status: stable

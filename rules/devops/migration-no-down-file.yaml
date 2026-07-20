@@ -1,0 +1,19 @@
+id: MIGRATION_NO_DOWN_FILE
+title: Migration has no paired rollback (down) file
+domain: devops
+level: A
+severity:
+  default: HIGH
+confidence: High
+related_packs:
+  - devops/deployment
+  - backend/postgres
+detector: rules/devops/migration-no-down-file.py
+applies_to:
+  glob: ["**/migrations/**/*.sql", "**/migrations/**/*.up.sql"]
+  target: project-source
+recommendation: Add the paired *.down.sql rollback file for this migration, matching the convention this project has already adopted elsewhere.
+references:
+  - packs/devops/deployment/engineering-rules.md
+version: 1
+status: stable

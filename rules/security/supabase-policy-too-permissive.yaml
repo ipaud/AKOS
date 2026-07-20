@@ -1,0 +1,22 @@
+id: SUPABASE_POLICY_TOO_PERMISSIVE
+title: RLS policy with an always-true USING or WITH CHECK clause
+domain: security
+level: A
+severity:
+  default: HIGH
+  profiles:
+    Production: CRITICAL
+    Enterprise: CRITICAL
+confidence: High
+related_packs:
+  - backend/supabase
+  - security/owasp-top-10
+detector: rules/security/supabase-policy-too-permissive.py
+applies_to:
+  glob: ["**/*.sql"]
+  target: project-source
+recommendation: Scope the policy to the requester — USING (auth.uid() = user_id) or an equivalent ownership check. If this genuinely is a public lookup table, mark it with a "-- akos:allow SUPABASE_POLICY_TOO_PERMISSIVE" comment stating why.
+references:
+  - packs/backend/supabase/engineering-rules.md
+version: 1
+status: stable

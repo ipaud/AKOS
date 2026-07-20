@@ -89,6 +89,7 @@ Commands:
   create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the 17-file structure
   validate [target]    Validate packs/agents/workflows against their schemas (--format json)
   profile <sub>        list|show <name>|create <name>|use <name> [dir] — personal profiles
+  rules <sub>          list|run <dir> [--rule ID] [--domain D] [--profile P]|explain <ID>
 
 AKOS_HOME: $AKOS_HOME
 EOF
@@ -363,6 +364,43 @@ cmd_profile_use() {
   ok "personal_profile set to '$name' in $config"
 }
 
+cmd_rules() {
+  local sub="${1:-}"; shift || true
+  case "$sub" in
+    list)    cmd_rules_list ;;
+    run)     python3 "$AKOS_HOME/rules/runner.py" "$@" ;;
+    explain) cmd_rules_explain "$@" ;;
+    *)       err "Usage: akos rules <list|run <dir>|explain <ID>>"; return 1 ;;
+  esac
+}
+
+cmd_rules_list() {
+  info "${c_bold}Rules${c_reset} (in $AKOS_HOME/rules):"
+  local y id title level domain
+  for y in "$AKOS_HOME"/rules/*/*.yaml; do
+    [ -f "$y" ] || continue
+    id="$(sed -n 's/^id:[[:space:]]*//p' "$y" | head -n1)"
+    title="$(sed -n 's/^title:[[:space:]]*//p' "$y" | head -n1)"
+    level="$(sed -n 's/^level:[[:space:]]*//p' "$y" | head -n1)"
+    domain="$(sed -n 's/^domain:[[:space:]]*//p' "$y" | head -n1)"
+    printf '  %-32s [%s/%s] %s\n' "$id" "$domain" "$level" "$title"
+  done
+}
+
+cmd_rules_explain() {
+  local id="${1:-}"
+  if [ -z "$id" ]; then err "Usage: akos rules explain <RULE_ID>"; return 1; fi
+  local y
+  for y in "$AKOS_HOME"/rules/*/*.yaml; do
+    [ -f "$y" ] || continue
+    if grep -qF "id: $id" "$y"; then
+      cat "$y"
+      return
+    fi
+  done
+  err "No such rule: $id (run 'akos rules list')"; return 1
+}
+
 main() {
   local cmd="${1:-help}"; shift || true
   case "$cmd" in
@@ -378,6 +416,7 @@ main() {
     review)             cmd_review "$@" ;;
     create-pack)        cmd_create_pack "$@" ;;
     profile)            cmd_profile "$@" ;;
+    rules)              cmd_rules "$@" ;;
     *)                  err "Unknown command: $cmd"; echo; cmd_help; exit 1 ;;
   esac
 }
