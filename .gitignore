@@ -20,3 +20,11 @@ Thumbs.db
 
 # Node (in case tooling is added later)
 node_modules/
+
+# Python (schemas/, rules/, benchmarks/ tooling)
+__pycache__/
+*.pyc
+
+# Generated benchmark output — reproduce with `akos benchmark`, don't commit
+/benchmarks/report.md
+/benchmarks/report.json
