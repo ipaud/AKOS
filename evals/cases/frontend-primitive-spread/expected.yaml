@@ -1,0 +1,19 @@
+case_id: frontend-primitive-spread
+lens: frontend
+profile: Production
+source: "RAK's fields.tsx (the correct half) paired with a constructed derived-state defect"
+
+must_find:
+  - id: derived-state-in-effect
+    concept: total is derived state held in useState and synced by an effect
+    match_all: [total]
+    match_any: [derived, "during render", useeffect, unnecessary, "pure function", recompute]
+    min_severity: MEDIUM
+    why: "total is a pure function of lines. Holding it in state and syncing it in an effect adds a render pass and a class of bug where the two disagree. The second effect has no dependency array, so it fires on every render."
+
+must_not_find:
+  - id: spread-props-flagged
+    concept: reporting the primitive's prop spread or forwardRef as a defect
+    match_all: [forwardref]
+    match_any: [avoid, anti-pattern, "should not", remove, unsafe, problematic]
+    why: "forwardRef plus {...props} is exactly how a design-system primitive should look — the caller controls type, id and aria-*, and the ref reaches the DOM node for form libraries. A review that flags it has pattern-matched on the spread operator instead of reading what the component is for."

@@ -1,0 +1,19 @@
+case_id: copy-honors-style-direction
+lens: copy
+profile: Production
+source: "RAK's committed style direction — all Catalan including error messages and toasts"
+
+must_find:
+  - id: upload-failed-breaks-style-direction
+    concept: uploadFailed is in English and blames the user, against the committed style direction
+    match_all: [uploadfailed]
+    match_any: [english, català, catalan, style direction, blames, language]
+    min_severity: MEDIUM
+    why: "The project's .akos/config.md commits to Catalan including error messages, and to never blaming the user. This string breaks both. A copy review judges against the committed direction, not against generic taste — that is what makes the config binding rather than decorative."
+
+must_not_find:
+  - id: catalan-strings-flagged-as-wrong
+    concept: reporting the Catalan strings as a problem
+    match_all: [networkerror]
+    match_any: [should be in english, translate to english, not english, inconsistent language]
+    why: "They follow the committed direction. A review that flags them has judged against its own taste instead of reading the config it was told is binding."
