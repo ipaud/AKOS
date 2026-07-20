@@ -1,0 +1,9 @@
+case_id: a11y-input-unlabeled-flagged
+domain: accessibility
+level: B
+rules_under_test: [A11Y_INPUT_NO_LABEL]
+must_detect:
+  - rule_id: A11Y_INPUT_NO_LABEL
+    path: fixture/src/Form.tsx
+    line: 4
+must_not_detect: []

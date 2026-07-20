@@ -1,0 +1,44 @@
+version: 1
+cases:
+  - id: supabase-rls-basic
+    path: cases/supabase-rls-basic
+  - id: supabase-rls-multi-migration
+    path: cases/supabase-rls-multi-migration
+  - id: supabase-policy-permissive-flagged
+    path: cases/supabase-policy-permissive-flagged
+  - id: supabase-policy-permissive-suppressed
+    path: cases/supabase-policy-permissive-suppressed
+  - id: secret-vendor-key
+    path: cases/secret-vendor-key
+  - id: secret-service-role-jwt
+    path: cases/secret-service-role-jwt
+  - id: secret-anon-jwt-not-flagged
+    path: cases/secret-anon-jwt-not-flagged
+  - id: secret-placeholder-not-flagged
+    path: cases/secret-placeholder-not-flagged
+  - id: secret-env-example-excluded
+    path: cases/secret-env-example-excluded
+  - id: service-role-client-jwt
+    path: cases/service-role-client-jwt
+  - id: service-role-server-path-excluded
+    path: cases/service-role-server-path-excluded
+  - id: a11y-input-labeled-not-flagged
+    path: cases/a11y-input-labeled-not-flagged
+  - id: a11y-input-unlabeled-flagged
+    path: cases/a11y-input-unlabeled-flagged
+  - id: a11y-input-aria-label-not-flagged
+    path: cases/a11y-input-aria-label-not-flagged
+  - id: migration-no-convention-adopted
+    path: cases/migration-no-convention-adopted
+  - id: migration-missing-down-file
+    path: cases/migration-missing-down-file
+  - id: destructive-guarded-not-flagged
+    path: cases/destructive-guarded-not-flagged
+  - id: destructive-unguarded-flagged
+    path: cases/destructive-unguarded-flagged
+  - id: destructive-guard-does-not-bleed
+    path: cases/destructive-guard-does-not-bleed
+  - id: level-c-mock-ux-review
+    path: cases/level-c-mock-ux-review
+  - id: level-c-mock-security-review
+    path: cases/level-c-mock-security-review

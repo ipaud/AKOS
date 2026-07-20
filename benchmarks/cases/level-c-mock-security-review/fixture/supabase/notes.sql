@@ -1,0 +1,1 @@
+-- This table has no RLS policy and no service_role guard documented anywhere.

@@ -91,6 +91,7 @@ Commands:
   profile <sub>        list|show <name>|create <name>|use <name> [dir] — personal profiles
   rules <sub>          list|run <dir> [--rule ID] [--domain D] [--profile P]|explain <ID>
   freshness [opts]     Pack review-freshness report (--expired|--due-soon|--pack ID|--fail-on BAND)
+  benchmark [run|list] Run the rule-detection benchmark suite (--case ID|--domain D|--format json)
 
 AKOS_HOME: $AKOS_HOME
 EOF
@@ -369,6 +370,10 @@ cmd_freshness() {
   python3 "$AKOS_HOME/schemas/freshness.py" "$@"
 }
 
+cmd_benchmark() {
+  python3 "$AKOS_HOME/benchmarks/runners/run.py" "$@"
+}
+
 cmd_rules() {
   local sub="${1:-}"; shift || true
   case "$sub" in
@@ -423,6 +428,7 @@ main() {
     profile)            cmd_profile "$@" ;;
     rules)              cmd_rules "$@" ;;
     freshness)          cmd_freshness "$@" ;;
+    benchmark)          cmd_benchmark "$@" ;;
     *)                  err "Unknown command: $cmd"; echo; cmd_help; exit 1 ;;
   esac
 }

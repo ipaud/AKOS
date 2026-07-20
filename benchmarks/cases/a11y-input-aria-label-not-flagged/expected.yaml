@@ -1,0 +1,8 @@
+case_id: a11y-input-aria-label-not-flagged
+domain: accessibility
+level: B
+rules_under_test: [A11Y_INPUT_NO_LABEL]
+must_detect: []
+must_not_detect:
+  - rule_id: A11Y_INPUT_NO_LABEL
+    path: fixture/src/Form.tsx

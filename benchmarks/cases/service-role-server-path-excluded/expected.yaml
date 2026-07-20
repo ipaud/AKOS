@@ -1,0 +1,10 @@
+case_id: service-role-server-path-excluded
+domain: security
+level: A
+rules_under_test: [SERVICE_ROLE_IN_CLIENT]
+must_detect: []
+must_not_detect:
+  - rule_id: SERVICE_ROLE_IN_CLIENT
+    path: fixture/src/api/route.ts
+  - rule_id: SERVICE_ROLE_IN_CLIENT
+    path: fixture/supabase/functions/invoice.ts

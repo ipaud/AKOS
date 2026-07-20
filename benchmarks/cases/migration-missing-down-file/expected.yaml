@@ -1,0 +1,10 @@
+case_id: migration-missing-down-file
+domain: devops
+level: A
+rules_under_test: [MIGRATION_NO_DOWN_FILE]
+must_detect:
+  - rule_id: MIGRATION_NO_DOWN_FILE
+    path: fixture/migrations/0002_add_col.up.sql
+must_not_detect:
+  - rule_id: MIGRATION_NO_DOWN_FILE
+    path: fixture/migrations/0001_init.up.sql

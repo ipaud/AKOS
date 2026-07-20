@@ -1,0 +1,9 @@
+case_id: destructive-unguarded-flagged
+domain: devops
+level: A
+rules_under_test: [DESTRUCTIVE_MIGRATION_NO_GUARD]
+must_detect:
+  - rule_id: DESTRUCTIVE_MIGRATION_NO_GUARD
+    path: fixture/migrations/0001.sql
+    line: 1
+must_not_detect: []

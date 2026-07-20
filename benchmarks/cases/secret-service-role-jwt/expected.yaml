@@ -1,0 +1,9 @@
+case_id: secret-service-role-jwt
+domain: security
+level: A
+rules_under_test: [SECRET_IN_SOURCE]
+must_detect:
+  - rule_id: SECRET_IN_SOURCE
+    path: fixture/src/config.ts
+    line: 1
+must_not_detect: []
