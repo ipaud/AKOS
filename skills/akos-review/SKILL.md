@@ -125,6 +125,10 @@ Same format for every lens, every run:
 ## Low Priority Improvements
 ## Tradeoffs
 ## Relevant Knowledge Packs Used
+## Coverage
+- Inspected:
+- Not inspected / out of scope:
+- Confidence basis:
 ## Scores
 - UX:
 - Accessibility:
@@ -139,6 +143,10 @@ Same format for every lens, every run:
 PASS / PASS WITH FIXES / BLOCKED
 ```
 
+Every finding carries an inline `(Confidence: Certain|High|Moderate|Low)` tag
+(`core/confidence-model.md`). Coverage is additive reporting, not a decision
+input — a CRITICAL still blocks at any coverage level.
+
 Fill only the score lines you honestly assessed; the rest are `n/a`. Overall
 score per `scoring/overall-score.md` — profile-weighted, with its two hard caps
 (any dimension below 60 caps overall at 59; security or accessibility at 60–69
@@ -152,3 +160,21 @@ Decision semantics:
 
 A multi-lens run reports **one** merged summary, and its final decision is the
 **worst** individual decision.
+
+## 6. Record it
+
+After emitting the Review Summary, save it to a file and call:
+
+```bash
+akos history record --type <lens-or-"full"> --decision "<PASS|PASS WITH FIXES|BLOCKED>" \
+  --profile "<active profile>" --report <path-to-the-markdown-you-just-wrote> \
+  --scores-json '{"ux": 72, "accessibility": 61, ...}'
+```
+
+using only the score lines you actually filled (omit `n/a` ones from the
+JSON). This writes `.akos/reviews/<timestamp>-<type>/` in the **current
+project**, not in AKOS itself — the same locality as `.akos/config.md`. Skip
+this step only if the user explicitly asked for a one-off, throwaway check;
+otherwise every real review gets recorded, so `akos history compare` has
+something to diff on the next run. See
+[docs/reviews/history-and-comparison.md](../../docs/reviews/history-and-comparison.md).

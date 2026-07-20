@@ -92,6 +92,7 @@ Commands:
   rules <sub>          list|run <dir> [--rule ID] [--domain D] [--profile P]|explain <ID>
   freshness [opts]     Pack review-freshness report (--expired|--due-soon|--pack ID|--fail-on BAND)
   benchmark [run|list] Run the rule-detection benchmark suite (--case ID|--domain D|--format json)
+  history <sub>        record|list|show <id>|latest|compare <a> <b>|clean — review history in .akos/reviews/
 
 AKOS_HOME: $AKOS_HOME
 EOF
@@ -370,6 +371,24 @@ cmd_freshness() {
   python3 "$AKOS_HOME/schemas/freshness.py" "$@"
 }
 
+cmd_history() {
+  local sub="${1:-}"; shift || true
+  case "$sub" in
+    record)
+      # Timestamp computed here, not in schemas/history.py, so the LLM
+      # caller (akos-review's skill instructions) never needs to supply
+      # one — "run akos history record --type ... --report ..." is the
+      # whole ask.
+      local ts; ts="$(date -u +%Y%m%dT%H%M%SZ)"
+      python3 "$AKOS_HOME/schemas/history.py" record --timestamp "$ts" "$@"
+      ;;
+    list|show|latest|compare|clean)
+      python3 "$AKOS_HOME/schemas/history.py" "$sub" "$@"
+      ;;
+    *) err "Usage: akos history <record|list|show <id>|latest|compare <a> <b>|clean>"; return 1 ;;
+  esac
+}
+
 cmd_benchmark() {
   python3 "$AKOS_HOME/benchmarks/runners/run.py" "$@"
 }
@@ -429,6 +448,7 @@ main() {
     rules)              cmd_rules "$@" ;;
     freshness)          cmd_freshness "$@" ;;
     benchmark)          cmd_benchmark "$@" ;;
+    history)            cmd_history "$@" ;;
     *)                  err "Unknown command: $cmd"; echo; cmd_help; exit 1 ;;
   esac
 }
