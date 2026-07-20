@@ -18,14 +18,22 @@ sys.path.insert(0, str(Path(__file__).parent))
 from _secret_utils import (  # noqa: E402
     VENDOR_PATTERNS, GENERIC_ASSIGNMENT_RE, JWT_RE,
     shannon_entropy, looks_like_placeholder, is_fixture_or_doc_path, decode_jwt_claims,
+    gitignored_paths,
 )
 
 MIN_ENTROPY = 3.0
 
 
 def run(files: list[Path]) -> list[dict]:
+    # This rule is about a secret "committed to source". A key in a gitignored
+    # file is not committed — it is in the one place it belongs. Resolved once
+    # for the whole batch; see gitignored_paths for why not per file.
+    ignored = gitignored_paths([p.resolve() for p in files])
+
     findings = []
     for path in files:
+        if str(path.resolve()) in ignored:
+            continue
         path_str = str(path)
         try:
             text = path.read_text(encoding="utf-8", errors="replace")

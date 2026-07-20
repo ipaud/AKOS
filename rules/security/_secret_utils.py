@@ -8,7 +8,7 @@ import base64
 import json
 import math
 import re
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 DENYLIST_SUBSTRINGS = [
     "changeme", "placeholder", "your-api-key", "your_api_key", "example",
@@ -130,3 +130,56 @@ def redact_secrets(text: str) -> tuple[str, list[str]]:
 
     text = GENERIC_ASSIGNMENT_RE.sub(_assignment, text)
     return text, labels
+
+
+def gitignored_paths(paths: list) -> set:
+    """Subset of `paths` that git ignores. Empty set if git is unavailable.
+
+    This rule's title is "secret literal **committed to source**". A key in a
+    gitignored `.env` is not committed — it is in the one place it is supposed
+    to be. Reporting it CRITICAL is the false positive this exists to prevent,
+    found on the first real repository this ran against, where a correctly
+    stored `service_role` key in an ignored `.env` was flagged as a leak.
+
+    One `git check-ignore --stdin` call for the whole batch rather than one
+    per file: the per-file version made the scan cost a subprocess per source
+    file, which is how a check like this quietly becomes too slow to keep on.
+    """
+    import subprocess
+    from collections import defaultdict
+
+    if not paths:
+        return set()
+
+    # check-ignore resolves against a repo, so group by the repo each path is
+    # in. Paths outside any repo cannot be ignored and are skipped.
+    by_root = defaultdict(list)
+    for p in paths:
+        root = _git_root(Path(p))
+        if root is not None:
+            by_root[root].append(Path(p))
+
+    ignored = set()
+    for root, group in by_root.items():
+        try:
+            proc = subprocess.run(
+                ["git", "check-ignore", "--stdin"],
+                cwd=root, input="\n".join(str(p) for p in group),
+                capture_output=True, text=True, timeout=10,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        # Exit 0 = some paths ignored, 1 = none, other = error. Trust only
+        # 0 and 1; anything else means the answer is unknown, and an unknown
+        # must not silently read as "not ignored" for every file at once.
+        if proc.returncode not in (0, 1):
+            continue
+        ignored.update(line.strip() for line in proc.stdout.splitlines() if line.strip())
+    return ignored
+
+
+def _git_root(path: Path):
+    for parent in [path if path.is_dir() else path.parent, *path.parents]:
+        if (parent / ".git").exists():
+            return parent
+    return None

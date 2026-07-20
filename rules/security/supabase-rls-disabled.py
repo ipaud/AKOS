@@ -7,6 +7,12 @@ pattern. Known blind spot, stated rather than silently accepted: this only
 covers raw SQL migrations (Supabase's own default). Dynamic SQL
 (EXECUTE format(...)) and ORM-DSL migrations (Prisma/Drizzle/knex) are
 false negatives by design.
+
+Only tables in an API-exposed schema are considered — see API_EXPOSED_SCHEMAS
+in _sql_utils. A second known gap, stated rather than hidden: a table in
+`public` protected by `REVOKE ALL` rather than by RLS is still reported. That
+is a rarer shape than the non-exposed-schema case and needs grant tracking to
+resolve properly, so it is left as a suppression-comment case for now.
 """
 
 from __future__ import annotations
@@ -15,7 +21,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _sql_utils import TABLE_CREATE_RE, RLS_ENABLE_RE, mask_sql_comments, line_of_offset, normalize_table_name  # noqa: E402
+from _sql_utils import (  # noqa: E402
+    TABLE_CREATE_RE, RLS_ENABLE_RE, API_EXPOSED_SCHEMAS,
+    mask_sql_comments, line_of_offset, normalize_table_name, schema_of,
+)
 
 
 def run(files: list[Path]) -> list[dict]:
@@ -30,6 +39,12 @@ def run(files: list[Path]) -> list[dict]:
         masked = mask_sql_comments(text)
 
         for m in TABLE_CREATE_RE.finditer(masked):
+            # RLS constrains access *through the API*. A table in a schema
+            # PostgREST does not expose is not reachable that way, so a
+            # missing policy is not a finding — and is frequently the
+            # deliberate, stronger choice for secrets.
+            if schema_of(m.group(1)) not in API_EXPOSED_SCHEMAS:
+                continue
             table = normalize_table_name(m.group(1))
             if table not in created:
                 created[table] = (path, line_of_offset(text, m.start()))
