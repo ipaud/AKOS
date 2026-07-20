@@ -169,10 +169,22 @@ def cmd_list(manifest: dict):
 
 
 def cmd_run(manifest: dict, case_filter, domain_filter, provider_name: str, fmt: str) -> int:
+    # A --case that matches nothing must not report a clean run. `--case
+    # <typo>` used to print "pass: 0 fail: 0 (0 cases)" and exit 0, which in
+    # a CI matrix is a green gate that ran nothing.
+    if case_filter:
+        known = {c["id"] for c in manifest["cases"]}
+        unknown = sorted(case_filter - known)
+        if unknown:
+            print(f"error: no such case: {', '.join(unknown)}. "
+                  f"List cases with 'akos benchmark list'.", file=sys.stderr)
+            return 1
+
     results = []
     skipped_by_filter = 0
     for c in manifest["cases"]:
         if case_filter and c["id"] not in case_filter:
+            skipped_by_filter += 1
             continue
         expected, case_dir = load_case(c)
         if domain_filter and expected.get("domain") not in domain_filter:

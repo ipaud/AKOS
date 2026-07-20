@@ -26,10 +26,13 @@ akos history list
 akos history show <review-id>
 akos history latest
 akos history compare <review-a> <review-b>
-akos history clean [--keep N]        # default keeps the 20 most recent
+akos history clean [--keep N] --dry-run              # list what would go
+akos history clean [--keep N] --confirm-delete N     # delete, asserting the count
 ```
 
 All commands accept `--dir <project-path>` (default: current directory).
+
+`clean` is the only destructive command here, so it does not act on a bare call. Its scope depends on how many reviews happen to exist past `--keep` — a number the caller has not seen — so it names every review it would remove and requires `--confirm-delete N` matching that count. If the count has changed since you previewed it, the call fails rather than deleting a different set. `.akos/reviews/` is usually untracked in a consuming project, which makes a wrong delete here unrecoverable.
 
 ## What `compare` actually diffs
 

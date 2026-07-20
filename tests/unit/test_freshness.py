@@ -91,3 +91,19 @@ class TestRealRepoAllFresh(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestUnmatchedPackFilterIsAnError(unittest.TestCase):
+    """`--pack no/such --fail-on expired` used to exit 0: collect() returned
+    an empty list, no row was at the failing band, and the gate passed. A
+    typo in a CI invocation therefore produced a check that could never
+    fire. An unmatched filter must fail, not report clean."""
+
+    def test_unmatched_pack_exits_1(self):
+        self.assertEqual(freshness.main(["--pack", "no/such-pack"]), 1)
+
+    def test_unmatched_pack_with_fail_on_does_not_pass_silently(self):
+        self.assertNotEqual(freshness.main(["--pack", "no/such", "--fail-on", "expired"]), 0)
+
+    def test_real_pack_still_works(self):
+        self.assertEqual(freshness.main(["--pack", "ux/wcag"]), 0)
