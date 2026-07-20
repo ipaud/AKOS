@@ -93,3 +93,34 @@ RLS_ENABLE_RE = re.compile(
     rf"ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?{_QUALIFIED}\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY",
     re.IGNORECASE,
 )
+
+
+# `execute format('alter table %I enable row level security', t)` inside a
+# loop over an array literal is a *stronger* pattern than per-table DDL: a
+# table added to the list cannot be half-protected. The detector could not
+# see it, so on a real repository it reported 31 CRITICALs against tables
+# whose RLS was enabled exactly that way. The docstring called dynamic SQL a
+# known blind spot causing false NEGATIVES; it was producing false positives,
+# which is the more damaging direction.
+DYNAMIC_RLS_RE = re.compile(
+    r"execute\s+format\s*\(\s*(['\"$][^)]*?enable\s+row\s+level\s+security[^)]*?)\)",
+    re.IGNORECASE | re.DOTALL)
+ARRAY_LITERAL_RE = re.compile(r"\barray\s*\[(.*?)\]", re.IGNORECASE | re.DOTALL)
+QUOTED_IDENT_RE = re.compile(r"'([A-Za-z_][\w$]*)'")
+
+
+def dynamically_rls_enabled_tables(masked_sql: str) -> set[str]:
+    """Table names an `execute format(... enable row level security ...)` loop
+    covers, read from the array literal it iterates.
+
+    Conservative in the safe direction: if the file enables RLS dynamically
+    but no array literal can be read, returns every quoted identifier in the
+    file rather than none. A missed table here is a false negative; a wrong
+    one is a CRITICAL against correct code, and the first is the cheaper
+    error for a rule whose findings gate a deploy.
+    """
+    if not DYNAMIC_RLS_RE.search(masked_sql):
+        return set()
+    names = {n.lower() for m in ARRAY_LITERAL_RE.finditer(masked_sql)
+             for n in QUOTED_IDENT_RE.findall(m.group(1))}
+    return names or {n.lower() for n in QUOTED_IDENT_RE.findall(masked_sql)}

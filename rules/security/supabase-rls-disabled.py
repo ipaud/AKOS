@@ -5,8 +5,11 @@ commonly CREATE TABLE'd in one migration and RLS-enabled in a later one,
 so per-file scanning would false-positive on that normal multi-migration
 pattern. Known blind spot, stated rather than silently accepted: this only
 covers raw SQL migrations (Supabase's own default). Dynamic SQL
-(EXECUTE format(...)) and ORM-DSL migrations (Prisma/Drizzle/knex) are
-false negatives by design.
+ORM-DSL migrations (Prisma/Drizzle/knex) are false negatives by design.
+Dynamic SQL that enables RLS in a loop over an array literal IS understood —
+it was producing false positives, not the false negatives the original note
+predicted. Dynamic SQL whose table list cannot be read still degrades to a
+false negative, which is the correct direction for a gating rule.
 
 Only tables in an API-exposed schema are considered — see API_EXPOSED_SCHEMAS
 in _sql_utils. A second known gap, stated rather than hidden: a table in
@@ -24,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from _sql_utils import (  # noqa: E402
     TABLE_CREATE_RE, RLS_ENABLE_RE, API_EXPOSED_SCHEMAS,
     mask_sql_comments, line_of_offset, normalize_table_name, schema_of,
+    dynamically_rls_enabled_tables,
 )
 
 
@@ -51,6 +55,10 @@ def run(files: list[Path]) -> list[dict]:
 
         for m in RLS_ENABLE_RE.finditer(masked):
             rls_on.add(normalize_table_name(m.group(1)))
+
+        # RLS enabled through `execute format(...)` over an array literal —
+        # see dynamically_rls_enabled_tables for why this counts.
+        rls_on |= dynamically_rls_enabled_tables(masked)
 
     findings = []
     for table, (path, line) in sorted(created.items()):

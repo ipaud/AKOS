@@ -12,7 +12,7 @@ detector: rules/devops/destructive-migration-no-guard.py
 applies_to:
   glob: ["**/migrations/**/*.sql"]
   target: project-source
-recommendation: A DROP/TRUNCATE is a one-way door. Add a comment stating this was reviewed and why it's safe (e.g. "-- reviewed: column unused since v2, see PR #123"), or mark it "-- akos:allow DESTRUCTIVE_MIGRATION_NO_GUARD" if a review process already covers it elsewhere.
+recommendation: A DROP/TRUNCATE is a one-way door. Note the guard keywords are English (rollback/destructive/guard/reviewed); a migration justified at length in another language still reads as unguarded, so use the language-neutral "-- akos:allow DESTRUCTIVE_MIGRATION_NO_GUARD" there. Add a comment stating this was reviewed and why it's safe (e.g. "-- reviewed: column unused since v2, see PR #123"), or mark it "-- akos:allow DESTRUCTIVE_MIGRATION_NO_GUARD" if a review process already covers it elsewhere.
 references:
   - packs/devops/deployment/engineering-rules.md
 version: 1

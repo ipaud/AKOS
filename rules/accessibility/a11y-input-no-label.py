@@ -17,7 +17,13 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-INPUT_OPEN_RE = re.compile(r"<input\b", re.IGNORECASE)
+# Case-SENSITIVE on the tag name, deliberately. JSX capitalises components to
+# distinguish them from HTML elements, so `<Input>` is a React component whose
+# label almost always comes from the wrapper that renders it (`<Field label=…>`),
+# while `<input>` is the element this rule is actually about. With IGNORECASE,
+# 110 of 122 findings on a real design-system codebase pointed at components —
+# and buried the 12 genuine `<input>` elements underneath them.
+INPUT_OPEN_RE = re.compile(r"<input\b")
 SKIP_TYPES = {"hidden", "submit", "button", "reset", "image"}
 TYPE_RE = re.compile(r'type\s*=\s*["\']?(\w+)', re.IGNORECASE)
 ID_RE = re.compile(r'\bid\s*=\s*["\']([^"\']+)["\']', re.IGNORECASE)
