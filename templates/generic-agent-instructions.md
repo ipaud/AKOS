@@ -15,7 +15,7 @@ Before non-trivial work, read in order:
 3. `~/DEV/AKOS/core/reasoning-profiles.md` — determine the profile (`.akos/config.md`).
 4. `~/DEV/AKOS/core/review-pipeline.md` — the review structure.
 5. `~/DEV/AKOS/packs/personal/<personal_profile>/` — Level-0 personal rules, always apply. `<personal_profile>` is named in this project's `.akos/config.md`; default `pau-avila` if absent.
-6. The 2-5 task-relevant packs under `~/DEV/AKOS/packs/` (organized by domain: ux, architecture, product, security, performance, frontend, backend, testing, devops).
+6. The 2-5 task-relevant packs under `~/DEV/AKOS/packs/` (organized by domain: ux, content, mobile, architecture, product, security, performance, frontend, backend, testing, devops, ai-engineering).
 
 ## Applying
 

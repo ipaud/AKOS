@@ -8,7 +8,7 @@ description: Load AKOS knowledge (constitution, authority model, reasoning profi
 AKOS root is `~/DEV/AKOS`. If that path does not exist, AKOS root is the
 directory two levels above this file. Every path below is relative to it.
 
-Read files with your file-reading tool. Do not load the whole repo — it is 45
+Read files with your file-reading tool. Do not load the whole repo — it is 54
 packs. Load the constitution, the profile, the Level-0 layer, and 2-5 packs.
 
 ## 1. Bootstrap

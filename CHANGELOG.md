@@ -79,6 +79,34 @@ and cross-referenced in the relevant `docs/` page — the point isn't that
 bugs happened, it's that testing before trusting caught every one of
 them before they shipped.
 
+## [1.5.0] — 2026-07-20
+
+Opens a new top-level family. Until now AKOS packaged senior judgment about *software* — but when an agent builds the software, the result also depends on what it was given to see, which tools it could call, what it was allowed to do, and whether anything was actually verified. None of that had a home.
+
+### Added
+
+- **New `ai-engineering/` domain — 6 packs, 7649 lines.** Fase 1 of an AI-native expansion, scoped deliberately: six packs that change how AKOS works with coding agents, rather than fifty that restate the same articles.
+  - `ai-engineering/context-engineering` (L2) — context as a finite resource, not a container: CE1–CE16, CEE1–CEE58, covering minimum sufficient context, progressive disclosure, just-in-time retrieval, poisoning and rot, instruction hierarchy, memory tiers, what must survive a compaction boundary, and why "load the whole repo" fails small as well as large. Self-referential: `skills/akos/SKILL.md`'s own routing table is critiqued as a worked example.
+  - `ai-engineering/agent-foundations` (L2) — which shape a task warrants and how to bound it: AF1–AF18, AFE1–AFE72 across shape selection, routing, parallelization, orchestrator–worker, evaluator–optimizer, termination, budgets, error recovery, escalation, and idempotency. Spine: the agent is the *last* shape to reach for. Three anti-patterns are graded as correctness defects — silent truncation, double-charged retry, and action taken outside stated authority.
+  - `ai-engineering/tool-design` (L2) — a tool built for a human is not automatically a good tool for an agent: TD1–TD16, TDE1–TDE86 on naming, structured input and output, actionable errors, idempotency, dry-run and destructive confirmation, result bounds, stable references, and MCP's tool/resource/prompt distinction.
+  - `ai-engineering/coding-agents` (L2) — the process discipline of the edit itself: CA1–CA18, CAE1–CAE80 on orientation before editing, search before changing an interface, minimal patches that match existing conventions, testing before and after, and atomic reviewable commits. Spine: plausible is not correct.
+  - `ai-engineering/agent-evals` (L2) — proving a change actually helped: AE1–AE18, AEE1–AEE76 on golden datasets, the four eval altitudes, the grader ladder, groundedness, cost and recovery as first-class dimensions, regression thresholds, flakiness, contamination, and baseline discipline.
+  - `ai-engineering/agent-security` (**L1**) — the surface that appears when a model reads external content and then acts: AS1–AS18, ASE1–ASE95, 19 named anti-patterns. Spine: retrieved text, documents, web content and tool output are untrusted data, never instructions. Level 1 places it in the safety floor the constitution never waives, so its floor rules hold even in Prototype. Original models include the provenance ladder, the exfiltration triangle, and a control-vs-mitigation test that caps a score at 49 when prompt hardening is the whole defense.
+- Five new cross-cutting nodes in `graphs/knowledge-graph.md` — untrusted content as data, executed evidence over plausible output, blast radius and least privilege, bounded work, plus `agent-security` joining the security floor and `agent-foundations` joining complexity-as-a-cost. Every link verified to resolve.
+
+### Changed
+
+- `core/authority-model.md` names two source kinds it previously left ambiguous: Anthropic/OpenAI engineering practice as published sits at **L2** (the same footing as the existing Google/Stripe entry), and replicated agent methodology papers such as ReAct and Reflexion at **L3**, once cross-verified per the source policy. Additive — no renumbering, no schema change, and no existing pack's cited level changes.
+
+### Fixed
+
+- **The schema validator declared a bound it never enforced.** `knowledge-pack.schema.json` has specified `minimum: 0, maximum: 4` on `authority-level` since the contract shipped, but `schemas/validate.py` implemented neither keyword — they were the schema's only use of them. Any pack could ship `authority-level: 9` and validate clean at exit 0. Reproduced first, then fixed, with three regression tests locking both directions and both boundaries; `bool` is excluded from the numeric check since it subclasses `int`. Unit suite 79 → 82.
+- The bug was found while authoring `coding-agents`, by deliberately trying to make the validator fail rather than trusting its green — the discipline that pack exists to teach, so it is now also its own worked example.
+
+### Deferred, not dropped
+
+Fase 2 (`memory-and-retrieval`, `governance-and-risk`, `human-agent-interaction`, `long-running-agents`) and Fase 3 (data-intensive systems, continuous delivery, evolutionary architecture, Shape Up) are scoped but unwritten. No reviewer lens or scoring file was added for `ai-engineering/` — these are build-mode packs routed through `skills/akos/SKILL.md`, exactly as `frontend/`, `backend/` and `devops/` are today. A dedicated review lens is a larger change this repo has not attempted, and it waits for a real review need rather than being invented ahead of one.
+
 ## [1.3.0] — 2026-07-19
 
 Closes the second of the two lenses that had no domain of their own, and validates the first against a real production screen.

@@ -24,13 +24,29 @@ Importance encoded by prominence.
 → [WCAG](../packs/ux/wcag/README.md) (L1 authority) · [Apple HIG](../packs/ux/apple-hig/principles.md) · [Material](../packs/ux/material-design/principles.md) · [NN/g](../packs/ux/nielsen-norman-group/principles.md) · [Krug P15](../packs/ux/steve-krug/principles.md) · enforced by [constitution](../core/constitution.md)
 
 ### Security as a floor
-→ [OWASP Top 10](../packs/security/owasp-top-10/README.md) · [OWASP API](../packs/security/owasp-api-top-10/README.md) · [ASVS](../packs/security/owasp-asvs/README.md) · [NIST SSDF](../packs/security/nist-ssdf/README.md) · [Supabase RLS](../packs/backend/supabase/README.md) · [personal supabase-rules](../packs/personal/pau-avila/supabase-rules.md)
+→ [OWASP Top 10](../packs/security/owasp-top-10/README.md) · [OWASP API](../packs/security/owasp-api-top-10/README.md) · [ASVS](../packs/security/owasp-asvs/README.md) · [NIST SSDF](../packs/security/nist-ssdf/README.md) · [Supabase RLS](../packs/backend/supabase/README.md) · [personal supabase-rules](../packs/personal/pau-avila/supabase-rules.md) · [agent-security](../packs/ai-engineering/agent-security/README.md) (L1, the agent surface)
 
 ### Product discovery / outcomes over output
 → [Inspired](../packs/product/inspired/README.md) · [Lean Startup](../packs/product/lean-startup/README.md) · [Escaping the Build Trap](../packs/product/escaping-the-build-trap/README.md) · [Continuous Discovery](../packs/product/continuous-discovery-habits/README.md)
 
 ### Complexity as a cost to justify
-→ [Universal flexibility-usability](../packs/ux/universal-principles-of-design/principles.md) · [SOLID overuse guards](../packs/architecture/solid/principles.md) · [Clean Architecture boundary-cost](../packs/architecture/clean-architecture/philosophy.md) · [Design Patterns trigger conditions](../packs/architecture/design-patterns/philosophy.md) · [DDD proportionality](../packs/architecture/domain-driven-design/principles.md) · [constitution Art. 7](../core/constitution.md) · [pau-avila principle 2](../packs/personal/pau-avila/principles.md)
+→ [Universal flexibility-usability](../packs/ux/universal-principles-of-design/principles.md) · [SOLID overuse guards](../packs/architecture/solid/principles.md) · [Clean Architecture boundary-cost](../packs/architecture/clean-architecture/philosophy.md) · [Design Patterns trigger conditions](../packs/architecture/design-patterns/philosophy.md) · [DDD proportionality](../packs/architecture/domain-driven-design/principles.md) · [constitution Art. 7](../core/constitution.md) · [pau-avila principle 2](../packs/personal/pau-avila/principles.md) · [agent-foundations: the agent is the last shape to reach for](../packs/ai-engineering/agent-foundations/philosophy.md)
+
+### Untrusted content is data, never instruction
+The same boundary stated at four altitudes: what may enter context, what a tool may return, what a model may then execute, and what the web has always taught about input.
+→ [agent-security AS spine](../packs/ai-engineering/agent-security/principles.md) · [context-engineering CE6](../packs/ai-engineering/context-engineering/principles.md) · [tool-design response shape](../packs/ai-engineering/tool-design/principles.md) · [OWASP injection](../packs/security/owasp-top-10/principles.md) · [OWASP API](../packs/security/owasp-api-top-10/principles.md)
+
+### Executed evidence over plausible output
+Nothing counts as done because it looks right; it counts when something ran and its real result was read.
+→ [coding-agents CA spine](../packs/ai-engineering/coding-agents/philosophy.md) · [agent-evals: suites over anecdotes](../packs/ai-engineering/agent-evals/principles.md) · [confidence-model](../core/confidence-model.md) · [TDD red before green](../packs/testing/tdd/principles.md) · [QA checklists](../packs/testing/qa-checklists/README.md)
+
+### Blast radius and least privilege
+Bound what a thing *can* do rather than trusting it to choose well — whether the thing is an agent, a tool, a token, or a migration.
+→ [agent-security controls](../packs/ai-engineering/agent-security/engineering-rules.md) · [tool-design: dry-run and destructive confirmation](../packs/ai-engineering/tool-design/engineering-rules.md) · [ASVS](../packs/security/owasp-asvs/README.md) · [Supabase RLS](../packs/backend/supabase/README.md) · [deployment rollback](../packs/devops/deployment/principles.md)
+
+### Bounded work: budgets, termination, recovery
+Any long-running process needs a stated stopping condition, a budget, and a defined response to failure — stated before it starts, not inferred after.
+→ [agent-foundations termination and budgets](../packs/ai-engineering/agent-foundations/principles.md) · [SRE error budgets](../packs/devops/sre/principles.md) · [deployment rollback](../packs/devops/deployment/principles.md)
 
 ### The four states (empty/loading/error/success)
 → [Krug ER25](../packs/ux/steve-krug/engineering-rules.md) · [NN/g NG35](../packs/ux/nielsen-norman-group/engineering-rules.md) · [Refactoring UI RU15](../packs/ux/refactoring-ui/engineering-rules.md) · [Laws of UX LX12-13](../packs/ux/laws-of-ux/engineering-rules.md) · [pau-avila ux-preferences](../packs/personal/pau-avila/ux-preferences.md)
