@@ -54,7 +54,25 @@ and alternatives considered) and `docs/migration/v1.1-to-next.md`
   `docs/benchmarks/`, `docs/scoring/`, `docs/profiles/`,
   `docs/reviews/`, `docs/maintenance/`, `docs/cli/`, `docs/migration/`.
 
+### Added
+
+- **`evals/` — the first thing that measures AKOS's actual output.** `benchmarks/` measures the deterministic rules engine; nothing measured the review, which is what AKOS produces. `packs/ai-engineering/agent-evals` scored that dimension around 18/100 and was right to.
+
+  Each case is a small fixture built from **real code shapes taken from repositories reviewed by hand**, plus an `expected.yaml` naming the findings a competent review must surface and — more valuable — the ones a careless review wrongly reports. All three `must_not_find` traps are false positives that actually happened: the `private` schema table protected by `REVOKE ALL`, the policy a later migration drops, the optional-auth chain.
+
+  The design decision that makes it honest: **it grades a report, it does not produce one.** Generating the review inside the grader would make the suite depend on a provider and on run-to-run variance, and there is no defensible way to gate on that. Grading is deterministic; producing is not. Matching is concept-based rather than exact — every `match_all` term plus at least one `match_any` term, case-insensitive — because exact-match grading on prose measures phrasing, not correctness.
+
+  Thresholds are constants in the runner, stated before any run: recall 1.0, false positives 0. Recall is all-or-nothing because every `must_find` is a defect a hand-verified read confirmed is really there.
+
+  `akos eval --report PATH --case ID`. `--case` is required, not a filter — see below.
+
 ### Fixed
+
+- Two defects in the eval suite, both found by running it rather than reading it:
+  - **Grading a report against every case produced a confidently wrong answer.** A real review of one project scored 0% recall against another project's case — "missing" findings that describe a different codebase — and tripped a trap because it happened to use the words. `--case` is now required, so a report is only ever graded against the fixture it reviewed.
+  - **A generic match term matched a section heading.** `notes` in `match_all` was satisfied by a `## Notes` heading in a report that never mentioned the table, giving 100% recall to a report that found nothing. Now qualified (`public.notes`) — the same generic-term precision bug the detectors had, in the tool built to catch it.
+- Deliberately **not** added: a CI step for the eval suite. CI has no review reports to grade, so a step iterating the cases would report green while doing nothing — the vacuous pass two Level C benchmark cases shipped with. What CI does run is `tests/unit/test_evals.py`, including `test_every_case_can_fail`, which asserts every case goes red on an empty report.
+
 
 - **Detector precision, measured on real repositories instead of fixtures.** The first two real runs put the rules engine against code nobody had written it against. On a well-built Supabase app it produced 30 findings including two CRITICALs, and **every one of the nine Level-A findings was a false positive**. Five distinct causes, each now fixed with a regression test built from the real shape rather than a synthetic one:
   - `SUPABASE_POLICY_TOO_PERMISSIVE` read `CREATE POLICY` but not the 26 `DROP POLICY` statements elsewhere in the same migration set, so policies the author had already removed were still reported. It is now migration-order aware, tracking the live policy set across files — the asymmetry is that `SUPABASE_RLS_DISABLED` already did this and its sibling did not.
