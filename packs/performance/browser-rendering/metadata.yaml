@@ -14,3 +14,10 @@ related:
   - packs/performance/core-web-vitals
   - packs/performance/web-dev
   - packs/frontend/css
+id: performance/browser-rendering
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2028-01-05
+maintainer: core
+license: MIT
+deprecated: false

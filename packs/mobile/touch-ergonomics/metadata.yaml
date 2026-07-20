@@ -2,24 +2,7 @@ name: touch-ergonomics
 domain: mobile
 authority-level: 2
 version: 1.0.0
-tags:
-  [
-    touch,
-    mobile,
-    ergonomics,
-    target-size,
-    thumb-zones,
-    hit-area,
-    hover,
-    pointer-events,
-    virtual-keyboard,
-    inputmode,
-    locale-input,
-    gestures,
-    touch-action,
-    accidental-activation,
-    accessibility,
-  ]
+tags: [touch, mobile, ergonomics, target-size, thumb-zones, hit-area, hover, pointer-events, virtual-keyboard, inputmode, locale-input, gestures, touch-action, accidental-activation, accessibility]
 sources:
   - title: "Web Content Accessibility Guidelines (WCAG) 2.2 — SC 2.5.8 Target Size (Minimum)"
     org: W3C
@@ -53,3 +36,10 @@ related:
   - packs/ux/wcag
   - packs/ux/apple-hig
   - packs/ux/material-design
+id: mobile/touch-ergonomics
+status: stable
+last_reviewed: 2026-07-19
+review_after: 2027-07-19
+maintainer: core
+license: MIT
+deprecated: false

@@ -18,3 +18,10 @@ related:
   - packs/ux/don-norman
   - packs/ux/laws-of-ux
   - packs/ux/wcag
+id: ux/nielsen-norman-group
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2027-07-09
+maintainer: core
+license: MIT
+deprecated: false

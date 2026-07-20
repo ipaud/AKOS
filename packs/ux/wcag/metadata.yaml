@@ -19,3 +19,10 @@ related:
   - packs/ux/apple-hig
   - packs/ux/material-design
   - packs/frontend/html
+id: ux/wcag
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2028-01-05
+maintainer: core
+license: MIT
+deprecated: false

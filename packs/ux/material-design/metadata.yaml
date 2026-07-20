@@ -13,3 +13,10 @@ related:
   - packs/ux/wcag
   - packs/ux/refactoring-ui
   - packs/frontend/design-systems
+id: ux/material-design
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2028-01-05
+maintainer: core
+license: MIT
+deprecated: false

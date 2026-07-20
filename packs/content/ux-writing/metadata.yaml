@@ -2,20 +2,7 @@ name: ux-writing
 domain: content
 authority-level: 3
 version: 1.0.0
-tags:
-  [
-    ux-writing,
-    microcopy,
-    interface-copy,
-    voice-and-tone,
-    labels,
-    error-messages,
-    empty-states,
-    forms,
-    notifications,
-    terminology,
-    localization,
-  ]
+tags: [ux-writing, microcopy, interface-copy, voice-and-tone, labels, error-messages, empty-states, forms, notifications, terminology, localization]
 sources:
   - title: "Strategic Writing for UX: Drive Engagement, Conversion, and Retention with Every Word"
     author: Torrey Podmajersky
@@ -37,3 +24,10 @@ related:
   - packs/content/gov-uk-content-design
   - packs/ux/steve-krug
   - packs/ux/nielsen-norman-group
+id: content/ux-writing
+status: stable
+last_reviewed: 2026-07-19
+review_after: 2027-04-15
+maintainer: core
+license: MIT
+deprecated: false

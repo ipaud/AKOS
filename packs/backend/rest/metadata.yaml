@@ -11,3 +11,10 @@ related:
   - packs/backend/graphql
   - packs/security/owasp-api-top-10
   - packs/performance/network-performance
+id: backend/rest
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2027-07-09
+maintainer: core
+license: MIT
+deprecated: false

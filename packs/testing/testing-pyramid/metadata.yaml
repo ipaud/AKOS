@@ -11,3 +11,10 @@ related:
   - packs/testing/tdd
   - packs/testing/playwright
   - packs/testing/qa-checklists
+id: testing/testing-pyramid
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2027-07-09
+maintainer: core
+license: MIT
+deprecated: false

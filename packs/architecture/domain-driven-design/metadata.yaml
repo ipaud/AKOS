@@ -14,3 +14,10 @@ related:
   - packs/architecture/clean-architecture
   - packs/architecture/solid
   - packs/architecture/martin-fowler-refactoring
+id: architecture/domain-driven-design
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2027-04-05
+maintainer: core
+license: MIT
+deprecated: false

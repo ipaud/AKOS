@@ -2,19 +2,7 @@ name: gov-uk-content-design
 domain: content
 authority-level: 2
 version: 1.0.0
-tags:
-  [
-    content-design,
-    plain-language,
-    readability,
-    user-needs,
-    front-loading,
-    information-architecture,
-    accessibility,
-    content-lifecycle,
-    editorial,
-    government,
-  ]
+tags: [content-design, plain-language, readability, user-needs, front-loading, information-architecture, accessibility, content-lifecycle, editorial, government]
 sources:
   - title: "Content design: planning, writing and managing content"
     author: Government Digital Service
@@ -39,3 +27,10 @@ related:
   - packs/ux/steve-krug
   - packs/ux/wcag
   - packs/ux/nielsen-norman-group
+id: content/gov-uk-content-design
+status: stable
+last_reviewed: 2026-07-19
+review_after: 2027-07-19
+maintainer: core
+license: MIT
+deprecated: false

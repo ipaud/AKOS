@@ -2,27 +2,7 @@ name: responsive-web
 domain: mobile
 authority-level: 2
 version: 1.0.0
-tags:
-  [
-    responsive,
-    mobile-first,
-    layout,
-    breakpoints,
-    container-queries,
-    fluid-typography,
-    clamp,
-    reflow,
-    wcag-1-4-10,
-    viewport-units,
-    dvh,
-    safe-area,
-    responsive-images,
-    art-direction,
-    horizontal-scroll,
-    data-tables,
-    density,
-    cls,
-  ]
+tags: [responsive, mobile-first, layout, breakpoints, container-queries, fluid-typography, clamp, reflow, wcag-1-4-10, viewport-units, dvh, safe-area, responsive-images, art-direction, horizontal-scroll, data-tables, density, cls]
 sources:
   - title: "Responsive design"
     author: MDN Web Docs contributors
@@ -49,3 +29,10 @@ related:
   - packs/ux/wcag
   - packs/frontend/css
   - packs/performance/core-web-vitals
+id: mobile/responsive-web
+status: stable
+last_reviewed: 2026-07-19
+review_after: 2027-07-19
+maintainer: core
+license: MIT
+deprecated: false

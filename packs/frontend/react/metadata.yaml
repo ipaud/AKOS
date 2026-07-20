@@ -11,3 +11,10 @@ related:
   - packs/frontend/typescript
   - packs/performance/core-web-vitals
   - packs/testing/tdd
+id: frontend/react
+status: stable
+last_reviewed: 2026-07-09
+review_after: 2027-07-09
+maintainer: core
+license: MIT
+deprecated: false
