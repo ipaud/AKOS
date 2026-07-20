@@ -53,6 +53,10 @@ Every agent, every step, same output:
 ## Low Priority Improvements
 ## Tradeoffs
 ## Relevant Knowledge Packs Used
+## Coverage
+- Inspected:
+- Not inspected / out of scope:
+- Confidence basis:
 ## Scores
 - UX:
 - Accessibility:
@@ -68,6 +72,8 @@ PASS / PASS WITH FIXES / BLOCKED
 ```
 
 Scoring rules: [scoring-model.md](scoring-model.md). Agents fill only the score lines they can honestly assess; others get `n/a`.
+
+Every finding carries an inline confidence tag — `(Confidence: Certain|High|Moderate|Low)`, per [confidence-model.md](confidence-model.md) — structuring what severity-gating already required implicitly. **Coverage** states what was actually inspected, so a score never implies more certainty than the review earned; it is a reporting addition and does not change the decision semantics below — a CRITICAL blocks regardless of coverage, and low coverage is never a reason to soften a finding actually made. See [docs/scoring/evidence-confidence-coverage.md](../docs/scoring/evidence-confidence-coverage.md).
 
 ## Severity levels
 
