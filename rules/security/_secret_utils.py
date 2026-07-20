@@ -81,3 +81,52 @@ def decode_jwt_claims(token: str) -> dict | None:
         return json.loads(decoded)
     except (ValueError, json.JSONDecodeError):
         return None
+
+
+def redact_secrets(text: str) -> tuple[str, list[str]]:
+    """Replace anything that looks like a live credential with a labelled
+    marker. Returns (redacted_text, labels_of_what_was_removed).
+
+    Used when a review report is copied into a project's .akos/reviews/.
+    A security review is *required* to quote the credential it found — the
+    report format demands concrete evidence — so the audit trail is exactly
+    where secrets accumulate, and it lands in a directory the consuming
+    project may well commit. Redaction therefore happens at write time, not
+    at display time: once the file exists, it is too late.
+
+    Deliberately aggressive. A false positive costs a reviewer one redacted
+    string they can still find in the source; a false negative pushes a live
+    key to a remote. The asymmetry is not close, so this does not try to be
+    clever about whether a match is 'really' a secret.
+    """
+    labels: list[str] = []
+
+    def _mark(label: str) -> str:
+        if label not in labels:
+            labels.append(label)
+        return f"[REDACTED:{label}]"
+
+    for name, pattern in VENDOR_PATTERNS.items():
+        text, n = pattern.subn(lambda m, nm=name: _mark(nm), text)
+        if n == 0 and name in labels:
+            labels.remove(name)
+
+    # A JWT is only a secret when it carries service_role; anon and
+    # authenticated keys are designed to be public and RLS constrains them.
+    # Redacting those would strip evidence a reviewer legitimately needs.
+    def _jwt(m):
+        claims = decode_jwt_claims(m.group(0))
+        if claims and claims.get("role") == "service_role":
+            return _mark("service_role_jwt")
+        return m.group(0)
+
+    text = JWT_RE.sub(_jwt, text)
+
+    def _assignment(m):
+        value = m.group(1)
+        if looks_like_placeholder(value) or shannon_entropy(value) < 3.0:
+            return m.group(0)
+        return m.group(0).replace(value, _mark("high_entropy_assignment"))
+
+    text = GENERIC_ASSIGNMENT_RE.sub(_assignment, text)
+    return text, labels
