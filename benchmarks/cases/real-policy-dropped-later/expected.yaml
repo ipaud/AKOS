@@ -1,0 +1,9 @@
+case_id: real-policy-dropped-later
+domain: security
+level: A
+rules_under_test: [SUPABASE_POLICY_TOO_PERMISSIVE]
+source: brotapp, verified by hand 2026-07-20 — 26 DROP POLICY statements the detector never read
+must_detect: []
+must_not_detect:
+  - rule_id: SUPABASE_POLICY_TOO_PERMISSIVE
+    path: fixture/supabase/migrations/0001_init.sql

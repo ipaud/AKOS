@@ -1,0 +1,9 @@
+case_id: real-service-role-in-comment
+domain: security
+level: A
+rules_under_test: [SERVICE_ROLE_IN_CLIENT]
+source: RAK, verified by hand 2026-07-20 — the warning against the defect, read as the defect
+must_detect: []
+must_not_detect:
+  - rule_id: SERVICE_ROLE_IN_CLIENT
+    path: fixture/src/lib/supabase.ts

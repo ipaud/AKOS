@@ -1,0 +1,10 @@
+case_id: real-secret-in-gitignored-env
+domain: security
+level: A
+rules_under_test: [SECRET_IN_SOURCE]
+source: brotapp, verified by hand 2026-07-20 — a key in the one place it belongs
+notes: "Requires the fixture to be inside a git repository for check-ignore to resolve; the runner scans it in place, so this case only holds when the AKOS repo itself is a checkout."
+must_detect: []
+must_not_detect:
+  - rule_id: SECRET_IN_SOURCE
+    path: fixture/.env

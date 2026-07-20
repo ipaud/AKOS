@@ -160,7 +160,12 @@ def print_text(results: list[dict]):
         recall = tp / (tp + fn)
         precision = tp / (tp + fp) if (tp + fp) > 0 else 1.0
         print(f"Level A/B — recall: {recall:.0%}  precision: {precision:.0%}  (tp={tp} fn={fn} fp={fp})")
-        print("Measured only over this benchmark's curated must_detect/must_not_detect corpus — a regression guard, not a claim about all real-world code.")
+        real = sum(1 for c in results if str(c.get("case_id", "")).startswith("real-"))
+        print(f"Measured over this corpus only — a regression guard, not a claim about "
+              f"real-world code. {real} of {len(results)} cases carry shapes taken from real "
+              f"repositories; the rest are synthetic and were written alongside the detectors "
+              f"they exercise. This number read 100% while every Level-A finding on three real "
+              f"repositories was a false positive.")
 
 
 def cmd_list(manifest: dict):

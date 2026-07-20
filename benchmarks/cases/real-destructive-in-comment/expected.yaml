@@ -1,0 +1,9 @@
+case_id: real-destructive-in-comment
+domain: devops
+level: A
+rules_under_test: [DESTRUCTIVE_MIGRATION_NO_GUARD]
+source: RAK, verified by hand 2026-07-20 — a plan read as a statement
+must_detect: []
+must_not_detect:
+  - rule_id: DESTRUCTIVE_MIGRATION_NO_GUARD
+    path: fixture/supabase/migrations/0034_normalize.sql
