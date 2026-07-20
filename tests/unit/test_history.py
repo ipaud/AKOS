@@ -101,7 +101,11 @@ class TestRecordListShowCompare(unittest.TestCase):
         a = Args()
         a.dir = str(self.project)
         a.keep = 2
-        history.cmd_clean(a)
+        # clean now refuses unless the caller confirms the exact count it
+        # would delete — see TestCleanRequiresConfirmation for why.
+        a.dry_run = False
+        a.confirm_delete = 3
+        self.assertEqual(history.cmd_clean(a), 0)
 
         remaining = list((self.project / ".akos/reviews").iterdir())
         self.assertEqual(len(remaining), 2)
@@ -109,3 +113,117 @@ class TestRecordListShowCompare(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRecordDoesNotPartiallyApply(unittest.TestCase):
+    """A malformed --scores-json used to throw between two writes, leaving a
+    review directory with report.md but no metadata.json. `history list`
+    skips such directories, so the orphan was invisible, and every retry
+    minted a fresh timestamp — so they accumulated silently. The caller
+    assembling that JSON is an LLM following skills/akos-review, which makes
+    a malformed brace the expected failure rather than an edge case."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.project = Path(self._tmp.name)
+        self.report = self.project / "report.md"
+        self.report.write_text("# Review\n")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _args(self, scores_json, packs_json=None):
+        class Args:
+            pass
+        a = Args()
+        a.dir = str(self.project)
+        a.type = "ux-review"
+        a.decision = "PASS"
+        a.profile = "Startup MVP"
+        a.report = str(self.report)
+        a.scores_json = scores_json
+        a.packs_json = packs_json
+        a.timestamp = "20260101T000000Z"
+        return a
+
+    def _review_dirs(self):
+        d = self.project / ".akos/reviews"
+        return sorted(p.name for p in d.iterdir()) if d.exists() else []
+
+    def test_malformed_scores_json_returns_1(self):
+        self.assertEqual(history.cmd_record(self._args('{"ux": 72,}')), 1)
+
+    def test_malformed_scores_json_writes_nothing_at_all(self):
+        history.cmd_record(self._args('{"ux": 72,}'))
+        self.assertEqual(self._review_dirs(), [],
+                         "a rejected record must leave no directory behind")
+
+    def test_malformed_packs_json_writes_nothing_at_all(self):
+        history.cmd_record(self._args('{"ux": 72}', packs_json="[not json"))
+        self.assertEqual(self._review_dirs(), [])
+
+    def test_valid_json_still_records(self):
+        self.assertEqual(history.cmd_record(self._args('{"ux": 72}')), 0)
+        self.assertEqual(self._review_dirs(), ["20260101T000000Z-ux-review"])
+
+
+class TestCleanRequiresConfirmation(unittest.TestCase):
+    """`history clean` deleted with no confirmation and no preview, and
+    --keep defaulted to 20 — so a bare call removed however many reviews
+    happened to exist past 20, a count the caller had never seen.
+    .akos/reviews/ is usually untracked, so that is unrecoverable."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.project = Path(self._tmp.name)
+        report = self.project / "report.md"
+        report.write_text("# Review\n")
+        for i in range(1, 6):
+            class Args:
+                pass
+            a = Args()
+            a.dir = str(self.project)
+            a.type = "ux-review"
+            a.decision = "PASS"
+            a.profile = "Startup MVP"
+            a.report = str(report)
+            a.scores_json = '{"ux": 70}'
+            a.packs_json = None
+            a.timestamp = f"2026010{i}T000000Z"
+            history.cmd_record(a)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _clean(self, keep, dry_run=False, confirm=None):
+        class Args:
+            pass
+        a = Args()
+        a.dir = str(self.project)
+        a.keep = keep
+        a.dry_run = dry_run
+        a.confirm_delete = confirm
+        return history.cmd_clean(a)
+
+    def _count(self):
+        return len(list((self.project / ".akos/reviews").iterdir()))
+
+    def test_without_confirmation_refuses_and_deletes_nothing(self):
+        self.assertEqual(self._clean(keep=1), 1)
+        self.assertEqual(self._count(), 5)
+
+    def test_dry_run_deletes_nothing(self):
+        self.assertEqual(self._clean(keep=1, dry_run=True), 0)
+        self.assertEqual(self._count(), 5)
+
+    def test_wrong_confirmation_count_refuses(self):
+        self.assertEqual(self._clean(keep=1, confirm=99), 1)
+        self.assertEqual(self._count(), 5)
+
+    def test_matching_confirmation_deletes(self):
+        self.assertEqual(self._clean(keep=1, confirm=4), 0)
+        self.assertEqual(self._count(), 1)
+
+    def test_nothing_to_remove_is_not_an_error(self):
+        self.assertEqual(self._clean(keep=99), 0)
+        self.assertEqual(self._count(), 5)

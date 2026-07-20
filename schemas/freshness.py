@@ -102,6 +102,14 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     rows = collect(args.pack)
+    # A --pack that matches nothing must not read as "this pack is fine".
+    # `--pack no/such --fail-on expired` used to exit 0 unconditionally,
+    # which turns a typo in a CI invocation into a gate that never fires.
+    if args.pack and not rows:
+        print(f"error: no pack matches '{args.pack}'. List them with 'akos list-packs'.",
+              file=sys.stderr)
+        return 1
+
     if args.expired:
         rows = [r for r in rows if r["band"] == "expired"]
     elif args.due_soon:

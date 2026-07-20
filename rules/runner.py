@@ -193,6 +193,24 @@ def main(argv=None) -> int:
 
     rules = discover_rules(domain_filter=set(args.domain) if args.domain else None,
                             rule_filter=set(args.rule) if args.rule else None)
+
+    # A filter that selects no rule must not report a clean scan. `--rule
+    # SUPABASE_RLS_DISABLE` (one character short) used to print "no findings"
+    # and exit 0, so an agent would report the codebase clean having run
+    # nothing. Name the unmatched IDs rather than the empty result.
+    if args.rule or args.domain:
+        if not rules:
+            requested = ", ".join(sorted(set(args.rule or []) | set(args.domain or [])))
+            print(f"error: no rule matches the filter ({requested}). "
+                  f"List available rules with 'akos rules list'.", file=sys.stderr)
+            return 1
+        selected_ids = {r.id for r in rules}
+        unmatched = sorted(set(args.rule or []) - selected_ids)
+        if unmatched:
+            print(f"error: no such rule: {', '.join(unmatched)}. "
+                  f"List available rules with 'akos rules list'.", file=sys.stderr)
+            return 1
+
     findings = run_rules(target_dir, rules, args.profile)
 
     if args.format == "json":

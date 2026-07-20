@@ -65,6 +65,24 @@ def cmd_record(args) -> int:
         print(f"error: report file not found: {report_path}", file=sys.stderr)
         return 1
 
+    # Parse every structured argument BEFORE creating anything on disk. The
+    # previous order wrote the directory and report.md first, so a malformed
+    # --scores-json threw between the two writes and left a review that
+    # `history list` skips (it requires metadata.json) — invisible, and a
+    # fresh timestamp on every retry meant the orphans accumulated. The
+    # caller assembling this JSON is an LLM following skills/akos-review,
+    # so a malformed brace is the expected failure, not an edge case.
+    try:
+        scores = json.loads(args.scores_json) if args.scores_json else {}
+    except json.JSONDecodeError as e:
+        print(f"error: --scores-json is not valid JSON ({e}); nothing was written", file=sys.stderr)
+        return 1
+    try:
+        packs = json.loads(args.packs_json) if args.packs_json else []
+    except json.JSONDecodeError as e:
+        print(f"error: --packs-json is not valid JSON ({e}); nothing was written", file=sys.stderr)
+        return 1
+
     timestamp = args.timestamp  # injected by caller (bash `date`) — this module never calls
                                   # datetime.now() itself, since Date.now()-equivalents are
                                   # explicitly the one thing that must come from the caller
@@ -74,9 +92,6 @@ def cmd_record(args) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     (out_dir / "report.md").write_text(report_path.read_text(encoding="utf-8"), encoding="utf-8")
-
-    scores = json.loads(args.scores_json) if args.scores_json else {}
-    packs = json.loads(args.packs_json) if args.packs_json else []
 
     metadata = {
         "review_id": review_id,
@@ -186,6 +201,42 @@ def cmd_clean(args) -> int:
         return 0
     entries = sorted((e for e in d.iterdir() if e.is_dir()), key=lambda e: e.name)
     to_remove = entries[: max(0, len(entries) - args.keep)]
+
+    # Name every review that would go. The scope of this command depends on
+    # how many reviews happen to exist, which the caller has not seen — so
+    # reporting only a count is not enough to consent to the deletion.
+    if not to_remove:
+        print(f"nothing to remove: {len(entries)} review(s) present, keeping {args.keep}")
+        return 0
+
+    # Decide whether this call deletes BEFORE labelling anything, so the
+    # per-entry lines never say "removing" on a call that then refuses.
+    will_delete = not args.dry_run and args.confirm_delete == len(to_remove)
+    for e in to_remove:
+        print(f"  removing: {e.name}" if will_delete else f"  would remove: {e.name}")
+
+    if args.dry_run:
+        print(f"dry run: {len(to_remove)} review(s) would be removed, "
+              f"{len(entries) - len(to_remove)} kept. "
+              f"Re-run with --confirm-delete {len(to_remove)} to apply.")
+        return 0
+
+    # .akos/reviews/ is frequently untracked in the consuming project, so a
+    # delete here is usually unrecoverable. Require the caller to state the
+    # count it saw, so a stale expectation fails instead of deleting.
+    if args.confirm_delete is None:
+        print(f"error: refusing to delete {len(to_remove)} review(s) without confirmation.\n"
+              f"  Preview first:  history clean --dir {args.dir} --keep {args.keep} --dry-run\n"
+              f"  Then apply:     history clean --dir {args.dir} --keep {args.keep} "
+              f"--confirm-delete {len(to_remove)}", file=sys.stderr)
+        return 1
+    if args.confirm_delete != len(to_remove):
+        print(f"error: --confirm-delete {args.confirm_delete} does not match the "
+              f"{len(to_remove)} review(s) that would be removed. Re-run with --dry-run "
+              f"to see the current set; the history changed since you last looked.",
+              file=sys.stderr)
+        return 1
+
     for e in to_remove:
         for f in e.iterdir():
             f.unlink()
@@ -223,9 +274,14 @@ def main(argv=None) -> int:
     p_compare.add_argument("review_b")
     p_compare.add_argument("--dir", default=".")
 
-    p_clean = sub.add_parser("clean")
+    p_clean = sub.add_parser("clean", help="delete old reviews (requires --dry-run first, then --confirm-delete N)")
     p_clean.add_argument("--dir", default=".")
-    p_clean.add_argument("--keep", type=int, default=20)
+    p_clean.add_argument("--keep", type=int, default=20,
+                         help="how many of the newest reviews to keep (default: 20)")
+    p_clean.add_argument("--dry-run", action="store_true",
+                         help="list the reviews that would be removed and exit without deleting")
+    p_clean.add_argument("--confirm-delete", type=int, default=None, metavar="N",
+                         help="delete, asserting exactly N reviews will go (get N from --dry-run)")
 
     args = ap.parse_args(argv)
     return {
