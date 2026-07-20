@@ -227,3 +227,65 @@ class TestCleanRequiresConfirmation(unittest.TestCase):
     def test_nothing_to_remove_is_not_an_error(self):
         self.assertEqual(self._clean(keep=99), 0)
         self.assertEqual(self._count(), 5)
+
+
+class TestReportIsRedactedAtWriteTime(unittest.TestCase):
+    """A security review is required to quote the credential it found — the
+    report format demands concrete evidence — and `history record` copied
+    that report byte-for-byte into the consuming project's .akos/reviews/.
+    install-project added no .gitignore entry, so a key that was gitignored
+    in .env could reach a remote via the audit trail. No attacker needed."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.project = Path(self._tmp.name)
+        self.report = self.project / "report.md"
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _record_and_read(self, report_body: str) -> str:
+        self.report.write_text(report_body)
+
+        class Args:
+            pass
+        a = Args()
+        a.dir = str(self.project)
+        a.type = "security"
+        a.decision = "BLOCKED"
+        a.profile = "Production"
+        a.report = str(self.report)
+        a.scores_json = '{"security": 20}'
+        a.packs_json = None
+        a.timestamp = "20260101T000000Z"
+        self.assertEqual(history.cmd_record(a), 0)
+        return (self.project / ".akos/reviews/20260101T000000Z-security/report.md").read_text()
+
+    def test_vendor_key_does_not_reach_disk(self):
+        stored = self._record_and_read("Found AKIAABCDEFGHIJKLMNOP in src/config.ts:3\n")
+        self.assertNotIn("AKIAABCDEFGHIJKLMNOP", stored)
+        self.assertIn("REDACTED", stored)
+
+    def test_the_finding_itself_survives_redaction(self):
+        """Redaction that destroys the finding is not a fix — the reviewer
+        still needs to know which file and line to go fix."""
+        stored = self._record_and_read(
+            "- **Hardcoded key** in `src/config.ts:3` — value AKIAABCDEFGHIJKLMNOP\n")
+        self.assertIn("src/config.ts:3", stored)
+        self.assertIn("Hardcoded key", stored)
+
+    def test_anon_jwt_is_preserved(self):
+        """anon and authenticated keys are designed to be public and RLS
+        constrains them. Redacting those would strip evidence a reviewer
+        legitimately needs."""
+        anon = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.sig1234567890"
+        stored = self._record_and_read(f"Anon key {anon} is fine, RLS covers it.\n")
+        self.assertIn(anon, stored)
+
+    def test_placeholder_is_not_redacted(self):
+        stored = self._record_and_read('password = "changeme" is a placeholder\n')
+        self.assertIn("changeme", stored)
+
+    def test_ordinary_prose_is_untouched(self):
+        body = "## Critical\n\n- The login form has no error state.\n"
+        self.assertEqual(self._record_and_read(body), body)

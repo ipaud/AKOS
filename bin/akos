@@ -88,6 +88,7 @@ Commands:
   review <domain>      Print the prompt to run a review (ux|security|architecture|full)
   create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the 17-file structure
   validate [target]    Validate packs/agents/workflows against their schemas (--format json)
+  check-config [dir]   Check a project's .akos/config.md against the allowed value set
   profile <sub>        list|show <name>|create <name>|use <name> [dir] — personal profiles
   rules <sub>          list|run <dir> [--rule ID] [--domain D] [--profile P]|explain <ID>
   freshness [opts]     Pack review-freshness report (--expired|--due-soon|--pack ID|--fail-on BAND)
@@ -178,6 +179,12 @@ cmd_validate() {
   python3 "$AKOS_HOME/schemas/validate.py" "$@"
 }
 
+cmd_check_config() {
+  # Same tail-call rule as cmd_validate: literal last statement, so the
+  # 0/1/2 exit code propagates untouched.
+  python3 "$AKOS_HOME/schemas/config_check.py" "$@"
+}
+
 cmd_install_project() {
   local dir="${1:-$PWD}"
   info "Installing AKOS integration into: $dir"
@@ -237,6 +244,21 @@ BODY
   write_marked_section "$dir/AGENTS.md" "$agents_body"
   write_marked_section "$dir/.cursor/rules/akos.mdc" "$cursor_body"
   write_marked_section "$dir/.akos/config.md" "$config_body"
+
+  # Review reports quote the defects they find — including, on a security
+  # lens, the credential itself. `akos history record` redacts known secret
+  # shapes at write time, but redaction is pattern-based and will miss
+  # things, so the stored reports should not be pushed by default. Append
+  # only if absent, and never rewrite an existing .gitignore.
+  local gitignore="$dir/.gitignore"
+  if [ ! -f "$gitignore" ] || ! grep -qxF ".akos/reviews/" "$gitignore"; then
+    {
+      [ -f "$gitignore" ] && [ -s "$gitignore" ] && printf '\n'
+      printf '# AKOS review reports — may quote secrets found during a review\n'
+      printf '.akos/reviews/\n'
+    } >> "$gitignore"
+    ok "Added .akos/reviews/ to .gitignore (review reports can quote what they find)."
+  fi
 
   ok "AKOS integration installed. Edit .akos/config.md to set the profile and style direction."
 }
@@ -442,6 +464,7 @@ main() {
     list-skills)        cmd_list_skills ;;
     show-profile)       cmd_show_profile "$@" ;;
     validate)           cmd_validate "$@" ;;
+    check-config)       cmd_check_config "$@" ;;
     review)             cmd_review "$@" ;;
     create-pack)        cmd_create_pack "$@" ;;
     profile)            cmd_profile "$@" ;;

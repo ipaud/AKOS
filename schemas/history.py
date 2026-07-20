@@ -26,6 +26,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+# The secret patterns live with the detector that owns them. Importing them
+# rather than restating them here keeps one copy: a second set of regexes
+# would drift from the first the moment either is updated.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "rules" / "security"))
+from _secret_utils import redact_secrets  # noqa: E402
+
 
 def git_info(project_dir: Path) -> dict:
     def run(*args):
@@ -91,7 +97,13 @@ def cmd_record(args) -> int:
     out_dir = reviews_dir(project_dir) / review_id
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    (out_dir / "report.md").write_text(report_path.read_text(encoding="utf-8"), encoding="utf-8")
+    # Redact at write time, not at display time. A security review is
+    # required to quote the credential it found — the report format demands
+    # concrete evidence — so this file is exactly where secrets accumulate,
+    # and it lands in the consuming project where it may well get committed.
+    # Once written, unredacting is not an option available to anyone.
+    report_text, redacted = redact_secrets(report_path.read_text(encoding="utf-8"))
+    (out_dir / "report.md").write_text(report_text, encoding="utf-8")
 
     metadata = {
         "review_id": review_id,
@@ -106,6 +118,12 @@ def cmd_record(args) -> int:
     (out_dir / "report.json").write_text(json.dumps({"decision": args.decision, "scores": scores}, indent=2), encoding="utf-8")
 
     print(f"recorded {review_id} in {out_dir}")
+    if redacted:
+        # Say so. A redaction the caller never learns about is the same
+        # class of defect as no redaction: the reviewer keeps believing the
+        # stored report is a faithful copy of what they wrote.
+        print(f"  redacted before writing: {', '.join(redacted)} "
+              f"(the finding text is kept; only the credential value is replaced)")
     return 0
 
 
