@@ -78,6 +78,20 @@ No pytest — stdlib `unittest` only, matching the project's one-accepted-depend
 - [ ] Content is operational — an agent reading it can *act*
 - [ ] New/changed rules have a benchmark case and a unit test covering the near-miss, not just the positive case
 - [ ] `python3 -m unittest discover -s tests/unit` and every `tests/integration/test_*.sh` pass
+- [ ] Changed anything under `.github/workflows/`? **Run it** — push to a scratch branch and read the run — then paste the run URL in the PR. A workflow that parses has not been shown to do anything: v1.4.0 shipped CI that had only ever been YAML-checked, and it failed on its first real execution.
+
+## Merging
+
+Merge with `./merge-pr.sh <n>`, not `gh pr merge`. It refuses when checks are failing, pending, or absent.
+
+```bash
+./merge-pr.sh 12               # rebase + delete branch, only if green
+./merge-pr.sh 12 --dry-run     # report what would happen
+```
+
+This exists because PR #3 was merged with its own `ci` check red — the merge was gated on `mergeable` (can git combine these?) rather than on `gh pr checks` (did the tests pass?), and v1.4.0 shipped and stayed red across three runs.
+
+It is a **mitigation, not a control**: `gh pr merge` still works and bypasses it entirely. The real control is GitHub branch protection with `ci` as a required check, which needs a public repo or a paid plan and is therefore unavailable here. Do not treat the script's presence as the gap being closed.
 
 ## Versioning
 
