@@ -42,13 +42,16 @@ jobs:
         run: python3 schemas/validate.py all
 
       - name: akos rules registry sanity (list only — no target project to scan in CI)
-        run: python3 rules/runner.py list 2>/dev/null || python3 -c "
-          import sys; sys.path.insert(0, 'rules')
+        run: |
+          bin/akos rules list
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, 'rules')
           from runner import discover_rules
           rules = discover_rules()
           print(f'{len(rules)} rules discovered')
           assert len(rules) >= 8, f'expected at least 8 rules, found {len(rules)}'
-          "
+          PY
 
       - name: akos freshness (fail only on expired)
         run: python3 schemas/freshness.py --fail-on expired
