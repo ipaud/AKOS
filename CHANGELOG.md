@@ -3,6 +3,105 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.6.0] — 2026-07-20
+
+Everything here came from *using* AKOS rather than reading it. Two real
+reviews were run against real repositories for the first time, and doing
+so found defects that six static reviews had missed — including one
+already sitting in `main`.
+
+### Added
+
+- **`evals/` — the first thing that measures AKOS's actual output.** `benchmarks/` measures the deterministic rules engine; nothing measured the review, which is what AKOS produces. `packs/ai-engineering/agent-evals` scored that dimension around 18/100 and was right to.
+
+  Each case is a small fixture built from **real code shapes taken from repositories reviewed by hand**, plus an `expected.yaml` naming the findings a competent review must surface and — more valuable — the ones a careless review wrongly reports. All three `must_not_find` traps are false positives that actually happened: the `private` schema table protected by `REVOKE ALL`, the policy a later migration drops, the optional-auth chain.
+
+  The design decision that makes it honest: **it grades a report, it does not produce one.** Generating the review inside the grader would make the suite depend on a provider and on run-to-run variance, and there is no defensible way to gate on that. Grading is deterministic; producing is not. Matching is concept-based rather than exact — every `match_all` term plus at least one `match_any` term, case-insensitive — because exact-match grading on prose measures phrasing, not correctness.
+
+  Thresholds are constants in the runner, stated before any run: recall 1.0, false positives 0. Recall is all-or-nothing because every `must_find` is a defect a hand-verified read confirmed is really there.
+
+  `akos eval --report PATH --case ID`. `--case` is required, not a filter — see below.
+
+### Fixed
+
+- Two defects in the eval suite, both found by running it rather than reading it:
+  - **Grading a report against every case produced a confidently wrong answer.** A real review of one project scored 0% recall against another project's case — "missing" findings that describe a different codebase — and tripped a trap because it happened to use the words. `--case` is now required, so a report is only ever graded against the fixture it reviewed.
+  - **A generic match term matched a section heading.** `notes` in `match_all` was satisfied by a `## Notes` heading in a report that never mentioned the table, giving 100% recall to a report that found nothing. Now qualified (`public.notes`) — the same generic-term precision bug the detectors had, in the tool built to catch it.
+- Deliberately **not** added: a CI step for the eval suite. CI has no review reports to grade, so a step iterating the cases would report green while doing nothing — the vacuous pass two Level C benchmark cases shipped with. What CI does run is `tests/unit/test_evals.py`, including `test_every_case_can_fail`, which asserts every case goes red on an empty report.
+
+
+- **Detector precision, measured on real repositories instead of fixtures.** The first two real runs put the rules engine against code nobody had written it against. On a well-built Supabase app it produced 30 findings including two CRITICALs, and **every one of the nine Level-A findings was a false positive**. Five distinct causes, each now fixed with a regression test built from the real shape rather than a synthetic one:
+  - `SUPABASE_POLICY_TOO_PERMISSIVE` read `CREATE POLICY` but not the 26 `DROP POLICY` statements elsewhere in the same migration set, so policies the author had already removed were still reported. It is now migration-order aware, tracking the live policy set across files — the asymmetry is that `SUPABASE_RLS_DISABLED` already did this and its sibling did not.
+  - `SUPABASE_RLS_DISABLED` parsed `CREATE TABLE IF NOT EXISTS private.app_secrets` as a table named `private` (the pattern only stripped a literal `public.` prefix), and reported CRITICAL against a secrets table deliberately kept in a non-exposed schema behind `REVOKE ALL` — stronger than the RLS it was accused of lacking. Now schema-aware, and only tables in API-exposed schemas are considered. A table in `public` protected by `REVOKE` rather than RLS is still reported; that is recorded as a known gap rather than silently handled.
+  - `SECRET_IN_SOURCE` flagged a `service_role` key in a **gitignored** `.env` — the one place it belongs — for a rule titled "committed to source". It now resolves git-ignore status once per batch and skips ignored files.
+  - `A11Y_INPUT_NO_LABEL` matched input tags with `[^>]*`, which stops at the `>` inside `onChange={(e) => …}`. The tag was truncated at the arrow and every attribute after it, usually including `aria-label`, went unseen: 8 of 21 findings were correctly-labelled inputs. The matcher is now brace- and quote-aware.
+  - `DESTRUCTIVE_MIGRATION_NO_GUARD` accepted only a guard *comment*, so a `DROP COLUMN` immediately preceded by the `INSERT … SELECT` that moved its data — expand-contract, done in the right order — was reported as unguarded. A preceding statement that preserves the specific table and column now counts; an unrelated `INSERT` above a `DROP` still does not.
+  - Net on the same repository: 30 findings → 10, both CRITICALs gone, and the survivors verified by hand as genuine (4 intentional public-read policies, for which the suppression comment exists, and 6 real unlabelled inputs).
+- **What this says about the benchmark.** `benchmarks/` reported **precision 100%** throughout, and still does — it is measured against 21 synthetic fixtures written by the same process that wrote the detectors, in the same session. `packs/ai-engineering/agent-evals` names that as contamination by iteration and warns the corpus "cannot surface a failure mode the detector's author did not already have in mind". This is that prediction coming true, with a number attached: 100% on the curated corpus, 0 of 9 on the first real repository. The 21 cases were not wrong; they were measuring something narrower than their headline implied.
+
+
+- **Seven deterministic detectors were wired to nothing.** `rules/` shipped working checks for committed secrets, `service_role` in client code, tables without RLS, always-true policies, missing rollback migrations, unguarded destructive SQL and unlabelled inputs — and no skill, agent or workflow referenced them. The security lens was instructed to hunt for committed secrets by hand while `SECRET_IN_SOURCE` sat unused, and, holding only `Read, Grep, Glob`, could not have run it if told to. The review skill now runs `akos rules run` as step 3, before dispatching any lens, and routes each finding to the lens that owns it; the receiving agents start from those findings and say so in Coverage if they were not handed them. `A11Y_INPUT_NO_LABEL` is passed through labelled Level B and capped at MEDIUM, a lead rather than a finding.
+- **`backend-reviewer` had profile weights in all six profiles and no route.** It appeared in no lens table, no workflow and no prompt — a registered subagent nothing could reach, shipped that way since 1.0.0. Now routed explicitly alongside `database-reviewer` as an agent that sits outside the twelve, invoked from lens 7 and alongside lens 8 on API surfaces. The `akos-review` skill description also listed `database` in place of lens 11 (personal rules); corrected.
+- **Five agents still loaded `packs/personal/pau-avila/` hardcoded.** The 1.4.0 decoupling covered skills, core and templates but missed `agents/`, so a project running `akos profile use alice` got Alice's Level-0 layer nowhere and Pau's in five lenses. The load paths are now `packs/personal/<personal_profile>/`. The three `pau-avila principle N` citations stay, per the scope decision recorded then: a second profile would not share this one's numbering.
+- `tests/unit/test_wiring.py` locks all three. Each was individually valid — an unrouted agent file parses, an uninvoked detector passes its own tests, a hardcoded path works — so only the *relationship* was wrong, which is exactly what no existing check looked at.
+
+
+- **Safety floor: nothing told a reviewing agent that project content is data, not instruction.** A repo-wide search found zero such language in `skills/`, `agents/`, `core/`, `templates/`, `prompts/` or `workflows/` — while thirteen subagents read arbitrary third-party repositories with `Read`, `Grep` and `Glob`, and `skills/akos/SKILL.md` declared every section of a project's `.akos/config.md` "binding", including a pack list and free-text Notes that "override your assumptions". A cloned repo could therefore lower the review profile (Prototype skips five lenses), add its own files to the agent's mandatory reading as authoritative knowledge, and pre-authorize its own conclusions. Now: **`akos check-config`** — a new command that verifies the profile is one of the six, `personal_profile` is a plain name, and every listed pack resolves inside AKOS's own `packs/`, exiting 2 otherwise; plus a provenance rule in both skills' safety-floor sections. The split is stated rather than blurred: the value checking is a **control** (deterministic, a model cannot be argued out of it), the instruction to run it and to hold the data/instruction line is **prose, and therefore a mitigation**.
+- **Safety floor: review reports were copied to disk verbatim, secrets included.** `history record` did `write_text(read_text())` with no redaction, and `install-project` added no `.gitignore` entry — so a security lens quoting a `service_role` key (the report format *requires* concrete evidence) wrote it into `.akos/reviews/` in the consuming project, where it could be committed. No attacker required; normal operation did it. Now redacted at write time, reusing the detector's own patterns rather than a second copy that would drift, and `install-project` appends `.akos/reviews/` to the project's `.gitignore`. The redactor keeps the finding — file, line, and prose survive; only the credential value is replaced — and preserves `anon`/`authenticated` JWTs, which are public by design and are evidence a reviewer needs. It prints what it removed, since a silent redaction is the same class of defect as none.
+
+
+### Corrected — claims this project made about itself that were not true
+
+Found by pointing the new `ai-engineering/` packs at AKOS itself, as the first real use of them. Each was established by running a command, not by re-reading the prose.
+
+- **CI was red for the entire 1.4.0 release, and the 1.4.0 entry below announces it as delivered.** `gh run list` shows three consecutive failures on the `akos rules registry sanity` step: run `29733824899` on the 1.4.0 PR at 10:05:44Z, run `29733878337` on the `main` push at 10:06:35Z, and run `29739121045` at 11:36:02Z — 2h15m red across two merges. The 1.4.0 PR was merged with its own check failing, because the merge was gated on `mergeable`, never on `gh pr checks`.
+- **The fix commit `d1a55c0` misdiagnosed the incident it fixed.** It states the workflows "had never actually run on GitHub" and that "the first real run failed in 12s". Both are false: they had run three times, and the 12s run was the third. The repair itself was verified by execution; the causal story around it was asserted from inference. A single `gh run list` would have settled it before the sentence was written. The real lesson is not "an unrun workflow slipped through" but "a visible red check was merged past" — which calls for branch protection, a control this repo still lacks.
+- **`benchmarks/README.md` claimed every case was sabotage-verified.** One was (`supabase-rls-basic`, recorded in `b9e0b93`); the claim was generalized to all 21. A whole-engine sabotage pass has since confirmed the 19 deterministic cases genuinely go red — so they are live — but also found that **the 2 Level C cases cannot fail at all**: their `must_mention` phrases sit in their own `prompt`, the mock provider echoes the prompt, and the assertion checks that echo. Both pass with the fixture removed entirely. The defect was introduced by the M8 "fix" that made canned responses repeat their trigger phrases verbatim — closing the loop it was meant to open.
+- `tests/README.md` said 79 tests; 82 run. `CHANGELOG` said the YAML parser is ~350 lines; it is 303, and was 303 at every commit.
+
+None of these were caught by `doctor.sh`, the 82 unit tests, the 21 benchmark cases, or CI. Every one of them is a claim in prose that no check reads.
+
+## [1.5.0] — 2026-07-20
+
+Opens a new top-level family. Until now AKOS packaged senior judgment about *software* — but when an agent builds the software, the result also depends on what it was given to see, which tools it could call, what it was allowed to do, and whether anything was actually verified. None of that had a home.
+
+### Added
+
+- **New `ai-engineering/` domain — 6 packs, 7649 lines.** Fase 1 of an AI-native expansion, scoped deliberately: six packs that change how AKOS works with coding agents, rather than fifty that restate the same articles.
+  - `ai-engineering/context-engineering` (L2) — context as a finite resource, not a container: CE1–CE16, CEE1–CEE58, covering minimum sufficient context, progressive disclosure, just-in-time retrieval, poisoning and rot, instruction hierarchy, memory tiers, what must survive a compaction boundary, and why "load the whole repo" fails small as well as large. Self-referential: `skills/akos/SKILL.md`'s own routing table is critiqued as a worked example.
+  - `ai-engineering/agent-foundations` (L2) — which shape a task warrants and how to bound it: AF1–AF18, AFE1–AFE72 across shape selection, routing, parallelization, orchestrator–worker, evaluator–optimizer, termination, budgets, error recovery, escalation, and idempotency. Spine: the agent is the *last* shape to reach for. Three anti-patterns are graded as correctness defects — silent truncation, double-charged retry, and action taken outside stated authority.
+  - `ai-engineering/tool-design` (L2) — a tool built for a human is not automatically a good tool for an agent: TD1–TD16, TDE1–TDE86 on naming, structured input and output, actionable errors, idempotency, dry-run and destructive confirmation, result bounds, stable references, and MCP's tool/resource/prompt distinction.
+  - `ai-engineering/coding-agents` (L2) — the process discipline of the edit itself: CA1–CA18, CAE1–CAE80 on orientation before editing, search before changing an interface, minimal patches that match existing conventions, testing before and after, and atomic reviewable commits. Spine: plausible is not correct.
+  - `ai-engineering/agent-evals` (L2) — proving a change actually helped: AE1–AE18, AEE1–AEE76 on golden datasets, the four eval altitudes, the grader ladder, groundedness, cost and recovery as first-class dimensions, regression thresholds, flakiness, contamination, and baseline discipline.
+  - `ai-engineering/agent-security` (**L1**) — the surface that appears when a model reads external content and then acts: AS1–AS18, ASE1–ASE95, 19 named anti-patterns. Spine: retrieved text, documents, web content and tool output are untrusted data, never instructions. Level 1 places it in the safety floor the constitution never waives, so its floor rules hold even in Prototype. Original models include the provenance ladder, the exfiltration triangle, and a control-vs-mitigation test that caps a score at 49 when prompt hardening is the whole defense.
+- Five new cross-cutting nodes in `graphs/knowledge-graph.md` — untrusted content as data, executed evidence over plausible output, blast radius and least privilege, bounded work, plus `agent-security` joining the security floor and `agent-foundations` joining complexity-as-a-cost. Every link verified to resolve.
+
+### Changed
+
+- `core/authority-model.md` names two source kinds it previously left ambiguous: Anthropic/OpenAI engineering practice as published sits at **L2** (the same footing as the existing Google/Stripe entry), and replicated agent methodology papers such as ReAct and Reflexion at **L3**, once cross-verified per the source policy. Additive — no renumbering, no schema change, and no existing pack's cited level changes.
+
+### Fixed
+
+- **The schema validator declared a bound it never enforced.** `knowledge-pack.schema.json` has specified `minimum: 0, maximum: 4` on `authority-level` since the contract shipped, but `schemas/validate.py` implemented neither keyword — they were the schema's only use of them. Any pack could ship `authority-level: 9` and validate clean at exit 0. Reproduced first, then fixed, with three regression tests locking both directions and both boundaries; `bool` is excluded from the numeric check since it subclasses `int`. Unit suite 79 → 82.
+- The bug was found while authoring `coding-agents`, by deliberately trying to make the validator fail rather than trusting its green — the discipline that pack exists to teach, so it is now also its own worked example.
+
+### Validated — the six packs run against AKOS itself
+
+The packs had never been used for anything. Six reviews were run, one per pack, against the AKOS surface each one governs — AKOS is an agent system (skills, 13 subagents, a routing table, a CLI, project-local memory), so it is a legitimate target for its own knowledge. Every finding below was re-verified here by execution before being acted on.
+
+**What the packs found.** Fixed in this release: `history record` applied partially on malformed JSON, leaving an orphan review that `history list` cannot see; `history clean` deleted with no preview and no confirmation, `--keep` defaulting to 20; and a mistyped `--pack`/`--rule`/`--case` filter reported a clean run and exited 0 in three separate tools, so `freshness --pack no/such --fail-on expired` was a CI gate that could never fire. Also fixed: the two Level C benchmark cases could not fail.
+
+**Everything the reviews found is now fixed** — the two safety-floor CRITICALs and the three HIGH wiring defects (see Fixed below). What remains open is not a defect list but a coverage limit, stated below.
+
+**What the packs got wrong about themselves.** Two worked examples under-applied their own rules — see `tool-design` 1.1.0 and `coding-agents` 1.1.0. Three of the six reviews independently reported that their scoring rubric is miscalibrated for its target: applied mechanically, `agent-foundations` yields 2/100 on a system where ~45 of its 72 rules have no referent, and `context-engineering`'s uncapped per-drift deduction pushes a documentation-heavy repo two bands below what the evidence supports. Each reviewer declined to report the mechanical number and said why. One flagged a genuine methodological problem: `context-engineering`'s own `examples.md` already contained a critique of `skills/akos/SKILL.md`, the file at the centre of its review, making that portion circular by construction.
+
+**Coverage, stated plainly.** All six reviews are static reads of instruction artifacts. No AKOS review has ever been run and recorded in an inspectable form, so every pack's CRITICAL tier — the transcript checks — went unexercised. "No CRITICALs found" in those tiers means "not testable with what was available", not "clean".
+
+
+### Deferred, not dropped
+
+Fase 2 (`memory-and-retrieval`, `governance-and-risk`, `human-agent-interaction`, `long-running-agents`) and Fase 3 (data-intensive systems, continuous delivery, evolutionary architecture, Shape Up) are scoped but unwritten. No reviewer lens or scoring file was added for `ai-engineering/` — these are build-mode packs routed through `skills/akos/SKILL.md`, exactly as `frontend/`, `backend/` and `devops/` are today. A dedicated review lens is a larger change this repo has not attempted, and it waits for a real review need rather than being invented ahead of one.
+
 ## [1.4.0] — 2026-07-20
 
 Quality infrastructure: AKOS gains a verification layer around its
@@ -54,45 +153,7 @@ and alternatives considered) and `docs/migration/v1.1-to-next.md`
   `docs/benchmarks/`, `docs/scoring/`, `docs/profiles/`,
   `docs/reviews/`, `docs/maintenance/`, `docs/cli/`, `docs/migration/`.
 
-### Added
-
-- **`evals/` — the first thing that measures AKOS's actual output.** `benchmarks/` measures the deterministic rules engine; nothing measured the review, which is what AKOS produces. `packs/ai-engineering/agent-evals` scored that dimension around 18/100 and was right to.
-
-  Each case is a small fixture built from **real code shapes taken from repositories reviewed by hand**, plus an `expected.yaml` naming the findings a competent review must surface and — more valuable — the ones a careless review wrongly reports. All three `must_not_find` traps are false positives that actually happened: the `private` schema table protected by `REVOKE ALL`, the policy a later migration drops, the optional-auth chain.
-
-  The design decision that makes it honest: **it grades a report, it does not produce one.** Generating the review inside the grader would make the suite depend on a provider and on run-to-run variance, and there is no defensible way to gate on that. Grading is deterministic; producing is not. Matching is concept-based rather than exact — every `match_all` term plus at least one `match_any` term, case-insensitive — because exact-match grading on prose measures phrasing, not correctness.
-
-  Thresholds are constants in the runner, stated before any run: recall 1.0, false positives 0. Recall is all-or-nothing because every `must_find` is a defect a hand-verified read confirmed is really there.
-
-  `akos eval --report PATH --case ID`. `--case` is required, not a filter — see below.
-
 ### Fixed
-
-- Two defects in the eval suite, both found by running it rather than reading it:
-  - **Grading a report against every case produced a confidently wrong answer.** A real review of one project scored 0% recall against another project's case — "missing" findings that describe a different codebase — and tripped a trap because it happened to use the words. `--case` is now required, so a report is only ever graded against the fixture it reviewed.
-  - **A generic match term matched a section heading.** `notes` in `match_all` was satisfied by a `## Notes` heading in a report that never mentioned the table, giving 100% recall to a report that found nothing. Now qualified (`public.notes`) — the same generic-term precision bug the detectors had, in the tool built to catch it.
-- Deliberately **not** added: a CI step for the eval suite. CI has no review reports to grade, so a step iterating the cases would report green while doing nothing — the vacuous pass two Level C benchmark cases shipped with. What CI does run is `tests/unit/test_evals.py`, including `test_every_case_can_fail`, which asserts every case goes red on an empty report.
-
-
-- **Detector precision, measured on real repositories instead of fixtures.** The first two real runs put the rules engine against code nobody had written it against. On a well-built Supabase app it produced 30 findings including two CRITICALs, and **every one of the nine Level-A findings was a false positive**. Five distinct causes, each now fixed with a regression test built from the real shape rather than a synthetic one:
-  - `SUPABASE_POLICY_TOO_PERMISSIVE` read `CREATE POLICY` but not the 26 `DROP POLICY` statements elsewhere in the same migration set, so policies the author had already removed were still reported. It is now migration-order aware, tracking the live policy set across files — the asymmetry is that `SUPABASE_RLS_DISABLED` already did this and its sibling did not.
-  - `SUPABASE_RLS_DISABLED` parsed `CREATE TABLE IF NOT EXISTS private.app_secrets` as a table named `private` (the pattern only stripped a literal `public.` prefix), and reported CRITICAL against a secrets table deliberately kept in a non-exposed schema behind `REVOKE ALL` — stronger than the RLS it was accused of lacking. Now schema-aware, and only tables in API-exposed schemas are considered. A table in `public` protected by `REVOKE` rather than RLS is still reported; that is recorded as a known gap rather than silently handled.
-  - `SECRET_IN_SOURCE` flagged a `service_role` key in a **gitignored** `.env` — the one place it belongs — for a rule titled "committed to source". It now resolves git-ignore status once per batch and skips ignored files.
-  - `A11Y_INPUT_NO_LABEL` matched input tags with `[^>]*`, which stops at the `>` inside `onChange={(e) => …}`. The tag was truncated at the arrow and every attribute after it, usually including `aria-label`, went unseen: 8 of 21 findings were correctly-labelled inputs. The matcher is now brace- and quote-aware.
-  - `DESTRUCTIVE_MIGRATION_NO_GUARD` accepted only a guard *comment*, so a `DROP COLUMN` immediately preceded by the `INSERT … SELECT` that moved its data — expand-contract, done in the right order — was reported as unguarded. A preceding statement that preserves the specific table and column now counts; an unrelated `INSERT` above a `DROP` still does not.
-  - Net on the same repository: 30 findings → 10, both CRITICALs gone, and the survivors verified by hand as genuine (4 intentional public-read policies, for which the suppression comment exists, and 6 real unlabelled inputs).
-- **What this says about the benchmark.** `benchmarks/` reported **precision 100%** throughout, and still does — it is measured against 21 synthetic fixtures written by the same process that wrote the detectors, in the same session. `packs/ai-engineering/agent-evals` names that as contamination by iteration and warns the corpus "cannot surface a failure mode the detector's author did not already have in mind". This is that prediction coming true, with a number attached: 100% on the curated corpus, 0 of 9 on the first real repository. The 21 cases were not wrong; they were measuring something narrower than their headline implied.
-
-
-- **Seven deterministic detectors were wired to nothing.** `rules/` shipped working checks for committed secrets, `service_role` in client code, tables without RLS, always-true policies, missing rollback migrations, unguarded destructive SQL and unlabelled inputs — and no skill, agent or workflow referenced them. The security lens was instructed to hunt for committed secrets by hand while `SECRET_IN_SOURCE` sat unused, and, holding only `Read, Grep, Glob`, could not have run it if told to. The review skill now runs `akos rules run` as step 3, before dispatching any lens, and routes each finding to the lens that owns it; the receiving agents start from those findings and say so in Coverage if they were not handed them. `A11Y_INPUT_NO_LABEL` is passed through labelled Level B and capped at MEDIUM, a lead rather than a finding.
-- **`backend-reviewer` had profile weights in all six profiles and no route.** It appeared in no lens table, no workflow and no prompt — a registered subagent nothing could reach, shipped that way since 1.0.0. Now routed explicitly alongside `database-reviewer` as an agent that sits outside the twelve, invoked from lens 7 and alongside lens 8 on API surfaces. The `akos-review` skill description also listed `database` in place of lens 11 (personal rules); corrected.
-- **Five agents still loaded `packs/personal/pau-avila/` hardcoded.** The 1.4.0 decoupling covered skills, core and templates but missed `agents/`, so a project running `akos profile use alice` got Alice's Level-0 layer nowhere and Pau's in five lenses. The load paths are now `packs/personal/<personal_profile>/`. The three `pau-avila principle N` citations stay, per the scope decision recorded then: a second profile would not share this one's numbering.
-- `tests/unit/test_wiring.py` locks all three. Each was individually valid — an unrouted agent file parses, an uninvoked detector passes its own tests, a hardcoded path works — so only the *relationship* was wrong, which is exactly what no existing check looked at.
-
-
-- **Safety floor: nothing told a reviewing agent that project content is data, not instruction.** A repo-wide search found zero such language in `skills/`, `agents/`, `core/`, `templates/`, `prompts/` or `workflows/` — while thirteen subagents read arbitrary third-party repositories with `Read`, `Grep` and `Glob`, and `skills/akos/SKILL.md` declared every section of a project's `.akos/config.md` "binding", including a pack list and free-text Notes that "override your assumptions". A cloned repo could therefore lower the review profile (Prototype skips five lenses), add its own files to the agent's mandatory reading as authoritative knowledge, and pre-authorize its own conclusions. Now: **`akos check-config`** — a new command that verifies the profile is one of the six, `personal_profile` is a plain name, and every listed pack resolves inside AKOS's own `packs/`, exiting 2 otherwise; plus a provenance rule in both skills' safety-floor sections. The split is stated rather than blurred: the value checking is a **control** (deterministic, a model cannot be argued out of it), the instruction to run it and to hold the data/instruction line is **prose, and therefore a mitigation**.
-- **Safety floor: review reports were copied to disk verbatim, secrets included.** `history record` did `write_text(read_text())` with no redaction, and `install-project` added no `.gitignore` entry — so a security lens quoting a `service_role` key (the report format *requires* concrete evidence) wrote it into `.akos/reviews/` in the consuming project, where it could be committed. No attacker required; normal operation did it. Now redacted at write time, reusing the detector's own patterns rather than a second copy that would drift, and `install-project` appends `.akos/reviews/` to the project's `.gitignore`. The redactor keeps the finding — file, line, and prose survive; only the credential value is replaced — and preserves `anon`/`authenticated` JWTs, which are public by design and are evidence a reviewer needs. It prints what it removed, since a silent redaction is the same class of defect as none.
-
 
 - **`write_marked_section`** (the helper `install-project` depends on
   for every rerun) silently failed on this machine's BSD awk whenever it
@@ -116,57 +177,6 @@ against the wrong base directory. Each is documented in its own commit
 and cross-referenced in the relevant `docs/` page — the point isn't that
 bugs happened, it's that testing before trusting caught every one of
 them before they shipped.
-
-## [1.5.0] — 2026-07-20
-
-Opens a new top-level family. Until now AKOS packaged senior judgment about *software* — but when an agent builds the software, the result also depends on what it was given to see, which tools it could call, what it was allowed to do, and whether anything was actually verified. None of that had a home.
-
-### Added
-
-- **New `ai-engineering/` domain — 6 packs, 7649 lines.** Fase 1 of an AI-native expansion, scoped deliberately: six packs that change how AKOS works with coding agents, rather than fifty that restate the same articles.
-  - `ai-engineering/context-engineering` (L2) — context as a finite resource, not a container: CE1–CE16, CEE1–CEE58, covering minimum sufficient context, progressive disclosure, just-in-time retrieval, poisoning and rot, instruction hierarchy, memory tiers, what must survive a compaction boundary, and why "load the whole repo" fails small as well as large. Self-referential: `skills/akos/SKILL.md`'s own routing table is critiqued as a worked example.
-  - `ai-engineering/agent-foundations` (L2) — which shape a task warrants and how to bound it: AF1–AF18, AFE1–AFE72 across shape selection, routing, parallelization, orchestrator–worker, evaluator–optimizer, termination, budgets, error recovery, escalation, and idempotency. Spine: the agent is the *last* shape to reach for. Three anti-patterns are graded as correctness defects — silent truncation, double-charged retry, and action taken outside stated authority.
-  - `ai-engineering/tool-design` (L2) — a tool built for a human is not automatically a good tool for an agent: TD1–TD16, TDE1–TDE86 on naming, structured input and output, actionable errors, idempotency, dry-run and destructive confirmation, result bounds, stable references, and MCP's tool/resource/prompt distinction.
-  - `ai-engineering/coding-agents` (L2) — the process discipline of the edit itself: CA1–CA18, CAE1–CAE80 on orientation before editing, search before changing an interface, minimal patches that match existing conventions, testing before and after, and atomic reviewable commits. Spine: plausible is not correct.
-  - `ai-engineering/agent-evals` (L2) — proving a change actually helped: AE1–AE18, AEE1–AEE76 on golden datasets, the four eval altitudes, the grader ladder, groundedness, cost and recovery as first-class dimensions, regression thresholds, flakiness, contamination, and baseline discipline.
-  - `ai-engineering/agent-security` (**L1**) — the surface that appears when a model reads external content and then acts: AS1–AS18, ASE1–ASE95, 19 named anti-patterns. Spine: retrieved text, documents, web content and tool output are untrusted data, never instructions. Level 1 places it in the safety floor the constitution never waives, so its floor rules hold even in Prototype. Original models include the provenance ladder, the exfiltration triangle, and a control-vs-mitigation test that caps a score at 49 when prompt hardening is the whole defense.
-- Five new cross-cutting nodes in `graphs/knowledge-graph.md` — untrusted content as data, executed evidence over plausible output, blast radius and least privilege, bounded work, plus `agent-security` joining the security floor and `agent-foundations` joining complexity-as-a-cost. Every link verified to resolve.
-
-### Changed
-
-- `core/authority-model.md` names two source kinds it previously left ambiguous: Anthropic/OpenAI engineering practice as published sits at **L2** (the same footing as the existing Google/Stripe entry), and replicated agent methodology papers such as ReAct and Reflexion at **L3**, once cross-verified per the source policy. Additive — no renumbering, no schema change, and no existing pack's cited level changes.
-
-### Fixed
-
-- **The schema validator declared a bound it never enforced.** `knowledge-pack.schema.json` has specified `minimum: 0, maximum: 4` on `authority-level` since the contract shipped, but `schemas/validate.py` implemented neither keyword — they were the schema's only use of them. Any pack could ship `authority-level: 9` and validate clean at exit 0. Reproduced first, then fixed, with three regression tests locking both directions and both boundaries; `bool` is excluded from the numeric check since it subclasses `int`. Unit suite 79 → 82.
-- The bug was found while authoring `coding-agents`, by deliberately trying to make the validator fail rather than trusting its green — the discipline that pack exists to teach, so it is now also its own worked example.
-
-### Validated — the six packs run against AKOS itself
-
-The packs had never been used for anything. Six reviews were run, one per pack, against the AKOS surface each one governs — AKOS is an agent system (skills, 13 subagents, a routing table, a CLI, project-local memory), so it is a legitimate target for its own knowledge. Every finding below was re-verified here by execution before being acted on.
-
-**What the packs found.** Fixed in this release: `history record` applied partially on malformed JSON, leaving an orphan review that `history list` cannot see; `history clean` deleted with no preview and no confirmation, `--keep` defaulting to 20; and a mistyped `--pack`/`--rule`/`--case` filter reported a clean run and exited 0 in three separate tools, so `freshness --pack no/such --fail-on expired` was a CI gate that could never fire. Also fixed: the two Level C benchmark cases could not fail.
-
-**Everything the reviews found is now fixed** — the two safety-floor CRITICALs and the three HIGH wiring defects (see Fixed below). What remains open is not a defect list but a coverage limit, stated below.
-
-**What the packs got wrong about themselves.** Two worked examples under-applied their own rules — see `tool-design` 1.1.0 and `coding-agents` 1.1.0. Three of the six reviews independently reported that their scoring rubric is miscalibrated for its target: applied mechanically, `agent-foundations` yields 2/100 on a system where ~45 of its 72 rules have no referent, and `context-engineering`'s uncapped per-drift deduction pushes a documentation-heavy repo two bands below what the evidence supports. Each reviewer declined to report the mechanical number and said why. One flagged a genuine methodological problem: `context-engineering`'s own `examples.md` already contained a critique of `skills/akos/SKILL.md`, the file at the centre of its review, making that portion circular by construction.
-
-**Coverage, stated plainly.** All six reviews are static reads of instruction artifacts. No AKOS review has ever been run and recorded in an inspectable form, so every pack's CRITICAL tier — the transcript checks — went unexercised. "No CRITICALs found" in those tiers means "not testable with what was available", not "clean".
-
-### Corrected — claims this project made about itself that were not true
-
-Found by pointing the new `ai-engineering/` packs at AKOS itself, as the first real use of them. Each was established by running a command, not by re-reading the prose.
-
-- **CI was red for the entire 1.4.0 release, and the 1.4.0 entry below announces it as delivered.** `gh run list` shows three consecutive failures on the `akos rules registry sanity` step: run `29733824899` on the 1.4.0 PR at 10:05:44Z, run `29733878337` on the `main` push at 10:06:35Z, and run `29739121045` at 11:36:02Z — 2h15m red across two merges. The 1.4.0 PR was merged with its own check failing, because the merge was gated on `mergeable`, never on `gh pr checks`.
-- **The fix commit `d1a55c0` misdiagnosed the incident it fixed.** It states the workflows "had never actually run on GitHub" and that "the first real run failed in 12s". Both are false: they had run three times, and the 12s run was the third. The repair itself was verified by execution; the causal story around it was asserted from inference. A single `gh run list` would have settled it before the sentence was written. The real lesson is not "an unrun workflow slipped through" but "a visible red check was merged past" — which calls for branch protection, a control this repo still lacks.
-- **`benchmarks/README.md` claimed every case was sabotage-verified.** One was (`supabase-rls-basic`, recorded in `b9e0b93`); the claim was generalized to all 21. A whole-engine sabotage pass has since confirmed the 19 deterministic cases genuinely go red — so they are live — but also found that **the 2 Level C cases cannot fail at all**: their `must_mention` phrases sit in their own `prompt`, the mock provider echoes the prompt, and the assertion checks that echo. Both pass with the fixture removed entirely. The defect was introduced by the M8 "fix" that made canned responses repeat their trigger phrases verbatim — closing the loop it was meant to open.
-- `tests/README.md` said 79 tests; 82 run. `CHANGELOG` said the YAML parser is ~350 lines; it is 303, and was 303 at every commit.
-
-None of these were caught by `doctor.sh`, the 82 unit tests, the 21 benchmark cases, or CI. Every one of them is a claim in prose that no check reads.
-
-### Deferred, not dropped
-
-Fase 2 (`memory-and-retrieval`, `governance-and-risk`, `human-agent-interaction`, `long-running-agents`) and Fase 3 (data-intensive systems, continuous delivery, evolutionary architecture, Shape Up) are scoped but unwritten. No reviewer lens or scoring file was added for `ai-engineering/` — these are build-mode packs routed through `skills/akos/SKILL.md`, exactly as `frontend/`, `backend/` and `devops/` are today. A dedicated review lens is a larger change this repo has not attempted, and it waits for a real review need rather than being invented ahead of one.
 
 ## [1.3.0] — 2026-07-19
 
