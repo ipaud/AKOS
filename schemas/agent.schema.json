@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://akos.dev/schemas/agent.schema.json",
+  "title": "AKOS reviewer agent frontmatter",
+  "description": "Validates the YAML frontmatter block of agents/*.md only. The prose body (Purpose, When to use, Packs to load, Review checklist, Severity levels, Scoring rubric, Refusal/limits, Output format) is meant for an LLM to read and reason over, not data to be schema-validated — that's checked separately, as a section-heading presence count (same technique doctor.sh already uses for SKILL.md frontmatter), not via this schema.",
+  "type": "object",
+  "required": ["name", "description", "tools"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^akos-[a-z-]+$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20
+    },
+    "tools": {
+      "type": "string",
+      "pattern": "^[A-Za-z]+(,\\s*[A-Za-z]+)*$",
+      "description": "A comma-joined string, e.g. 'Read, Grep, Glob' — confirmed the real format across all 13 agents, NOT a YAML list."
+    },
+    "id": {
+      "type": "string",
+      "description": "Optional. Default: the pipeline-lens number this agent owns, e.g. 'lens-2'."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "stable", "deprecated"],
+      "default": "stable"
+    },
+    "maintainer": {
+      "type": "string",
+      "default": "core"
+    }
+  },
+  "additionalProperties": true
+}
