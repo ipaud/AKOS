@@ -1,5 +1,11 @@
 # Changelog — coding-agents
 
+## [1.2.0] — 2026-07-20
+
+### Added
+
+- **CAE53 and the "narrower check" anti-pattern**, from two failures in AKOS's own history hours apart. Both had every signal of diligence: a command was run and its output read. The gap was between the command and the sentence written about it — `akos rules run . --rule SECRET_IN_SOURCE` passing was written up as `akos rules run .` passing, and `gh pr view --json mergeable` was read as "CI is green" when `mergeable` answers *can git combine these*, not *did the tests pass*. The entry names the fix that holds: where a claim must stay true, make it a check, because a claim that only lives in prose will eventually be false and nothing will notice.
+
 ## [1.1.0] — 2026-07-20
 
 ### Fixed

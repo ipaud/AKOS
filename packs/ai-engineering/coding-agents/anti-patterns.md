@@ -91,3 +91,29 @@ Named failure modes. Detection cue → why it fails → fix. The first block cov
 **Detect:** a report presents a change at uniform confidence, with no distinction between what was executed and what was inferred, and no statement of what was left uncovered.
 **Why it fails:** the reader has no way to discount any particular sentence, so they either trust all of it or none of it. Both are wrong, and the first is what usually happens. The unverified parts get the same credibility as the verified ones until one of them is wrong in production.
 **Fix:** state what was run and what was not, and name each unverified aspect at the point where a reader would assume coverage (CA15, CAE59). Confidence is capped by the weakest link in the evidence, not set by how carefully the code was written.
+
+## The narrower check
+
+**What it looks like.** A claim in a commit message, a PR body, or a status
+report that names a broad state — "the suite passes", "CI is green", "the
+scan is clean" — backed by a check that covered a slice of it. The check was
+real. It was executed. Its output was read. It was simply not the thing the
+sentence claims.
+
+**Why it survives review.** It has every signal of diligence and none of the
+usual tells. There is no guess, no hedge, no "should work" — the author ran
+something and read the result. The gap is between the command and the
+sentence, and nothing in the transcript looks wrong.
+
+**Detection cue.** Read the claim, then find the command that produced it and
+compare their scope word by word. `akos rules run . --rule SECRET_IN_SOURCE`
+does not establish "`akos rules run .` exits 0". `gh pr view --json mergeable`
+does not establish "CI is green" — `mergeable` answers *can git combine
+these*, not *did the tests pass*. Both of those shipped in this repository,
+hours apart, in commits whose subject was verification discipline.
+
+**The fix that holds.** Where the claim needs to stay true, make it a check
+rather than a sentence: `doctor.sh` now runs the full scan and fails on a
+CRITICAL, so the claim cannot drift from reality without something going red.
+A claim that only lives in prose will eventually be false, and nothing will
+notice.

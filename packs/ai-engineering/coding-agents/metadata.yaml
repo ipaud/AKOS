@@ -1,7 +1,7 @@
 name: coding-agents
 domain: ai-engineering
 authority-level: 2
-version: 1.1.0
+version: 1.2.0
 tags: [coding-agents, executed-evidence, exit-codes, repository-mapping, search-before-edit, read-before-write, minimal-patch, atomic-commits, migration-discipline, regression-testing, code-review, verification]
 sources:
   - title: "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering"

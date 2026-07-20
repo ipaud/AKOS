@@ -227,6 +227,25 @@ else
   fi
 fi
 
+# --- AKOS passes its own rules ---
+# The claim "akos rules run . exits 0 on this repository" was made twice in
+# commit messages and was false once — verified against a single rule and
+# asserted for the whole run. A claim that needs to stay true belongs in a
+# check, not in prose. Exit 2 means an open CRITICAL; 1 means the run itself
+# broke, which is not a clean result and must not read as one.
+printf '\n%sSelf-scan%s\n' "$c_bold" "$c_reset"
+if [ "$HAVE_PYTHON3" -eq 0 ]; then
+  warn "python3 not found — skipping self-scan"
+else
+  self_out="$(python3 "$AKOS_HOME/rules/runner.py" "$AKOS_HOME" 2>&1)"
+  self_rc=$?
+  case "$self_rc" in
+    0) ok "akos rules run finds no CRITICAL in this repository" ;;
+    2) fail "akos rules run reports a CRITICAL in this repository — run 'akos rules run .' for detail" ;;
+    *) fail "akos rules run failed to complete (exit $self_rc); this is not a clean result" ;;
+  esac
+fi
+
 # --- Executable bits ---
 printf '\n%sExecutables%s\n' "$c_bold" "$c_reset"
 for s in install.sh update.sh doctor.sh uninstall.sh bin/akos; do
