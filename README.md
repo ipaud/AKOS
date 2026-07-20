@@ -139,19 +139,40 @@ Want your own profile instead of forking pau-avila's? `akos profile create <name
 ./doctor.sh    # verify after update
 ```
 
+## Quality infrastructure
+
+Beyond the knowledge itself, AKOS validates and tests its own consistency:
+
+```bash
+akos validate all              # schema-check packs/agents/workflows
+akos rules run <project-dir>   # 8 executable checks: RLS, secrets, a11y, migrations...
+akos benchmark run             # regression suite for the rules above
+akos freshness                 # which packs are due for a re-read
+akos profile create|use <name> # your own Level-0 layer instead of the shipped default
+akos history compare <a> <b>   # score/decision deltas across two recorded reviews
+```
+
+Full docs: [`docs/architecture/`](docs/architecture/) (current + target system), [`docs/contracts/`](docs/contracts/) (pack/agent/workflow schemas), [`docs/rules/`](docs/rules/authoring-rules.md), [`docs/benchmarks/`](docs/benchmarks/overview.md), [`docs/scoring/`](docs/scoring/evidence-confidence-coverage.md), [`docs/profiles/`](docs/profiles/personal-profiles.md), [`docs/reviews/`](docs/reviews/history-and-comparison.md), [`docs/maintenance/`](docs/maintenance/freshness.md), [`docs/cli/`](docs/cli/exit-codes.md), [`docs/migration/`](docs/migration/v1.1-to-next.md). Tests: [`tests/README.md`](tests/README.md). CI: `.github/workflows/`.
+
 ## Repository layout
 
 ```
-core/        how agents reason (constitution, authority, profiles, pipeline, scoring model)
-packs/       knowledge packs by domain + personal layer
-agents/      13 reviewer role definitions
-skills/      akos + akos-review (Claude Code and Codex CLI)
-workflows/   task-level review flows
-templates/   per-tool integration templates
-prompts/     ready-to-paste prompts (fallback for tools without skills)
-graphs/      concept cross-links between packs
-scoring/     0–100 rubrics per dimension
-bin/akos     CLI
+core/         how agents reason (constitution, authority, profiles, pipeline, scoring model)
+packs/        knowledge packs by domain + personal layer(s)
+agents/       13 reviewer role definitions
+skills/       akos + akos-review (Claude Code and Codex CLI)
+workflows/    task-level review flows
+templates/    per-tool integration templates
+prompts/      ready-to-paste prompts (fallback for tools without skills)
+graphs/       concept cross-links between packs
+scoring/      0–100 rubrics per dimension
+schemas/      JSON Schema contracts + the validator + the YAML parser
+rules/        executable checks (Level A/B) — the rules registry + runner
+benchmarks/   reproducible regression cases for rules/
+tests/        unit (Python unittest) + integration (bash) test suites
+docs/         architecture, contracts, rules, benchmarks, scoring, profiles,
+              reviews, maintenance, cli, and migration documentation
+bin/akos      CLI
 ```
 
 ## Copyright

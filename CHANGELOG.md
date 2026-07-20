@@ -3,6 +3,82 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.4.0] — 2026-07-20
+
+Quality infrastructure: AKOS gains a verification layer around its
+knowledge — schemas, executable rules, benchmarks, evidence-aware
+scoring, freshness tracking, review history, personal-profile
+decoupling, CI, and tests. No pack content, no agent prose, no reasoning
+profile, and no review-pipeline decision logic changed — everything here
+is additive, verified against the pre-existing corpus at every step.
+Full detail in `docs/architecture/target-system.md` (design decisions
+and alternatives considered) and `docs/migration/v1.1-to-next.md`
+(what a consuming project needs to know — nothing breaks).
+
+### Added
+
+- **Contracts** — `schemas/{knowledge-pack,agent,workflow}.schema.json`,
+  a ~350-line stdlib-only YAML parser (`schemas/yaml_subset.py`, no
+  PyYAML/ruamel), and `bin/migrate-pack-metadata.py` (idempotent,
+  append-only, already run against all 48 pre-existing packs).
+- **`akos validate [packs|agents|workflows]`** — schema validation,
+  `0`/`1`/`2` exit codes, `--format json`. Wired into `doctor.sh`'s new
+  advisory Schema validation section.
+- **`akos profile list|show|create|use`** — decouples the Level-0
+  personal layer from a single hardcoded name (`pau-avila` stays the
+  default; `.akos/config.md` gained a `personal_profile` field).
+  `packs/personal/_template/` scaffolds new profiles.
+- **Executable rules** (`rules/`) — 8 detectors (`SUPABASE_RLS_DISABLED`,
+  `SUPABASE_POLICY_TOO_PERMISSIVE`, `SECRET_IN_SOURCE`,
+  `SERVICE_ROLE_IN_CLIENT`, `A11Y_INPUT_NO_LABEL`,
+  `MIGRATION_NO_DOWN_FILE`, `DESTRUCTIVE_MIGRATION_NO_GUARD`,
+  `PACK_EXPIRED`), filesystem-discovered like `packs/` itself.
+  `akos rules list|run|explain`.
+- **Evidence-aware scoring** — the Review Summary template gained a
+  `## Coverage` section and per-finding `(Confidence: ...)` tags.
+  Additive only: no band, anchor, cap, or decision rule changed.
+- **`akos freshness`** — full band report (fresh/review-due-soon/
+  review-due/expired/unknown) over pack `review_after` dates.
+- **Benchmarks** (`benchmarks/`) — 21 reproducible cases, a
+  provider-agnostic Level-C interface (mock provider required and the
+  only one CI uses; an optional local `claude`/`codex` CLI passthrough
+  is documented, not wired by default). `akos benchmark run|list`.
+- **`akos history record|list|show|latest|compare|clean`** — project-
+  local (`.akos/reviews/`) review history; `akos-review`'s skill
+  instructions record every review's decision and scores automatically.
+- **CI** (`.github/workflows/`) — PR checks, main-branch benchmark +
+  artifact upload, weekly freshness check.
+- **Tests** (`tests/`) — 79 unit tests (stdlib `unittest`, no pytest) +
+  4 integration scripts (bash, `mktemp -d`).
+- **Docs** — `docs/architecture/`, `docs/contracts/`, `docs/rules/`,
+  `docs/benchmarks/`, `docs/scoring/`, `docs/profiles/`,
+  `docs/reviews/`, `docs/maintenance/`, `docs/cli/`, `docs/migration/`.
+
+### Fixed
+
+- **`write_marked_section`** (the helper `install-project` depends on
+  for every rerun) silently failed on this machine's BSD awk whenever it
+  needed to *replace* an already-marked section — `awk -v` cannot accept
+  a multi-line value, exits nonzero with no output, and `set -e` aborted
+  before the file was ever rewritten. A prior "rerun idempotency" check
+  had passed by coincidence (the target content hadn't changed between
+  runs, so a silently-failed no-op looked identical to a successful one).
+  Replaced with a portable sed-line-range splice.
+- The 16-vs-17-file pack contract inconsistency finally fully closed
+  (VERSION/CHANGELOG references were the last stragglers).
+
+Five more real bugs were found and fixed by testing each new component
+against a real or synthetic case before trusting it — not hypothetical,
+all reproduced and fixed in this range: a suppression-comment window too
+narrow (checked only the exact evidence line), a fixture-path exclusion
+matching "test" as a substring instead of a path segment, an anon-role
+JWT wrongly flagged as a secret, a `freshness --fail-on` severity
+comparison inverted, and a benchmark harness resolving fixture paths
+against the wrong base directory. Each is documented in its own commit
+and cross-referenced in the relevant `docs/` page — the point isn't that
+bugs happened, it's that testing before trusting caught every one of
+them before they shipped.
+
 ## [1.3.0] — 2026-07-19
 
 Closes the second of the two lenses that had no domain of their own, and validates the first against a real production screen.

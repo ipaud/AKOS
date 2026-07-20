@@ -42,15 +42,43 @@ Core files ([core/](core/)) govern how every agent reasons. Changes here ripple 
 
 ## The personal layer
 
-`packs/personal/` is the owner's Level-0 layer. Forks should replace it with their own — don't PR changes to someone else's personal conventions.
+`packs/personal/<name>/` holds Level-0 profiles — `pau-avila` ships as the default. Forks should `akos profile create <name>` their own rather than editing someone else's; don't PR changes to another person's personal conventions. See [docs/profiles/personal-profiles.md](docs/profiles/personal-profiles.md).
+
+## Adding an executable rule
+
+`rules/<domain>/<ID>.yaml` + a sibling `.py` exporting `run(files: list[Path]) -> list[dict]`. Full walkthrough: [docs/rules/authoring-rules.md](docs/rules/authoring-rules.md). The one rule that matters most: **write the true-positive test AND the realistic near-miss that shouldn't fire, in the same sitting, before trusting either.** Every one of the 8 shipped rules had a real bug this step caught — none would have been caught by the positive case alone.
+
+## Adding a benchmark case
+
+`benchmarks/cases/<id>/{fixture/,expected.yaml}`, then add it to `benchmarks/manifest.yaml`. See [benchmarks/README.md](benchmarks/README.md) and [docs/benchmarks/overview.md](docs/benchmarks/overview.md). Confirm the case can actually fail — deliberately break the detector, rerun, confirm the case fails, restore — before trusting that it's testing anything.
+
+## Updating a source
+
+A pack going stale: `akos freshness --pack <domain>/<name>` shows if it's due. Re-verify `principles.md` and `engineering-rules.md` against `references.md`'s sources, update the pack content per the copyright discipline above if anything changed, then bump `last_reviewed`/`review_after` in `metadata.yaml` (or just re-run `python3 bin/migrate-pack-metadata.py --pack <domain>/<name> --apply` to recompute `review_after` from today). See [docs/maintenance/freshness.md](docs/maintenance/freshness.md).
+
+## Modifying scoring
+
+`core/scoring-model.md`'s bands, anchors, and hard caps, and `core/review-pipeline.md`'s decision semantics, are load-bearing — changes ripple through every agent and every score. Prefer additive changes (see [docs/scoring/evidence-confidence-coverage.md](docs/scoring/evidence-confidence-coverage.md) for how the Coverage/confidence-tag addition stayed additive) over changing an existing formula. If a formula genuinely must change, update the one canonical Review Summary template copy in `agents/ux-reviewer.md` and its mirror in `core/review-pipeline.md` together — the other 12 agents reference the template by name and inherit automatically.
+
+## Running tests
+
+```bash
+python3 -m unittest discover -s tests/unit -p 'test_*.py' -v
+for t in tests/integration/test_*.sh; do bash "$t"; done
+```
+
+No pytest — stdlib `unittest` only, matching the project's one-accepted-dependency (`python3` itself) constraint. See [tests/README.md](tests/README.md). Every new detector or schema-affecting change needs a test that would have caught the bug it's fixing, not just a happy-path assertion — see `docs/rules/authoring-rules.md` for what that looks like in practice.
 
 ## Before opening a PR
 
-- [ ] `./doctor.sh` passes (structure + no empty files)
+- [ ] `./doctor.sh` passes (structure, schema validation, pack freshness, no empty files)
+- [ ] `akos validate all` passes
 - [ ] No copied source text; sources cited by pointer only
 - [ ] New packs linked in the relevant graph and listed in `skills/akos/SKILL.md`
 - [ ] Content is operational — an agent reading it can *act*
+- [ ] New/changed rules have a benchmark case and a unit test covering the near-miss, not just the positive case
+- [ ] `python3 -m unittest discover -s tests/unit` and every `tests/integration/test_*.sh` pass
 
 ## Versioning
 
-Packs carry their own `VERSION` + `CHANGELOG.md`. The repo root carries the overall AKOS version. Bump per semver on meaningful changes.
+Packs carry their own `VERSION` + `CHANGELOG.md`. The repo root carries the overall AKOS version. Bump per semver on meaningful changes. See [docs/migration/](docs/migration/) for version-range migration notes when a change affects how consuming projects use AKOS.
