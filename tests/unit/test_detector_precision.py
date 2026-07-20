@@ -277,3 +277,82 @@ class TestRlsDetectorUnderstandsDynamicSql(FixtureCase):
     def test_no_dynamic_loop_means_normal_behaviour(self):
         f = self.write("001.sql", "create table public.notes (id uuid primary key);\n")
         self.assertEqual(len(self.rule.run([f])), 1)
+
+
+class TestFixturePathsDowngradeRatherThanSuppress(FixtureCase):
+    """The fixture-path exclusion applied only to the generic high-entropy
+    branch, so the vendor-pattern and JWT branches reported AKOS's own
+    benchmark fixtures as CRITICAL leaks — `akos rules run .` exited 2 on
+    this repository, failing its own security rule.
+
+    Downgrade rather than suppress: a real credential pasted into a test file
+    is still committed, so the finding survives at LOW. It stops gating a
+    deploy and says why. Suppressing outright would hide a real leak in a
+    path anyone can name `tests/`."""
+
+    def setUp(self):
+        super().setUp()
+        self.rule = load("rules/security/secret-in-source.py")
+
+    AWS = 'export const K = "AKIAABCDEFGHIJKLMNOP";\n'
+    SERVICE_JWT = (
+        'const k = "eyJhbGciOiJIUzI1NiJ9.'
+        'eyJyb2xlIjoic2VydmljZV9yb2xlIn0.sig1234567890";\n'
+    )
+
+    def _sev(self, rel: str, body: str):
+        f = self.write(rel, body)
+        findings = self.rule.run([f])
+        self.assertEqual(len(findings), 1, f"expected exactly one finding for {rel}")
+        return findings[0].get("severity_override")
+
+    def test_vendor_key_in_source_is_not_downgraded(self):
+        self.assertNotEqual(self._sev("src/config.ts", self.AWS), "LOW")
+
+    def test_vendor_key_in_a_fixture_path_is_low(self):
+        self.assertEqual(self._sev("tests/fixture.ts", self.AWS), "LOW")
+
+    def test_service_role_jwt_in_source_is_critical(self):
+        self.assertEqual(self._sev("src/client.ts", self.SERVICE_JWT), "CRITICAL")
+
+    def test_service_role_jwt_in_a_fixture_path_is_low(self):
+        self.assertEqual(self._sev("tests/fixture.ts", self.SERVICE_JWT), "LOW")
+
+    def test_the_finding_is_not_suppressed_in_a_fixture(self):
+        """The load-bearing half: downgraded, not silenced."""
+        f = self.write("tests/fixture.ts", self.AWS)
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+
+class TestRlsDetectorUnderstandsRevokeAll(FixtureCase):
+    """A table closed by revoking every API-reachable role is stronger than
+    one behind a policy — there is nothing to mis-write later. Reporting it
+    as "no RLS" is a false positive on code more locked down than the rule's
+    own happy path. Documented as a known gap when the schema fix landed;
+    closed here."""
+
+    def setUp(self):
+        super().setUp()
+        self.rule = load("rules/security/supabase-rls-disabled.py")
+
+    def test_table_revoked_from_every_api_role_is_not_reported(self):
+        f = self.write("001.sql",
+                       "create table public.app_secrets (name text primary key);\n"
+                       "revoke all on table public.app_secrets from public, anon, authenticated;\n")
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_a_partial_revoke_is_still_reported(self):
+        """One role revoked is not the same as closed. The rule must not
+        read a half-measure as a full one."""
+        f = self.write("001.sql",
+                       "create table public.half_open (id uuid primary key);\n"
+                       "revoke all on table public.half_open from anon;\n")
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+    def test_an_unrelated_revoke_does_not_cover_another_table(self):
+        f = self.write("001.sql",
+                       "create table public.exposed (id uuid primary key);\n"
+                       "revoke all on table public.other from public, anon, authenticated;\n")
+        findings = self.rule.run([f])
+        self.assertEqual(len(findings), 1)
+        self.assertIn("exposed", findings[0]["evidence"][0]["snippet"])
