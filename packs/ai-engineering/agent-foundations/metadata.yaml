@@ -1,0 +1,34 @@
+name: agent-foundations
+domain: ai-engineering
+authority-level: 2
+version: 1.0.0
+tags: [agent-architecture, workflow-vs-agent, routing, parallelization, orchestrator-worker, evaluator-optimizer, planning, termination-conditions, iteration-limits, error-recovery, escalation, idempotency]
+sources:
+  - title: "Building Effective Agents"
+    author: Anthropic
+    org: Anthropic
+    url: https://www.anthropic.com/engineering/building-effective-agents
+  - title: "A Practical Guide to Building Agents"
+    author: OpenAI
+    org: OpenAI
+    url: https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf
+  - title: "ReAct: Synergizing Reasoning and Acting in Language Models"
+    author: Yao et al.
+    org: arXiv
+    url: https://arxiv.org/abs/2210.03629
+  - title: "Reflexion: Language Agents with Verbal Reinforcement Learning"
+    author: Shinn et al.
+    org: arXiv
+    url: https://arxiv.org/abs/2303.11366
+related:
+  - packs/ai-engineering/context-engineering
+  - packs/architecture/design-patterns
+  - packs/devops/sre
+  - packs/testing/testing-pyramid
+id: ai-engineering/agent-foundations
+status: draft
+last_reviewed: 2026-07-20
+review_after: 2027-07-20
+maintainer: core
+license: MIT
+deprecated: false

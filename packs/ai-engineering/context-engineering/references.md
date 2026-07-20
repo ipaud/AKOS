@@ -18,7 +18,10 @@ This pack composes with, rather than restates, the following:
 
 ## Related AKOS packs
 
-- [agent-foundations](../agent-foundations/README.md) — the broader agent-construction lens: prompt wording, tool design, and evaluation, as distinct from this pack's focus on context assembly.
+- [agent-foundations](../agent-foundations/README.md) — which architecture a task warrants and how it is bounded: shape selection, termination, budgets, escalation, as distinct from this pack's focus on context assembly.
+- [tool-design](../tool-design/README.md) — the shape of the tools an agent calls; this pack's size-capping and pagination rules (an unbounded tool result is a context failure) meet that pack's response-shape rules there.
+- [agent-evals](../agent-evals/README.md) — measuring whether an agent's behavior actually improved, including whether a context change helped or hurt.
+- [agent-security](../agent-security/README.md) — the controls behind CE6's rule that retrieved content is data and never instruction; that pack carries the injection and exfiltration attack classes this one only bounds.
 - [personal/pau-avila](../../personal/pau-avila/README.md) — the Level 0 layer this pack's "shared vs. task-specific context" principle (CE12) treats as the always-loaded case.
 - [nielsen-norman-group](../../ux/nielsen-norman-group/README.md) — systematic heuristic evaluation; the same discipline of "does this actually serve the user in front of you" applied to an interface rather than to a model's context.
 - [clean-architecture](../../architecture/clean-architecture/README.md) — dependency direction and layering in code; the closest architectural analogue to this pack's instruction-hierarchy and layering concerns, applied to context instead of to modules.

@@ -1,0 +1,30 @@
+# Glossary — Agent Foundations Pack
+
+- **Agency** — the degree to which a model, rather than the engineer, chooses what happens next. Measured by counting decision points, not by how sophisticated the system looks.
+- **Agent** — a model in a loop with tools, choosing its own actions and, critically, its own stopping point. Distinguished from a workflow by who controls the sequence, not by capability.
+- **Approach-level failure** — a failure where the step executed mechanically but the result is wrong, or where the identical error recurs on identical input. Wants a replan; retrying reproduces it exactly.
+- **Authority boundary** — the written statement of what an agent may do alone, what requires human confirmation, and what it may never do. Absent one, an agent's authority is the union of its tools' capabilities, which is a permission model nobody chose.
+- **Backoff** — increasing the delay between retries. Addresses contention and transience; does nothing for a deterministic failure, which will reproduce identically however long you wait.
+- **Decision point** — a place in a system where the model chooses the next action rather than executing a predetermined one. The unit in which agency is counted and budgeted.
+- **Envelope** — the stated cost, latency, and token allowance per invocation. An input that eliminates architectures before design, not a cap applied to one already built.
+- **Escalation** — stopping and handing control to a human under a condition specified at design time. Distinct from failure: the system is working correctly when it escalates on a condition it was told to escalate on.
+- **Evaluator-optimizer** — a shape where one component generates and another critiques against explicit criteria, looping until the criteria pass, a budget is exhausted, or an iteration stops improving.
+- **Exhausted** — the run outcome where a limit fired before the termination condition was met. A third outcome alongside success and error; collapsing it into success is how truncated work becomes a confident answer.
+- **Fan-out** — launching several calls or workers concurrently from one point. Two distinct patterns share the name: sectioning and voting.
+- **Fixed plan** — a plan declared non-revisable at design time: deviation from it is a failure to report rather than a condition to route around. The alternative to a revisable plan; both are legitimate, and leaving the status undeclared is not.
+- **Idempotency key** — a caller-supplied identifier that lets a service recognize a repeated request as the same logical action and return the original result instead of performing it again. Reused across retries of the same logical action, never regenerated per attempt.
+- **Iteration cap** — the maximum number of times a loop may run regardless of whether it has succeeded. Separate from the success condition and not a substitute for it.
+- **No-progress exit** — terminating a loop because an iteration produced no change in the tracked state. The third termination condition, alongside success and the limits, and the one most often omitted.
+- **Orchestrator-worker** — a shape where a central component decides at run time what the subtasks are, dispatches workers for them, and synthesizes their results. Earned only when the decomposition genuinely varies with the input.
+- **Prompt chain** — a fixed sequence of model calls where each output feeds the next. The engineer owns the order; the model does the work at each step.
+- **Replan** — discarding or revising a plan mid-execution in response to a named invalidated assumption. Distinguished from thrash by having a stated trigger.
+- **Revisable plan** — a plan declared at design time as subject to replanning under named triggers. The counterpart to a fixed plan.
+- **Routing** — classifying an incoming task and dispatching it to a handler specialized for its class. Lets each handler be sharp rather than generically adequate, and lets simple classes take cheap paths.
+- **Sectioning** — a fan-out that splits one task into independent parts run concurrently and recombined. Buys wall-clock latency. Branches may share reads, never writes.
+- **Shape** — the architecture chosen for a task, drawn from the spectrum running from a single model call to a multi-agent system. Naming it explicitly is the act this pack is mostly about.
+- **Terminal failure** — a failure no amount of iteration resolves: a missing permission, information only a human has, an action outside stated authority. Wants escalation; retry and replan both spend budget on it for nothing.
+- **Termination condition** — the checkable statement of what "done" means for a loop, fixed before the loop starts. The model declaring completion is a signal to verify, not a termination condition.
+- **Thrash** — repeated replanning without a named trigger, often oscillating between approaches that each look attractive right after the other has failed. Costs a planning step per cycle and discards completed work.
+- **Transient failure** — a failure expected to resolve on its own: a timeout, a rate limit, a 5xx, an intermittent tool error. Wants a bounded retry with backoff.
+- **Voting** — a fan-out that runs the same task several times and aggregates the results under a rule declared in advance. Buys confidence on high-variance tasks at N times the cost; buys nothing where a single pass is already stable.
+- **Workflow** — a system where the engineer fixes the sequence of steps at design time and the model performs work within them. The predetermined-path counterpart to an agent.
