@@ -1,0 +1,20 @@
+case_id: mobile-ios-zoom
+lens: mobile
+profile: Production
+source: "RAK's fields.tsx carries the inverse — a comment explaining why text-base is deliberate on mobile"
+
+must_find:
+  - id: font-under-16px-triggers-ios-zoom
+    concept: the shared field renders under 16px, so iOS Safari zooms on focus
+    match_all: ["16px"]
+    match_any: ["zoom", "text-sm", "14px", "ios", "safari"]
+    min_severity: MEDIUM
+    why: "Every form in the app routes through fieldBase. iOS Safari auto-zooms a focused input below 16px and the layout shifts — on a surface the config says technicians use on site."
+  - id: touch-targets-too-small
+    concept: the toolbar buttons are below the touch-target floor
+    match_all: [toolbar]
+    match_any: ["28", "target", "24px", "44", "48", "too small", "floor"]
+    min_severity: MEDIUM
+    why: "h-7 w-7 is 28px with zero gap. Under the platform ergonomic targets and, with no spacing, under the WCAG 2.2 SC 2.5.8 minimum."
+
+must_not_find: []

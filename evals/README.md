@@ -74,11 +74,14 @@ akos eval --report .akos/reviews/<id>/report.md --case <case-id>
 3. Write `expected.yaml`. Two traps to avoid, both hit while building this suite:
    - **Generic terms.** A bare `notes` matched a `## Notes` heading in a report that never mentioned the table — the same generic-term bug the detectors had.
    - **Trap terms a correct report would use.** A `must_not_find` keyed on `shellcheck` + `cannot fail` fired on a report that correctly said the *other* step cannot fail and that shellcheck was fine. Matching is now proximity-bounded, which helps, but proximity cannot rescue a trap worded in phrases a right answer reaches for. Write traps in words only a wrong answer would use.
+
+     This rule was written down and then violated in the very next case added: `a11y-wrapper-label`'s trap used `no accessible name`, which a correct report uses about a *different* input two paragraphs up, well inside the window. Rewritten to phrasings that assert the specific claim (`field has no label`, `both inputs are unlabelled`). Expect to get this wrong; test both directions and it surfaces immediately.
+   - **Multi-line flow lists.** The YAML subset parser takes `[a, b, c]` on one line only. A wrapped list raises `malformed flow list`.
 4. **Verify the case can fail.** Grade a report that omits the finding and confirm it goes red. A case that cannot fail is not a test — two Level C benchmark cases shipped in exactly that state.
 
 ## Known gaps, stated rather than left to be discovered
 
-- **Five cases across three lenses** (security ×3, testing, release). The other nine have no coverage at all. A green run says nothing about UX, accessibility, architecture, or product review quality.
+- **Eight cases across six lenses** (security ×3, testing, release, accessibility, architecture, mobile). Six lenses have no coverage: product, UX, copy, frontend, performance, database. A green run says nothing about those.
 - **No held-out set.** The cases were written by the same process that fixed the detectors they exercise. That is the contamination `agent-evals` warns about; it is bounded here because the fixtures come from real code the author did not write, but it is not eliminated.
 - **No variance measurement.** Nothing here runs the same review twice to see how far apart the results land. Until that exists, "the score means the same thing next month" remains an aspiration in `core/scoring-model.md` rather than a measured property.
 - **Recall is measured; precision is not.** A report that lists thirty findings, one of which is correct, passes. Grading unlisted findings needs a judge, which needs its own calibration.
