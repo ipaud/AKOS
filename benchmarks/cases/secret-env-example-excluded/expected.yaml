@@ -1,0 +1,8 @@
+case_id: secret-env-example-excluded
+domain: security
+level: A
+rules_under_test: [SECRET_IN_SOURCE]
+must_detect: []
+must_not_detect:
+  - rule_id: SECRET_IN_SOURCE
+    path: fixture/src/config.example.ts

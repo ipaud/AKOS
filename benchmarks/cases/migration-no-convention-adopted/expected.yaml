@@ -1,0 +1,8 @@
+case_id: migration-no-convention-adopted
+domain: devops
+level: A
+rules_under_test: [MIGRATION_NO_DOWN_FILE]
+must_detect: []
+must_not_detect:
+  - rule_id: MIGRATION_NO_DOWN_FILE
+    path: fixture/migrations/0001_init.sql

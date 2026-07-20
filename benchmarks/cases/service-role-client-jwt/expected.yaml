@@ -1,0 +1,9 @@
+case_id: service-role-client-jwt
+domain: security
+level: A
+rules_under_test: [SERVICE_ROLE_IN_CLIENT]
+must_detect:
+  - rule_id: SERVICE_ROLE_IN_CLIENT
+    path: fixture/src/client.ts
+    line: 1
+must_not_detect: []

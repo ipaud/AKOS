@@ -1,0 +1,9 @@
+case_id: supabase-rls-basic
+domain: security
+level: A
+rules_under_test: [SUPABASE_RLS_DISABLED]
+must_detect:
+  - rule_id: SUPABASE_RLS_DISABLED
+    path: fixture/supabase/migrations/0001_init.sql
+    line: 1
+must_not_detect: []

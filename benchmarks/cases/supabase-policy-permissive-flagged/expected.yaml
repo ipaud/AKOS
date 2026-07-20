@@ -1,0 +1,9 @@
+case_id: supabase-policy-permissive-flagged
+domain: security
+level: A
+rules_under_test: [SUPABASE_POLICY_TOO_PERMISSIVE]
+must_detect:
+  - rule_id: SUPABASE_POLICY_TOO_PERMISSIVE
+    path: fixture/schema.sql
+    line: 3
+must_not_detect: []
