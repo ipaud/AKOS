@@ -15,6 +15,16 @@ fail() { printf '%s✗%s %s\n' "$c_red" "$c_reset" "$*"; failc=$((failc+1)); }
 
 printf '%sAKOS Doctor%s — %s\n\n' "$c_bold" "$c_reset" "$AKOS_HOME"
 
+# python3 is the repo's one non-coreutils dependency (JSON manifest parsing,
+# schema validation). Checked once, up front, so its absence degrades
+# gracefully (a warning, once) instead of a raw "command not found" at every
+# call site below.
+if command -v python3 >/dev/null 2>&1; then
+  HAVE_PYTHON3=1
+else
+  HAVE_PYTHON3=0
+fi
+
 # --- Required top-level directories ---
 printf '%sStructure%s\n' "$c_bold" "$c_reset"
 for d in core packs agents workflows templates prompts graphs scoring bin; do
@@ -138,12 +148,16 @@ done
 
 # --- Plugin manifests ---
 printf '\n%sPlugin manifests%s\n' "$c_bold" "$c_reset"
+if [ "$HAVE_PYTHON3" -eq 0 ]; then
+  warn "python3 not found — skipping JSON manifest parse checks"
+else
 for m in .claude-plugin/plugin.json .claude-plugin/marketplace.json \
          .codex-plugin/plugin.json .agents/plugins/marketplace.json; do
   if [ ! -f "$AKOS_HOME/$m" ]; then fail "missing $m"; continue; fi
   if python3 -m json.tool "$AKOS_HOME/$m" >/dev/null 2>&1; then ok "$m parses"
   else fail "$m is not valid JSON"; fi
 done
+fi
 # Manifest versions must track VERSION, or installs ship a stale label.
 if [ -f "$AKOS_HOME/VERSION" ]; then
   ver="$(tr -d '[:space:]' < "$AKOS_HOME/VERSION")"
@@ -155,6 +169,35 @@ if [ -f "$AKOS_HOME/VERSION" ]; then
       fail "$m version does not match VERSION ($ver)"; ver_issues=$((ver_issues+1)); }
   done
   [ "$ver_issues" -eq 0 ] && ok "manifest versions match VERSION ($ver)"
+fi
+
+# --- Schema validation (advisory) ---
+# Non-breaking by construction: schemas/knowledge-pack.schema.json's required
+# fields are exactly the 7 already universal across every pack, so this
+# reports 0 errors against the existing corpus without any migration gate.
+# Errors here fail the build; recommended-field warnings don't.
+printf '\n%sSchema validation%s\n' "$c_bold" "$c_reset"
+if [ "$HAVE_PYTHON3" -eq 0 ]; then
+  warn "python3 not found — skipping schema validation (packs/agents/workflows)"
+else
+  validate_out="$(python3 "$AKOS_HOME/schemas/validate.py" packs agents workflows --format json 2>&1)"
+  validate_rc=$?
+  if [ "$validate_rc" -gt 1 ]; then
+    schema_errors="$(printf '%s' "$validate_out" | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r['errors']) for r in d))" 2>/dev/null || echo "?")"
+    schema_warnings="$(printf '%s' "$validate_out" | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r['warnings']) for r in d))" 2>/dev/null || echo "?")"
+    fail "schema validation: $schema_errors error(s) — run 'akos validate' for detail"
+    [ "$schema_warnings" != "0" ] && [ "$schema_warnings" != "?" ] && warn "schema validation: $schema_warnings recommended-field warning(s)"
+  elif [ "$validate_rc" -eq 0 ]; then
+    schema_warnings="$(printf '%s' "$validate_out" | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r['warnings']) for r in d))" 2>/dev/null || echo "0")"
+    if [ "$schema_warnings" = "0" ]; then
+      ok "packs/agents/workflows validate clean against their schemas"
+    else
+      ok "packs/agents/workflows validate clean (0 errors)"
+      warn "schema validation: $schema_warnings recommended-field warning(s) — run 'akos validate' for detail"
+    fi
+  else
+    fail "schema validation runner failed to execute (exit $validate_rc)"
+  fi
 fi
 
 # --- Executable bits ---

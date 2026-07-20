@@ -76,6 +76,7 @@ Commands:
   show-profile [name]  Show a reasoning profile (or list them)
   review <domain>      Print the prompt to run a review (ux|security|architecture|full)
   create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the 17-file structure
+  validate [target]    Validate packs/agents/workflows against their schemas (--format json)
 
 AKOS_HOME: $AKOS_HOME
 EOF
@@ -152,6 +153,13 @@ cmd_review() {
       err "Unknown review domain: '${domain:-}'. Use: ux | security | architecture | full"
       return 1 ;;
   esac
+}
+
+cmd_validate() {
+  # Tail-call, deliberately the literal last statement: under `set -e` this
+  # propagates schemas/validate.py's own exit code (0/1/2) with nothing extra
+  # needed. Do not add post-processing here without `|| rc=$?` guarding.
+  python3 "$AKOS_HOME/schemas/validate.py" "$@"
 }
 
 cmd_install_project() {
@@ -272,6 +280,7 @@ main() {
     list-agents)        cmd_list_agents ;;
     list-skills)        cmd_list_skills ;;
     show-profile)       cmd_show_profile "$@" ;;
+    validate)           cmd_validate "$@" ;;
     review)             cmd_review "$@" ;;
     create-pack)        cmd_create_pack "$@" ;;
     *)                  err "Unknown command: $cmd"; echo; cmd_help; exit 1 ;;
