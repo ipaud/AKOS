@@ -79,6 +79,7 @@ is really about visual craft wastes a slot.
 | `mobile/touch-ergonomics` | The hand and the device: target sizes and spacing, thumb zones, no-hover, virtual keyboard, locale input parsing, gestures. |
 | `ai-engineering/agent-foundations` | Deciding whether a task needs an agent at all: shape selection across the workflow/agent spectrum, routing, parallelization, termination conditions, budgets, error recovery, escalation, idempotency. |
 | `ai-engineering/context-engineering` | Deciding what an agent's prompt, skill, or session loads and when: context budgeting, progressive disclosure, just-in-time retrieval, poisoning and rot, instruction hierarchy, memory tiers, compaction boundaries, large-repo navigation. |
+| `ai-engineering/tool-design` | Designing or reviewing a tool, function, or MCP server an agent calls: naming, description, input and output shape, error design, repeat-safety, previews for destructive operations, result bounds. |
 | `frontend/react` | React or Next.js: hooks, rendering, server components, composition. |
 | `frontend/typescript` | Types are loose or wrong. Strict mode, unions, schema validation at boundaries. |
 | `frontend/css` | Layout and motion: grid, flexbox, custom properties, container queries. |
