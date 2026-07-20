@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://akos.dev/schemas/workflow.schema.json",
+  "title": "AKOS workflow frontmatter (optional)",
+  "description": "None of the 9 workflows/*.md files have YAML frontmatter today — they open directly with '# Workflow: ...'. Every field here is optional and the schema itself has no required list, so a file with no leading '---' block is valid (checked as a legacy-format file, an informational note rather than a warning or error — it never claimed to have frontmatter). No automated migration backfills this; it's added by hand per-workflow if/when a workflow needs machine routing.",
+  "type": "object",
+  "required": [],
+  "properties": {
+    "id": { "type": "string" },
+    "agents": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "packs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "enum": ["Prototype", "Startup MVP", "Production", "Enterprise", "Game Dev", "Internal Tool"]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "stable", "deprecated"]
+    }
+  },
+  "additionalProperties": true
+}

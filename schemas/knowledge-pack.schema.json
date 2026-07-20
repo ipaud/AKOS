@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://akos.dev/schemas/knowledge-pack.schema.json",
+  "title": "AKOS knowledge pack metadata.yaml",
+  "description": "Validates packs/<domain>/<name>/metadata.yaml. Required fields are exactly the 7 already universal across all 48 non-personal packs, so this schema is non-breaking by construction — every existing pack validates clean without a migration. New fields are optional-with-default and additionally listed in x-akos-recommended: absence there produces a warning, never an error.",
+  "type": "object",
+  "required": ["name", "domain", "authority-level", "version", "tags", "sources", "related"],
+  "x-akos-recommended": ["id", "status", "last_reviewed", "review_after", "maintainer"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "The pack's directory name, e.g. 'steve-krug'."
+    },
+    "domain": {
+      "type": "string",
+      "description": "The domain directory it lives under, e.g. 'ux', 'security'."
+    },
+    "authority-level": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4,
+      "description": "0=personal, 1=standards, 2=industry authority, 3=books/methodologies, 4=community. See core/authority-model.md."
+    },
+    "platform-scope": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Present on a small number of packs to narrow which platform they apply to (e.g. iOS, Android)."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semver of this pack's content."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "url"],
+        "properties": {
+          "title": { "type": "string" },
+          "author": { "type": "string" },
+          "org": { "type": "string" },
+          "url": { "type": "string" }
+        },
+        "description": "Attribution only per core/source-policy.md — either 'author' or 'org' is typically present, but neither is required by the schema since real content uses both patterns depending on the source type (a named author vs. an organization like W3C)."
+      }
+    },
+    "related": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^packs/[a-z0-9-]+/[a-z0-9-]+$" },
+      "description": "Cross-links to other packs, informational."
+    },
+
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+/[a-z0-9-]+$",
+      "description": "Default: '<domain>/<name>'. Populated by the metadata migration."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "stable", "deprecated"],
+      "default": "stable"
+    },
+    "last_reviewed": {
+      "type": "string",
+      "format": "date"
+    },
+    "review_after": {
+      "type": "string",
+      "format": "date",
+      "description": "Cadence is authority-level dependent: 18mo for L0-1 (standards churn slowly), 12mo for L2, 9mo for L3-4. Computed by the migration; a maintainer may override by hand."
+    },
+    "maintainer": {
+      "type": "string",
+      "default": "core"
+    },
+    "license": {
+      "type": "string",
+      "default": "MIT"
+    },
+    "deprecated": {
+      "type": "boolean",
+      "default": false
+    },
+    "replacement": {
+      "type": ["string", "null"],
+      "description": "Pack id that replaces this one, when deprecated: true."
+    },
+    "profiles": {
+      "type": "object",
+      "properties": {
+        "relevant": {
+          "type": "array",
+          "items": {
+            "enum": ["Prototype", "Startup MVP", "Production", "Enterprise", "Game Dev", "Internal Tool"]
+          }
+        }
+      },
+      "description": "Advisory routing narrowing only. Absence means 'applies to all six profiles.' Does not replace or duplicate core/reasoning-profiles.md's per-agent weight table."
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Packs this one's guidance is genuinely incomplete without. Expected to stay empty/absent for nearly all packs — each is deliberately self-contained. Not materialized by migration."
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["pack", "ruling"],
+        "properties": {
+          "pack": { "type": "string" },
+          "ruling": { "type": "string" }
+        }
+      },
+      "description": "Pre-registered known tensions with another pack, feeding core/conflict-resolution.md's canonical rulings. Not materialized by migration — populated by hand when a real conflict is identified."
+    }
+  },
+  "additionalProperties": true
+}
