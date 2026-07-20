@@ -1,0 +1,21 @@
+name: context-engineering
+domain: ai-engineering
+authority-level: 2
+version: 1.0.0
+tags: [context-engineering, context-window, token-budget, progressive-disclosure, just-in-time-retrieval, context-poisoning, context-rot, instruction-hierarchy, memory-tiers, summarization, retrieval, agent-design]
+sources:
+  - title: "Effective Context Engineering for AI Agents"
+    author: Anthropic
+    org: Anthropic
+    url: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+related:
+  - packs/personal/pau-avila
+  - packs/ux/nielsen-norman-group
+  - packs/architecture/clean-architecture
+id: ai-engineering/context-engineering
+status: draft
+last_reviewed: 2026-07-20
+review_after: 2027-07-20
+maintainer: core
+license: MIT
+deprecated: false

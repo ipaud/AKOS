@@ -1,0 +1,24 @@
+# Glossary — Context Engineering Pack
+
+- **Compaction / compaction boundary** — the point where a session's history is summarized or otherwise shortened to save budget. Lossy by design; the boundary is where a decision about what survives gets made, explicitly or by accident.
+- **Context poisoning** — a wrong or hallucinated claim entering context and being treated as ground truth for the rest of the session, including by later reasoning that appears to independently corroborate it.
+- **Context rot** — the degradation of a model's effective use of context as total length grows, occurring before the nominal window limit is reached. Distinct from running out of space; the content is present but under-weighted.
+- **Context window** — the finite span of tokens a model can attend to at once. A capacity limit, not a usability guarantee.
+- **Instruction hierarchy** — the ranked trust order among layers that can produce instruction-like text: system, then project/developer convention, then the user's request. Retrieved and tool-returned content sits outside the hierarchy entirely — it is data, never a layer.
+- **Just-in-time (JIT) retrieval** — fetching information at the point a task needs it, as opposed to loading it speculatively at session start.
+- **Lost in the middle** — the empirically observed tendency for content in the middle of a long context to be used less reliably than content near the start or end, regardless of its actual importance.
+- **Manifest** — an index, table of contents, or codemap describing what exists (files, sections, symbols) without including their full content; the basis for navigating a large source instead of reading it end-to-end.
+- **Memory tier** — one of project / user / task / session, distinguished by what question a persisted fact answers and how long it should remain true. Filing a fact in the wrong tier is a defect, not a style choice.
+- **Minimum sufficient context** — the smallest set of loaded material that lets an agent complete the current task correctly; the target this pack optimizes toward, as opposed to maximum available context.
+- **Poisoning chain** — the sequence of downstream inferences built on an unverified fact, each of which can look like independent corroboration while tracing back to the same unverified origin.
+- **Preloading** — loading content into context before it's needed, on the expectation it will be needed later. The default to avoid per CE4; justified only as a stated exception.
+- **Progressive disclosure** — structuring knowledge in layers so a cheap summary or fragment is read first and deeper material is reached only when the task proves it's needed.
+- **Prompt injection** — an attack or accident in which content retrieved from outside the genuine instruction layers (a document, a page, a tool result) contains instruction-shaped text that gets treated as a directive. The instruction-hierarchy principle exists specifically to prevent this.
+- **Routing** — the mechanism, static or dynamic, that decides which sources of context or which tools get loaded for a given task. Dynamic routing selects per task; static routing loads the same bundle regardless of task.
+- **Session memory** — the working state of the current conversation; expected to be discarded or compacted, not treated as durable.
+- **Shared context** — material a whole project or team should load regardless of the specific task, as opposed to task-specific context loaded only when routing selects it.
+- **Stable fact** — information that stays true over a meaningful span of time (a naming convention, an architectural decision) and is safe to persist.
+- **Task-scoped memory** — facts relevant only to the current unit of work; discarded when the task closes, not promoted to project-wide memory.
+- **Token budget** — the practical allowance of context a task or session is expected to stay within, tracked as a first-class quality variable rather than left implicit until a failure exposes it.
+- **User memory** — a person's standing preferences and conventions, portable across projects and applied by default rather than re-requested per task.
+- **Volatile fact** — information that decays quickly (a file's current line count, today's test-pass rate, the present branch state) and should be recomputed at the point of use rather than cached.
