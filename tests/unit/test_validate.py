@@ -46,6 +46,30 @@ class TestValidateInstance(unittest.TestCase):
         errors, _ = v.validate_instance(data, PACK_SCHEMA)
         self.assertTrue(any(e["field"] == "authority-level" for e in errors))
 
+    def _pack(self, **overrides):
+        data = {"name": "x", "domain": "y", "authority-level": 2, "version": "1.0.0",
+                "tags": [], "sources": [], "related": []}
+        data.update(overrides)
+        return data
+
+    # The schema declared `minimum: 0, maximum: 4` on authority-level from the start,
+    # but validate.py implemented neither keyword, so any out-of-range level validated
+    # clean. Found by deliberately trying to break the validator rather than trusting
+    # its green. These lock the bound in both directions, plus both boundaries.
+    def test_authority_level_above_maximum_is_an_error(self):
+        errors, _ = v.validate_instance(self._pack(**{"authority-level": 9}), PACK_SCHEMA)
+        self.assertTrue(any(e["field"] == "authority-level" and e["rule"] == "maximum" for e in errors))
+
+    def test_authority_level_below_minimum_is_an_error(self):
+        errors, _ = v.validate_instance(self._pack(**{"authority-level": -1}), PACK_SCHEMA)
+        self.assertTrue(any(e["field"] == "authority-level" and e["rule"] == "minimum" for e in errors))
+
+    def test_authority_level_boundaries_are_valid(self):
+        for level in (0, 4):
+            errors, _ = v.validate_instance(self._pack(**{"authority-level": level}), PACK_SCHEMA)
+            self.assertEqual([e for e in errors if e["field"] == "authority-level"], [],
+                             f"authority-level {level} is in range and must validate clean")
+
     def test_bad_status_enum(self):
         data = {"name": "x", "domain": "y", "authority-level": 2, "version": "1.0.0",
                 "tags": [], "sources": [], "related": [], "status": "not-a-status"}
