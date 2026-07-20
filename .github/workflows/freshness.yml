@@ -1,0 +1,20 @@
+name: Pack freshness
+
+on:
+  schedule:
+    # Weekly, Monday 09:00 UTC — a periodic check independent of any code
+    # change, since a pack can go stale with zero commits touching it.
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Full freshness report
+        run: python3 schemas/freshness.py
+
+      - name: Fail only if something is expired
+        run: python3 schemas/freshness.py --fail-on expired

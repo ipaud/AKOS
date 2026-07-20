@@ -1,0 +1,36 @@
+name: Benchmarks (main)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: chmod scripts
+        run: chmod +x bin/akos
+
+      - name: Run full benchmark suite and generate the report
+        run: |
+          mkdir -p benchmarks
+          python3 benchmarks/runners/run.py run --format json > benchmarks/report.json
+          python3 benchmarks/runners/run.py run > benchmarks/report.md || true
+          # report.md/json are gitignored on purpose (regenerate, don't commit) —
+          # uploaded as a workflow artifact instead, for anyone who wants the
+          # point-in-time result without reproducing it locally.
+
+      - name: Fail the build if any case regressed
+        run: python3 benchmarks/runners/run.py run
+
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-report
+          path: |
+            benchmarks/report.md
+            benchmarks/report.json
+          retention-days: 30
