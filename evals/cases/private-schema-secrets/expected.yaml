@@ -1,0 +1,21 @@
+case_id: private-schema-secrets
+lens: security
+profile: Startup MVP
+source: brotapp-main, verified by hand 2026-07-20
+
+must_find:
+  - id: notes-no-rls
+    concept: public.notes is created with no RLS policy
+    # Qualified name deliberately: a bare 'notes' matched a '## Notes'
+    # heading in a report that never mentioned the table at all.
+    match_all: ["public.notes"]
+    match_any: [rls, "row level security"]
+    min_severity: HIGH
+    why: "A table in the public schema is reachable through PostgREST. Without RLS any authenticated user reads every row, including other users'."
+
+must_not_find:
+  - id: private-secrets-rls
+    concept: claiming private.app_secrets lacks RLS
+    match_all: [app_secrets]
+    match_any: [rls, "row level security"]
+    why: "The table is in a non-exposed schema and carries REVOKE ALL from every role including service_role — strictly stronger than RLS. A review that reports this is repeating a tooling false positive rather than reading the migration."

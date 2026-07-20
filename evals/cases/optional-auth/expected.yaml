@@ -1,0 +1,19 @@
+case_id: optional-auth
+lens: security
+profile: Startup MVP
+source: CONTRASTA apps/api, verified by hand 2026-07-20
+
+must_find:
+  - id: auth-optional
+    concept: authentication is skipped entirely when API_TOKEN is unset
+    match_all: [api_token]
+    match_any: [optional, unset, "not set", "no auth", unauthenticated, "opt-in"]
+    min_severity: HIGH
+    why: "API_TOKEN is optional, so the onRequest hook is never registered and every /api/* route is open. The endpoint that matters is POST /api/settings, which writes provider API keys."
+  - id: binds-all-interfaces
+    concept: the server listens on 0.0.0.0 rather than loopback
+    match_all: ["0.0.0.0"]
+    min_severity: MEDIUM
+    why: "This is the amplifier. Default-open auth on loopback is a development convenience; on every interface it is an exposure."
+
+must_not_find: []

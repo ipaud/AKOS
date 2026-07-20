@@ -1,0 +1,18 @@
+case_id: dropped-policy
+lens: security
+profile: Startup MVP
+source: brotapp-main, verified by hand 2026-07-20
+
+must_find:
+  - id: audit-log-readable
+    concept: audit_log is readable by every authenticated user
+    match_all: [audit_log]
+    match_any: ["using (true)", "all authenticated", "every authenticated", "any authenticated"]
+    min_severity: MEDIUM
+    why: "An audit log readable by every user leaks who did what. This policy is never dropped, so it is live."
+
+must_not_find:
+  - id: cache-writable
+    concept: claiming the cache insert policy is permissive
+    match_all: ["cache writable"]
+    why: "002_tighten.sql drops that policy and revokes the grants. Reporting it means reading CREATE statements without reading the DROPs — the exact defect this case exists to catch."
