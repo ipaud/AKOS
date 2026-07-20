@@ -1,5 +1,11 @@
 # Changelog — tool-design
 
+## [1.1.0] — 2026-07-20
+
+### Fixed
+
+- `examples.md` graded `history clean`'s missing dry-run as "a soft finding rather than a defect", granting it the TDE51 exemption for commands whose scope is fixed by their arguments. The exemption did not hold: `--keep` defaulted to 20, so the command's real scope was however many reviews existed past 20 — unseen state, which is the ★ safety-floor CRITICAL row. Found by applying this pack's own checklist to the same code and reaching BLOCKED where the example reached "well above the midpoint". A worked example that under-applies its own rules teaches under-application.
+
 ## [1.0.0] — 2026-07-20
 
 ### Added

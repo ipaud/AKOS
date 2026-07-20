@@ -184,6 +184,10 @@ Commit `4c3e854` added the CI workflows. Its final two steps reference `tests/un
 
 That sentence weakens the commit. It is also the most useful sentence in it, because it is the one thing a reader could not have recovered from the diff, and it tells the next person exactly which claim not to rely on. CAE75 exists for this: a known gap stated is worth more than a description that reads cleanly.
 
+> **The same commit also violates CAE52, four lines earlier.** It asserts that *"every individual command referenced (doctor.sh, validate.py, freshness.py, the rules sanity snippet, benchmark run.py) was already exercised directly and separately."* The rules sanity snippet was `python3 rules/runner.py list` — and `runner.py` has no `list` subcommand; it reads `list` as a directory to scan. That command **cannot ever have been exercised successfully.** What was actually verified was that the YAML parsed. The workflow then failed on its first three real runs on GitHub, and v1.4.0 shipped and stayed red for 2h15m.
+>
+> Keep both facts about this commit, because together they are the real lesson and neither is true alone. The same author, in the same message, stated one gap with unusual honesty and asserted a verification that had not happened — and the honest sentence is what made the message *read* trustworthy. **A commit message is not evidence. CAE52 applies to the message itself: if it names a command as run, that command has to have been run.** The follow-up fix commit then repeated the pattern, diagnosing the incident as "the workflows had never run on GitHub" without checking — they had run three times, and one `gh run list` would have said so.
+
 ## What the case study establishes
 
 Six named bugs in this range — the BSD `awk` marker replacement, the narrow suppression window, the `htmlFor` blind spot, the substring path exclusion, the anon-key false positive, and the inverted freshness comparison — plus the benchmark path-resolution bug and the piped-`tail` trap. Not one was found by reading the code. Every one was found because a command was executed and its **real output and exit code** were read.

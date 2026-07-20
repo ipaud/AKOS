@@ -1,7 +1,7 @@
 case_id: level-c-mock-ux-review
 domain: ux
 level: C
-prompt: Review this list component for missing empty state and loading state handling.
+prompt: Review this component and report any user-facing gaps you find.
 must_mention:
   - empty state
   - loading state
