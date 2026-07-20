@@ -24,7 +24,7 @@ Every knowledge pack in `packs/` follows the same 17-file contract. Uniform stru
 | `CHANGELOG.md` | Pack history | Maintenance |
 | `VERSION` | Semver | Maintenance |
 
-The personal layer (`packs/personal/pau-avila/`) is the one sanctioned exception: it uses a preference-oriented file set because it encodes one person's rules, not a distilled external source.
+The personal layer (`packs/personal/<name>/` — e.g. `packs/personal/pau-avila/`, the shipped default) is the one sanctioned exception: it uses a preference-oriented file set because it encodes one person's rules, not a distilled external source. Multiple personal profiles can coexist as siblings under `packs/personal/`; `.akos/config.md`'s `personal_profile` field picks which one a given project loads (see `akos profile`).
 
 ## metadata.yaml format
 

@@ -27,6 +27,7 @@ do not stop at the profile:
 | Section | What it does |
 |---|---|
 | **Reasoning profile** | Sets strictness. If absent or unset, default to **Startup MVP**. Profiles: Prototype · Startup MVP · Production · Enterprise · Game Dev · Internal Tool. |
+| **Personal profile** | Which `packs/personal/<name>/` to load as the Level 0 layer in step 3. If absent or unset, default to **pau-avila** (the original, unnamed default — nothing changes for a project scaffolded before this field existed). `akos profile list` shows what's available. |
 | **Project context** | `Stack:` narrows pack routing in step 4. `Deployed: yes` makes security and Supabase/RLS packs **mandatory**, not optional (personal principle 6). `Primary surface:` decides whether mobile and responsive apply. |
 | **Profile overrides** | Per-lens weight changes with a stated reason. These beat the profile's defaults — and only these; an override never lowers the safety floor. |
 | **Packs to always load** | Load every pack listed here **in addition to** the 2-5 you route to in step 4. The project owner has already decided these are load-bearing. |
@@ -42,9 +43,10 @@ nag.
 
 ## 3. Load the Level-0 layer
 
-Read `packs/personal/pau-avila/`. This is authority Level 0 — it outranks every
-external source and always applies. Start with `principles.md` and
-`ai-agent-rules.md`; add `coding-preferences.md`, `ux-preferences.md`,
+Read `packs/personal/<personal_profile>/` — the profile named in
+`.akos/config.md` (default `pau-avila`). This is authority Level 0 — it
+outranks every external source and always applies. Start with `principles.md`
+and `ai-agent-rules.md`; add `coding-preferences.md`, `ux-preferences.md`,
 `design-language.md`, `project-patterns.md`, or `supabase-rules.md` when the
 task touches them.
 
@@ -110,7 +112,9 @@ is really about visual craft wastes a slot.
 | `devops/ci-cd` | Pipeline design and what gates a merge. |
 | `devops/sre` | Reliability as a target: SLOs, error budgets, alerting, incidents. |
 | `devops/git` | Branching model, commit hygiene, history strategy. |
-| `personal/pau-avila` | Level 0 — always loaded in step 3, never a routing choice. |
+
+`packs/personal/<name>/` is never a routing choice — it's always loaded
+generically in step 3, for whichever profile `.akos/config.md` names.
 
 For each pack selected:
 

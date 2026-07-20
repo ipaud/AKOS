@@ -17,7 +17,7 @@ Bootstrap (read in order):
 - ~/DEV/AKOS/core/authority-model.md
 - ~/DEV/AKOS/core/reasoning-profiles.md (profile in .akos/config.md)
 - ~/DEV/AKOS/core/review-pipeline.md
-- ~/DEV/AKOS/packs/personal/pau-avila/ (Level-0, always applies)
+- ~/DEV/AKOS/packs/personal/<personal_profile>/ (Level-0, always applies; <personal_profile> from this project's .akos/config.md, default pau-avila)
 
 Then load the 2-5 task-relevant packs from ~/DEV/AKOS/packs/. For reviews use ~/DEV/AKOS/agents/ and the unified Review Summary format.
 

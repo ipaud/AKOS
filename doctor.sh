@@ -112,13 +112,18 @@ done
 
 # Every pack must appear in the akos skill's routing table, or the model
 # cannot route to it. This replaces a generated index — fail loudly on drift.
+# packs/personal/* is deliberately excluded: those are never task-routed
+# (step 4's "pick 2-5" table) — they're always loaded generically in step 3
+# via the `personal_profile` config field, so enumerating each one here would
+# just recreate the drift problem this guard exists to prevent.
 if [ -f "$akos_skill" ]; then
   missing_packs=0
   for pack in "$AKOS_HOME"/packs/*/*/; do
     [ -d "$pack" ] || continue
+    rel="${pack#"$AKOS_HOME/packs/"}"; rel="${rel%/}"
+    case "$rel" in personal/*) continue ;; esac
     # Match the full domain/pack path, so a pack filed under the wrong domain
     # in the table is caught too.
-    rel="${pack#"$AKOS_HOME/packs/"}"; rel="${rel%/}"
     grep -qF "$rel" "$akos_skill" || {
       fail "pack '$rel' is not listed in skills/akos/SKILL.md routing table"
       missing_packs=$((missing_packs+1))

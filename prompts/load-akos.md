@@ -15,7 +15,7 @@ You have access to AKOS (AI Knowledge Operating System) at `~/DEV/AKOS`. Before 
 2. Read `~/DEV/AKOS/core/authority-model.md` — how sources are ranked (L0 personal → L1 standards → L2 industry → L3 books → L4 community, with a security/accessibility/data-integrity floor).
 3. Read `~/DEV/AKOS/core/reasoning-profiles.md` — then pick or ask for the profile (Prototype / Startup MVP / Production / Enterprise / Game Dev / Internal Tool). If unknown, default to Startup MVP.
 4. Read `~/DEV/AKOS/core/review-pipeline.md` — the twelve-step review structure.
-5. Read `~/DEV/AKOS/packs/personal/pau-avila/` — the Level-0 personal layer (always applies).
+5. Read `~/DEV/AKOS/packs/personal/<personal_profile>/` — the Level-0 personal layer (always applies). `<personal_profile>` is named in this project's `.akos/config.md` (`personal_profile` field); default `pau-avila` if absent.
 6. Load the specific packs relevant to the task (see `~/DEV/AKOS/packs/` by domain). Don't load everything — pick the 2-5 closest packs.
 
 Then apply AKOS as follows:
