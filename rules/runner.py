@@ -26,7 +26,9 @@ from pathlib import Path
 
 AKOS_HOME = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
+sys.path.insert(0, str(AKOS_HOME / "rules" / "security"))
 import yaml_subset  # noqa: E402
+from _secret_utils import is_fixture_or_doc_path  # noqa: E402
 
 DEFAULT_IGNORE_DIRS = {"node_modules", ".git", "dist", "build", "vendor", ".next", "__pycache__", ".venv"}
 
@@ -143,6 +145,21 @@ def run_rules(target_dir: Path, rules: list[Rule], profile: str | None) -> list[
             if is_suppressed(f, rule.id, file_lines_cache):
                 continue
             severity = f.get("severity_override") or rule.severity_for_profile(profile)
+            # Fixture and doc paths downgrade to LOW, centrally, for every
+            # rule. A deliberately-vulnerable file under fixtures/ is that
+            # file doing its job — AKOS's own benchmark corpus is exactly
+            # that, and without this the tool cannot scan its own repository
+            # without reporting itself.
+            #
+            # Downgrade, never suppress: a real migration or a real key
+            # parked under tests/ is still real, so the finding survives and
+            # says why it was lowered. Done here rather than per detector so
+            # one rule cannot quietly opt out — which is how SECRET_IN_SOURCE
+            # came to apply it to one of its three branches.
+            evidence_path = (f.get("evidence") or [{}])[0].get("path", "")
+            in_fixture = evidence_path and is_fixture_or_doc_path(str(evidence_path))
+            if in_fixture and severity != "LOW":
+                severity = "LOW"
             finding = {
                 "rule_id": rule.id,
                 "title": rule.title,

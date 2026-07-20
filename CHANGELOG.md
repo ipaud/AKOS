@@ -30,7 +30,15 @@ already sitting in `main`.
 
   The runner's summary line now states the ratio rather than a bare percentage: *"7 of 28 cases carry shapes taken from real repositories; the rest are synthetic and were written alongside the detectors they exercise. This number read 100% while every Level-A finding on three real repositories was a false positive."*
 
+### Corrected
+
+- **The previous entry's claim that `akos rules run .` exits 0 on this repository was false when written.** Only `--rule SECRET_IN_SOURCE` had been checked; the full run still exited 2 on the RLS fixtures, which are deliberately vulnerable because that is their job. Verified the specific case and asserted the general one — the same mistake as the CI-history misdiagnosis recorded above, made again in the same day.
+
 ### Fixed
+
+- **Fixture-path downgrading moved into the runner, applied to every rule.** It had been per-detector, which is how `SECRET_IN_SOURCE` came to apply it to one of its three branches. Now a rule cannot opt out by omission. Behaviour is unchanged for real code — a missing RLS policy in `supabase/migrations/` is still CRITICAL — and a deliberately-vulnerable file under a fixture path drops to LOW while **still being reported**. `akos rules run .` on this repository now exits 0, verified on the full run this time.
+- Known limitation, recorded rather than discovered later: every benchmark fixture lives under a `fixture/` path, so every benchmark finding is now downgraded and **the benchmark corpus can no longer catch a severity regression**. Severity is covered instead by unit tests that call detectors directly and by three new runner-level tests.
+
 
 - **AKOS failed its own security rule.** `akos rules run .` on this repository exited 2, reporting its own benchmark fixtures as CRITICAL leaks. `is_fixture_or_doc_path` was applied only before the generic high-entropy branch, so the vendor-pattern and JWT branches never saw it. Fixtures now **downgrade to LOW rather than suppress** — a real credential pasted into a test file is still committed, so the finding survives and says why, but it stops gating a deploy. Suppressing outright would hide a real leak in any directory someone names `tests/`. Verified in both directions: the same AWS key reads HIGH in `src/` and LOW in `tests/`.
 - **A table closed by `REVOKE ALL` rather than by RLS is no longer reported as unprotected.** Revoking every API-reachable role is stronger than a policy — there is nothing to mis-write later. This was recorded as a known gap when the schema-awareness fix landed and is now closed. A **partial** revoke (one role, not all) is still reported, which is the correct direction, and an unrelated table's revoke does not cover its neighbour.
