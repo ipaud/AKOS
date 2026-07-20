@@ -1,0 +1,29 @@
+# Philosophy — Agent Foundations
+
+## The interesting shape is rarely the right one
+
+There is a strong pull toward building the most autonomous thing the tooling permits, because autonomy is what makes the technology feel like the technology. That pull is the single most reliable source of bad agent architecture. A model that classifies an email and writes a row to a table does not need a loop, a plan, a scratchpad, or a set of tools — it needs one call and a schema. The discipline this pack encodes is mostly resistance: an insistence on naming the boring version of the system and explaining what it fails at, before anything more elaborate gets built. Most of the time the explanation can't be produced, and the boring version ships.
+
+## Autonomy is not a feature you add — it's control you give away
+
+It is tempting to read the spectrum from a single call up to a full agent as a capability ladder, where each rung can do more than the one below. It is more accurate to read it as a series of decisions handed from the engineer to the model. At the bottom, the engineer decides everything and the model fills in language. At the top, the model decides what to do, in what order, when to stop, and when to try again. Each step up buys the ability to handle variance nobody enumerated, and pays in the ability to say what the system will do before it does it. Framed that way, the question stops being "how autonomous should this be" and becomes "which specific decisions am I unable to make at design time" — a question with a much shorter answer.
+
+## A loop without an exit is not an agent
+
+An agent is often described as a model in a loop with tools. That description omits the part that determines whether the thing works: the condition under which the loop stops. Termination is not an operational detail bolted on after the interesting design is done — it is the design. A loop that stops when the model declares satisfaction stops at the point of maximum plausibility, which is not the point of maximum correctness and is systematically earlier on tasks the model handles badly. Deciding in advance what artifact, what check, or what measurable state constitutes done is the act that turns an open-ended generator into a component you can put in a system. The same is true of limits, which are the other half: a success condition tells the loop when to stop happily, and only a limit tells it when to stop anyway.
+
+## Failures are the design surface, not the exception path
+
+Systems built on nondeterministic components fail constantly and in ordinary ways — a tool times out, a plan turns out to rest on a false premise, a subtask is genuinely beyond what the system can do. Treating these as edge cases handled by a generic retry produces the characteristic agent pathologies: the loop that retries a deterministic error until the budget is gone, the agent that quietly proceeds past a failed step, the run that returns confident partial work because a limit fired and nobody made that visible. Distinguishing a transient failure from a wrong approach from a genuine dead end, and having a different response ready for each, is not error handling in the defensive sense. It is the main structure of the system, and an architecture that treats it as an afterthought will spend most of its runtime there anyway.
+
+## Repetition is the default, not the anomaly
+
+Anything an agent does, it may do twice. Retries duplicate. Timeouts that fire after a call already succeeded duplicate. Parallel workers overlap. Replans re-execute steps that already ran. This is not a sign of a badly built agent — it's the ambient condition of any system that recovers from failure automatically. The implication is uncomfortable in a specific way: it means correctness cannot rest on an action happening exactly once, and any action whose second execution is harmful has to be either made safe to repeat or placed behind something that refuses to repeat it. An agent architecture that hasn't confronted this has an unexercised failure waiting for its first bad week.
+
+## Constraints choose the architecture
+
+Budget, latency, and cost are usually treated as limits imposed on a design after it exists — the throttle you add once the bill arrives. In agent systems they are better understood as inputs that eliminate whole shapes before design begins. A latency envelope of a few hundred milliseconds rules out anything with a loop in it. A per-request budget of a few thousand tokens rules out a critique cycle. A hard cost ceiling per task rules out dynamic worker spawning. Naming the envelope first turns an open-ended architecture question into a much smaller selection among shapes that could actually fit, and it prevents the specific failure of a system that works in development and gets capped into returning truncated work in production.
+
+## Where this philosophy stops
+
+This pack is about which architecture to build and how to keep it bounded, terminating, and recoverable. It does not cover what the agent gets to see — the assembly of its context window, what loads when, what survives compaction — which belongs to [context-engineering](../context-engineering/README.md) and is a genuinely separate problem: a perfectly-shaped agent fed the wrong context fails, and so does a perfectly-contexted agent with no termination condition. It also does not cover the discipline of an agent editing a repository — how to scope a change, when to run the tests, what a safe diff looks like — which is a distinct subject deserving its own pack rather than a section of this one. And nothing here licenses skipping the safety floor: an agent that satisfies every rule in this pack can still take an action it had no authority to take, and the escalation conditions in AF15 exist precisely because architectural correctness is not the same as permission.
