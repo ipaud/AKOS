@@ -59,6 +59,10 @@ Per [ux-score](../scoring/ux-score.md), combining [Krug](../packs/ux/steve-krug/
 ## Low Priority Improvements
 ## Tradeoffs
 ## Relevant Knowledge Packs Used
+## Coverage
+- Inspected:
+- Not inspected / out of scope:
+- Confidence basis:
 ## Scores
 - UX:
 - Accessibility:
@@ -72,5 +76,18 @@ Per [ux-score](../scoring/ux-score.md), combining [Krug](../packs/ux/steve-krug/
 ## Final Decision
 PASS / PASS WITH FIXES / BLOCKED
 ```
+
+Every finding in Critical/High/Medium/Low ends with a confidence tag —
+`(Confidence: Certain|High|Moderate|Low)`, per
+[confidence-model.md](../core/confidence-model.md). This structures what the
+model already required implicitly (severity capped by confidence); it does
+not add a new requirement, it makes an existing one legible without reading
+the whole finding. **Coverage** states what was actually inspected — file
+paths, or "the whole diff", or "static read only, no runtime check" — so a
+score doesn't imply more certainty than the review actually earned. Coverage
+is a reporting addition: it does not change `core/review-pipeline.md`'s
+severity-based PASS/PASS WITH FIXES/BLOCKED decision. A CRITICAL still
+blocks at any coverage level; low coverage is a reason to say so, never a
+reason to soften a finding you did make.
 
 Fill only the scores you assessed (UX here); others `n/a`. Every finding names its pack + the concrete smallest fix ("do the least you can do").

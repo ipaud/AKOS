@@ -38,3 +38,5 @@ Scores inform the verdict; the verdict rules in [review-pipeline.md](review-pipe
 ## Reporting
 
 Scores appear in the unified report's `## Scores` block. Always include the band label: `Security: 72 (Acceptable)`. Trends matter more than absolutes — when re-reviewing, include the previous score in parentheses.
+
+The report's `## Coverage` block (see [review-pipeline.md](review-pipeline.md)) states what was actually inspected, so a score is read alongside how much of the surface it's based on — this is additive reporting, not a change to the bands, anchors, or verdict linkage above.
