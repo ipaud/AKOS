@@ -31,4 +31,4 @@ All four or it doesn't ship. Cost estimate: 3–5× the visual build ([same rule
 
 ## Theming depth
 
-Minimum viable brand: seed color scheme + type ramp + shape family (MD14). Add: custom motion durations, component token overrides, illustration/iconography language. Stop before: breaking state layers, breaking role-pair contrast, per-component one-off overrides ([system-breaking](../refactoring-ui/decision-framework.md)).
+Minimum viable brand: seed color scheme + type ramp + shape family (MD12). Add: custom motion durations, component token overrides, illustration/iconography language. Stop before: breaking state layers, breaking role-pair contrast, per-component one-off overrides ([system-breaking](../refactoring-ui/decision-framework.md)).

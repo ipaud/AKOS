@@ -2,7 +2,7 @@ name: material-design
 domain: ux
 authority-level: 1
 platform-scope: [android, material-web]
-version: 1.0.0
+version: 1.0.1
 tags: [material, android, components, elevation, motion, states, tokens, density]
 sources:
   - title: "Material Design 3"
