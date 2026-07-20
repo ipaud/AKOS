@@ -174,6 +174,41 @@ if [ -f "$AKOS_HOME/VERSION" ]; then
       fail "$m version does not match VERSION ($ver)"; ver_issues=$((ver_issues+1)); }
   done
   [ "$ver_issues" -eq 0 ] && ok "manifest versions match VERSION ($ver)"
+
+  # VERSION must not drift behind the CHANGELOG's newest entry. Twice now the
+  # version has sat stale while a day's work accumulated under it — the first
+  # time by ten commits, the second by eight, describing features that shipped
+  # after the label was written. Both were fixed by bumping, which fixed the
+  # instance and left the class open. This is the class.
+  if [ -f "$AKOS_HOME/CHANGELOG.md" ]; then
+    top_entry="$(grep -m1 -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' "$AKOS_HOME/CHANGELOG.md" | tr -d '#[] ')"
+    if [ -z "$top_entry" ]; then
+      warn "no versioned entry found at the top of CHANGELOG.md"
+    elif [ "$top_entry" != "$ver" ]; then
+      fail "VERSION is $ver but the newest CHANGELOG entry is $top_entry — bump one or the other"
+    else
+      ok "VERSION matches the newest CHANGELOG entry ($ver)"
+    fi
+  fi
+
+  # The check above catches disagreement. It does NOT catch what actually
+  # happened twice: work appended UNDER an already-released heading, so
+  # VERSION and the CHANGELOG agreed while the entry described things that
+  # shipped after the label. The signal for that is commits touching source
+  # since VERSION last changed. A warning, not a failure — unreleased commits
+  # are normal mid-development; the point is that nobody noticed for a day.
+  if [ -d "$AKOS_HOME/.git" ] && command -v git >/dev/null 2>&1; then
+    last_bump="$(git -C "$AKOS_HOME" log -1 --format=%H -- VERSION 2>/dev/null || true)"
+    if [ -n "$last_bump" ]; then
+      since="$(git -C "$AKOS_HOME" rev-list --count "$last_bump..HEAD" \
+                 -- packs rules schemas evals benchmarks bin skills core 2>/dev/null || echo 0)"
+      if [ "$since" -gt 0 ]; then
+        warn "$since commit(s) touching source since VERSION last changed — is $ver still the right label?"
+      else
+        ok "no source commits since VERSION was last set"
+      fi
+    fi
+  fi
 fi
 
 # --- Schema validation (advisory) ---

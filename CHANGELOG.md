@@ -3,6 +3,27 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.7.0] — 2026-07-20
+
+Version staleness, made into a check after recurring.
+
+### Added
+
+- **Eval cases for the testing, release, accessibility, architecture, mobile, copy and frontend lenses** — coverage goes from one lens to eight. Every fixture is a shape read by hand in a real repository. The traps matter more than the finds: reporting a `Field`-wrapped input as unlabelled, flagging an advisory `|| true` as a gate, translating away strings the project's own style direction commits to, calling a `forwardRef` primitive an anti-pattern.
+- **`doctor.sh` runs AKOS's own rules against this repository** and fails on a CRITICAL, so "AKOS passes its own rules" is a check rather than a sentence. It distinguishes exit 0, 2, and *anything else* — a run that broke is not a clean result. Covered by its own integration script, because a gate nobody tests is a gate nobody knows works.
+- **`doctor.sh` warns when VERSION has drifted behind the work.** Two checks: VERSION must agree with the newest CHANGELOG entry, and — the one that would have caught what actually happened — a warning when commits touching source have landed since VERSION last changed.
+- **Proximity matching in the eval grader.** Terms must fall inside one 240-character span rather than anywhere in the document.
+
+### Fixed
+
+- **Fixture-path downgrading moved into the runner**, applied to every rule, so a detector cannot opt out by omission — which is how `SECRET_IN_SOURCE` came to apply it to one of its three branches and left AKOS unable to scan itself without reporting itself. Downgrade, never suppress: a real key or migration parked under `tests/` is still real.
+- **Both known detector gaps closed**: a table protected by `REVOKE ALL` rather than RLS, and the fixture-exclusion asymmetry above. A *partial* revoke is still reported.
+
+### Corrected
+
+- **"`akos rules run .` exits 0 on this repository" was false when written** in the previous release's commits. `--rule SECRET_IN_SOURCE` was verified and the whole run asserted from it. The same shape as the CI misdiagnosis recorded in 1.6.0 — verify the specific, assert the general — repeated the same day, in a commit whose subject was verification discipline. It is now a check, which is the only fix that holds, and the failure mode is written into `coding-agents` as CAE53 and the "narrower check" anti-pattern.
+- **Version staleness recurred.** 1.6.0 was bumped after ten commits had accumulated under 1.4.0's heading; eight more then accumulated under 1.6.0's. Bumping fixed the instance twice and the class neither time. The warning above is the class.
+
 ## [1.6.0] — 2026-07-20
 
 Everything here came from *using* AKOS rather than reading it. Two real
