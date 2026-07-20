@@ -1,0 +1,35 @@
+name: agent-security
+domain: ai-engineering
+authority-level: 1
+version: 1.0.0
+tags: [prompt-injection, indirect-prompt-injection, tool-poisoning, data-exfiltration, excessive-agency, confused-deputy, memory-poisoning, insecure-output-handling, human-in-the-loop, mcp-security, sandboxing, audit-logging]
+sources:
+  - title: "OWASP Top 10 for Large Language Model Applications"
+    author: OWASP GenAI Security Project
+    org: OWASP
+    url: https://genai.owasp.org/llm-top-10/
+  - title: "OWASP Top 10 for Agentic Applications"
+    author: OWASP GenAI Security Project
+    org: OWASP
+    url: https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+  - title: "AI Risk Management Framework"
+    author: NIST
+    org: NIST
+    url: https://www.nist.gov/itl/ai-risk-management-framework
+  - title: "Model Context Protocol Specification"
+    author: Anthropic
+    org: Model Context Protocol
+    url: https://modelcontextprotocol.io/specification/2025-11-25
+related:
+  - packs/security/owasp-top-10
+  - packs/security/owasp-api-top-10
+  - packs/security/nist-ssdf
+  - packs/ai-engineering/tool-design
+  - packs/ai-engineering/context-engineering
+id: ai-engineering/agent-security
+status: draft
+last_reviewed: 2026-07-20
+review_after: 2028-01-16
+maintainer: core
+license: MIT
+deprecated: false
