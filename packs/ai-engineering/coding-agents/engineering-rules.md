@@ -80,6 +80,7 @@ Checkable in a diff, a commit history, a pull request, a session transcript, or 
 ## Executed evidence
 
 - CAE52. Every completion claim asserting a verifiable state names the command that produced it, and that command was actually executed in this session.
+- CAE53. The command named in the claim is the command the claim is about. Verifying a *narrower* command and asserting the broader one is the most common way CAE52 is broken while feeling satisfied — the check ran, it passed, and the sentence written down describes something else. `--rule X` passing is not `run` passing; one test file passing is not the suite passing; one workflow parsing is not the workflow running. If the claim says "the suite", run the suite.
 - CAE53. The exit code of every verification command is observed, and a nonzero exit is treated as failure regardless of how the output text reads.
 - CAE54. A verification command is not piped into another command that would mask its exit status; where a pipeline is unavoidable, the failure is propagated explicitly (a pipefail setting, `PIPESTATUS`, or capturing the status before the pipe).
 - CAE55. Output is not truncated in a way that hides the failure summary; where truncation is necessary, the exit code is captured separately and reported.
