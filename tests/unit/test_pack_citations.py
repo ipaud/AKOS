@@ -44,6 +44,14 @@ class TestPackCitationsResolve(unittest.TestCase):
             # another pack's codes, and those live elsewhere by design.
             prefixes = {re.match(r"([A-Z]+)", c).group(1) for c in defined}
             for f in sorted(pack.glob("*.md")):
+                # A CHANGELOG documents history, including codes that were
+                # wrong and got corrected — this fix's own entry names MD14
+                # in order to say it was wrong. Checking it would forbid
+                # describing the defect you just repaired. Caught by CI, not
+                # locally, because the entry was written after the last test
+                # run: verified, then changed, then not re-verified.
+                if f.name == "CHANGELOG.md":
+                    continue
                 text = f.read_text(encoding="utf-8")
                 for m in CITATION_RE.finditer(text):
                     if m.group(1) not in prefixes or m.group(0) in defined:
