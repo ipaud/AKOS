@@ -18,7 +18,7 @@ Reviews database schema, queries, migrations, and — for this owner's stack —
 ## Packs to load
 
 - [backend/postgres](../packs/backend/postgres/README.md) — primary
-- [backend/supabase](../packs/backend/supabase/README.md) + [personal/pau-avila/supabase-rules](../packs/personal/pau-avila/supabase-rules.md) — RLS, Level 0
+- [backend/supabase](../packs/backend/supabase/README.md) + `packs/personal/<personal_profile>/supabase-rules.md` — RLS, Level 0 (profile named in `.akos/config.md`, default `pau-avila`)
 - Coordinates with [security-reviewer](security-reviewer.md) on RLS/PII.
 
 ## Review checklist

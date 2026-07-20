@@ -25,7 +25,7 @@ The final gate: can this ship, and can it un-ship? Reviews release readiness —
 
 ## Review checklist
 
-Progressive rollout for non-trivial changes; migrations backward-compatible (expand-contract); rollback tested and fast; post-deploy smoke tests; monitoring/alerting on critical paths; no secrets in history/CI config; branch protection gating merges; deploy automated from a passing pipeline.
+Two deterministic detectors run before you are dispatched (`skills/akos-review/SKILL.md` step 3): `MIGRATION_NO_DOWN_FILE` and `DESTRUCTIVE_MIGRATION_NO_GUARD`. Confirm each and carry its `rule_id`. Then: progressive rollout for non-trivial changes; migrations backward-compatible (expand-contract); rollback tested and fast; post-deploy smoke tests; monitoring/alerting on critical paths; no secrets in history/CI config; branch protection gating merges; deploy automated from a passing pipeline.
 
 ## Severity levels
 

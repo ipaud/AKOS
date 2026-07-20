@@ -12,8 +12,11 @@ Reviews backend/API code: REST/GraphQL design correctness, resolver/query perfor
 
 ## When to use
 
-- Pipeline step (backend portion); any API/service change.
-- Weight 1 Prototype → 3 Production/Enterprise.
+- Any API or service change. This agent sits **outside** the twelve numbered
+  lenses (like `database-reviewer`) — it is routed from lens 7, and alongside
+  lens 8 when the surface is an API, rather than holding a step number of its
+  own. See the routing note in `skills/akos-review/SKILL.md` step 2.
+- Weight 1 Prototype → 3 Production/Enterprise, per `core/reasoning-profiles.md`.
 
 ## Packs to load
 

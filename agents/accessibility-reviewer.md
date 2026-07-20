@@ -23,6 +23,8 @@ Audits UI against WCAG 2.2 AA — the safety-floor accessibility check no profil
 
 ## Review checklist
 
+`A11Y_INPUT_NO_LABEL` runs deterministically before you are dispatched (`skills/akos-review/SKILL.md` step 3). It is **Level B — heuristic, capped at MEDIUM**: treat each hit as a lead to verify against the accessibility tree, never as a confirmed finding, and expect it to miss labels it cannot resolve statically. Then run the full audit.
+
 The [WCAG checklist](../packs/ux/wcag/review-checklist.md) via the three walks: keyboard walk, accessibility-tree walk, stress walk (200% zoom / 320px reflow / text-spacing / grayscale). Automated scan (axe/Lighthouse) is the entry ticket, not the audit.
 
 ## Severity levels

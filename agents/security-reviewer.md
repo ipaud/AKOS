@@ -22,11 +22,20 @@ Detects security vulnerabilities — the safety-floor security check. Covers OWA
 - [security/owasp-api-top-10](../packs/security/owasp-api-top-10/README.md) — for APIs
 - [security/owasp-asvs](../packs/security/owasp-asvs/README.md) — verification level
 - [security/nist-ssdf](../packs/security/nist-ssdf/README.md) — process
-- [backend/supabase](../packs/backend/supabase/README.md) + [personal/pau-avila/supabase-rules](../packs/personal/pau-avila/supabase-rules.md) — RLS
+- [backend/supabase](../packs/backend/supabase/README.md) + `packs/personal/<personal_profile>/supabase-rules.md` — RLS (profile named in `.akos/config.md`, default `pau-avila`)
 
 ## Review checklist
 
-OWASP Top 10 category-by-category; API Top 10 for endpoints (object/function/property authz, rate limiting, SSRF); Supabase RLS check (enabled? scoped? service_role never client-side? tested multi-user?). The four key tests: "what if the frontend lied," ID-swap/IDOR, string-concatenation grep, SSRF smell.
+**Start from the deterministic findings.** Four executable detectors cover
+part of this lens and are run by the orchestrator before you are dispatched
+(`akos rules run`, see `skills/akos-review/SKILL.md` step 3):
+`SECRET_IN_SOURCE`, `SERVICE_ROLE_IN_CLIENT`, `SUPABASE_RLS_DISABLED`,
+`SUPABASE_POLICY_TOO_PERMISSIVE`. Confirm each against the artifact and carry
+its `rule_id` into your findings. You hold `Read, Grep, Glob` and no Bash, so
+you cannot run them yourself — if they were not handed to you, say so in
+Coverage rather than substituting a manual grep and reporting it as equivalent.
+
+Then, for what the detectors cannot see: OWASP Top 10 category-by-category; API Top 10 for endpoints (object/function/property authz, rate limiting, SSRF); Supabase RLS check (scoped? tested multi-user?). The four key tests: "what if the frontend lied," ID-swap/IDOR, string-concatenation grep, SSRF smell.
 
 ## Severity levels
 
