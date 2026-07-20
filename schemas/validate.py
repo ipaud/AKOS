@@ -3,8 +3,8 @@
 
 Implements only the keywords schemas/{knowledge-pack,agent,workflow}.schema.json
 actually use: type, required, properties, enum, pattern, format:date, items,
-minLength, plus the AKOS-specific x-akos-recommended (-> warning, never an
-error). This is deliberately not a full JSON Schema engine — the schema files
+minLength, minimum, maximum, plus the AKOS-specific x-akos-recommended
+(-> warning, never an error). This is deliberately not a full JSON Schema engine — the schema files
 themselves stay standards-compliant JSON Schema (any real `ajv`/`jsonschema`
 tool could validate against them too), but AKOS's own tooling stays
 dependency-free rather than vendoring or requiring the `jsonschema` package.
@@ -84,6 +84,15 @@ def _validate_value(value, schema: dict, field_name: str) -> list[dict]:
 
     if "minLength" in schema and isinstance(value, str) and len(value) < schema["minLength"]:
         errors.append({"field": field_name, "message": f"length {len(value)} is below minLength {schema['minLength']}", "rule": "minLength"})
+
+    # bool is a subclass of int in Python; exclude it so `true` is not range-checked as 1.
+    is_number = isinstance(value, (int, float)) and not isinstance(value, bool)
+
+    if "minimum" in schema and is_number and value < schema["minimum"]:
+        errors.append({"field": field_name, "message": f"value {value!r} is below minimum {schema['minimum']}", "rule": "minimum"})
+
+    if "maximum" in schema and is_number and value > schema["maximum"]:
+        errors.append({"field": field_name, "message": f"value {value!r} is above maximum {schema['maximum']}", "rule": "maximum"})
 
     if isinstance(value, dict) and "properties" in schema:
         nested_errors, _ = validate_instance(value, schema)
