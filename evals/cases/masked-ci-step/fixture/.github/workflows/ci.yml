@@ -1,0 +1,19 @@
+name: ci
+on: [pull_request]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # This step can never fail the build. `2>/dev/null` hides the error and
+      # `||` sends the run to a fallback, so a broken invocation is silent.
+      - name: rules registry sanity
+        run: python3 rules/runner.py list 2>/dev/null || echo "skipped"
+
+      - name: shellcheck (advisory)
+        run: shellcheck ./*.sh || true
+
+      - name: unit tests
+        run: python3 -m unittest discover -s tests/unit

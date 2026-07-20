@@ -71,12 +71,14 @@ akos eval --report .akos/reviews/<id>/report.md --case <case-id>
 
 1. Find a real finding — or a real false positive — in an actual repository. **Do not invent one.** Every case here traces to a review run on a real project, and that is what keeps the corpus from only containing failure modes its author already had in mind.
 2. Reduce it to the smallest fixture that still exhibits the shape.
-3. Write `expected.yaml`. Prefer specific match terms: a bare `notes` matched a `## Notes` heading in a report that never mentioned the table, which is the same generic-term precision bug the detectors had.
+3. Write `expected.yaml`. Two traps to avoid, both hit while building this suite:
+   - **Generic terms.** A bare `notes` matched a `## Notes` heading in a report that never mentioned the table — the same generic-term bug the detectors had.
+   - **Trap terms a correct report would use.** A `must_not_find` keyed on `shellcheck` + `cannot fail` fired on a report that correctly said the *other* step cannot fail and that shellcheck was fine. Matching is now proximity-bounded, which helps, but proximity cannot rescue a trap worded in phrases a right answer reaches for. Write traps in words only a wrong answer would use.
 4. **Verify the case can fail.** Grade a report that omits the finding and confirm it goes red. A case that cannot fail is not a test — two Level C benchmark cases shipped in exactly that state.
 
 ## Known gaps, stated rather than left to be discovered
 
-- **Three cases, all security-lens.** The other eleven lenses have no coverage at all. A green run says nothing about UX, accessibility, or architecture review quality.
+- **Five cases across three lenses** (security ×3, testing, release). The other nine have no coverage at all. A green run says nothing about UX, accessibility, architecture, or product review quality.
 - **No held-out set.** The cases were written by the same process that fixed the detectors they exercise. That is the contamination `agent-evals` warns about; it is bounded here because the fixtures come from real code the author did not write, but it is not eliminated.
 - **No variance measurement.** Nothing here runs the same review twice to see how far apart the results land. Until that exists, "the score means the same thing next month" remains an aspiration in `core/scoring-model.md` rather than a measured property.
 - **Recall is measured; precision is not.** A report that lists thirty findings, one of which is correct, passes. Grading unlisted findings needs a judge, which needs its own calibration.

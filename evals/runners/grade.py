@@ -60,15 +60,44 @@ def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text).lower()
 
 
+# Terms have to land near each other to count as one finding. Matching over
+# the whole document made a phrase in one finding satisfy a spec about
+# another: a report correctly saying "the sanity step cannot fail" and
+# separately "shellcheck ... is fine as-is" tripped a trap whose terms were
+# `shellcheck` + `cannot fail`, because both appeared somewhere. The window
+# is about the length of one finding with its evidence, not a whole report:
+# at 600 it spanned a 299-character report entirely and bought nothing.
+#
+# Proximity is not sufficient on its own. A trap whose terms are phrases a
+# CORRECT report uses about a different finding will still collide, however
+# tight the window — the fix for that is to write the trap in words only a
+# wrong report would reach for. See masked-ci-step for a worked case.
+PROXIMITY_WINDOW = 240
+
+
 def matches(report: str, spec: dict) -> bool:
-    """True when the report surfaces the concept this spec describes."""
-    for term in spec.get("match_all", []):
-        if normalize(term) not in report:
-            return False
-    any_terms = spec.get("match_any", [])
-    if any_terms and not any(normalize(t) in report for t in any_terms):
-        return False
-    return True
+    """True when the report surfaces the concept this spec describes.
+
+    Every match_all term, plus at least one match_any term if present, must
+    occur inside one PROXIMITY_WINDOW-character span. Anchored on each
+    occurrence of the first match_all term rather than on the first one only,
+    so a term used once in passing does not shadow the real finding later.
+    """
+    all_terms = [normalize(x) for x in spec.get("match_all", [])]
+    any_terms = [normalize(x) for x in spec.get("match_any", [])]
+    if not all_terms:
+        return any(a in report for a in any_terms) if any_terms else False
+
+    anchor = all_terms[0]
+    start = report.find(anchor)
+    while start != -1:
+        lo = max(0, start - PROXIMITY_WINDOW)
+        window = report[lo:start + PROXIMITY_WINDOW]
+        if all(term in window for term in all_terms[1:]) and (
+                not any_terms or any(term in window for term in any_terms)):
+            return True
+        start = report.find(anchor, start + 1)
+    return False
 
 
 def grade_case(case_dir: Path, report_text: str) -> dict:

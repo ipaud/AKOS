@@ -1,0 +1,22 @@
+case_id: masked-ci-step
+lens: release
+profile: Production
+source: "AKOS's own ci.yml, 2026-07-20 — shipped red for three runs across two merges"
+
+must_find:
+  - id: sanity-step-cannot-fail
+    concept: the rules registry step suppresses its own failure and can never gate
+    match_all: ["2>/dev/null"]
+    match_any: ["cannot fail", "never fail", "masks", "hides", "suppress", "silent", "swallow"]
+    min_severity: HIGH
+    why: "`2>/dev/null ||` discards the error and falls through, so a broken command reports success. In the real incident the invoked subcommand did not exist at all and CI stayed green on that step until a later run failed for a different reason."
+
+must_not_find:
+  - id: advisory-shellcheck-flagged
+    concept: reporting the shellcheck `|| true` as the same defect
+    match_all: [shellcheck]
+    # Deliberately NOT "cannot fail" or "masks": a correct report uses those
+    # words about the sanity step, and matching them here made a right
+    # answer look wrong. Only phrases that assert shellcheck SHOULD gate.
+    match_any: ["remove || true", "shellcheck should fail", "shellcheck must fail", "make shellcheck gate", "shellcheck should gate"]
+    why: "That step is labelled advisory and is meant not to gate. Masking is a defect when it hides a gate, not when it marks a step as informational — a review that flags both has not made the distinction the finding depends on."
