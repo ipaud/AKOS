@@ -59,6 +59,36 @@ def reviews_dir(project_dir: Path) -> Path:
     return project_dir / ".akos" / "reviews"
 
 
+GITIGNORE_ENTRY = ".akos/reviews/"
+GITIGNORE_COMMENT = "# AKOS review reports — may quote secrets found during a review"
+
+
+def ensure_gitignored(project_dir: Path) -> bool:
+    """Make sure .akos/reviews/ is ignored. Returns True if it was added.
+
+    `install-project` also does this, but a review can be recorded into a
+    project that never ran it — which is exactly what happened on the first
+    real end-to-end run, leaving the reports untracked and unprotected. The
+    protection has to live where the file is written, not only where the
+    project is scaffolded.
+
+    Append-only, and never rewrites an existing .gitignore.
+    """
+    if not (project_dir / ".git").exists():
+        return False  # not a git repo; nothing to ignore into
+    gitignore = project_dir / ".gitignore"
+    if gitignore.is_file():
+        existing = gitignore.read_text(encoding="utf-8")
+        if any(line.strip() == GITIGNORE_ENTRY for line in existing.splitlines()):
+            return False
+        prefix = "" if existing.endswith("\n") or not existing else "\n"
+        gitignore.write_text(f"{existing}{prefix}\n{GITIGNORE_COMMENT}\n{GITIGNORE_ENTRY}\n",
+                             encoding="utf-8")
+    else:
+        gitignore.write_text(f"{GITIGNORE_COMMENT}\n{GITIGNORE_ENTRY}\n", encoding="utf-8")
+    return True
+
+
 def make_review_id(review_type: str, timestamp: str) -> str:
     safe_type = re.sub(r"[^a-zA-Z0-9_-]", "-", review_type)
     return f"{timestamp}-{safe_type}"
@@ -116,6 +146,9 @@ def cmd_record(args) -> int:
     }
     (out_dir / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     (out_dir / "report.json").write_text(json.dumps({"decision": args.decision, "scores": scores}, indent=2), encoding="utf-8")
+
+    if ensure_gitignored(project_dir):
+        print(f"  added {GITIGNORE_ENTRY} to .gitignore (reports can quote what they find)")
 
     print(f"recorded {review_id} in {out_dir}")
     if redacted:

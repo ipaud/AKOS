@@ -289,3 +289,64 @@ class TestReportIsRedactedAtWriteTime(unittest.TestCase):
     def test_ordinary_prose_is_untouched(self):
         body = "## Critical\n\n- The login form has no error state.\n"
         self.assertEqual(self._record_and_read(body), body)
+
+
+class TestRecordEnsuresGitignore(unittest.TestCase):
+    """install-project adds .akos/reviews/ to .gitignore, but a review can be
+    recorded into a project that never ran it — which is what happened on the
+    first real end-to-end run: the reports landed untracked and unprotected in
+    a repo that had never been scaffolded. The protection has to live where
+    the file is written, not only where the project is set up."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.project = Path(self._tmp.name)
+        subprocess.run(["git", "init", "-q"], cwd=self.project, check=True)
+        self.report = self.project / "report.md"
+        self.report.write_text("# Review\n")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _record(self, ts="20260101T000000Z"):
+        class Args:
+            pass
+        a = Args()
+        a.dir = str(self.project)
+        a.type = "full"
+        a.decision = "PASS"
+        a.profile = "Startup MVP"
+        a.report = str(self.report)
+        a.scores_json = '{"ux": 70}'
+        a.packs_json = None
+        a.timestamp = ts
+        return history.cmd_record(a)
+
+    def _lines(self):
+        p = self.project / ".gitignore"
+        return p.read_text().splitlines() if p.is_file() else []
+
+    def test_creates_gitignore_when_absent(self):
+        self._record()
+        self.assertIn(".akos/reviews/", self._lines())
+
+    def test_does_not_duplicate_on_a_second_review(self):
+        self._record("20260101T000000Z")
+        self._record("20260102T000000Z")
+        self.assertEqual(self._lines().count(".akos/reviews/"), 1)
+
+    def test_preserves_existing_gitignore_content(self):
+        (self.project / ".gitignore").write_text("node_modules/\ndist/\n")
+        self._record()
+        lines = self._lines()
+        self.assertIn("node_modules/", lines)
+        self.assertIn("dist/", lines)
+        self.assertIn(".akos/reviews/", lines)
+
+    def test_non_git_directory_is_left_alone(self):
+        """Nothing to ignore into, and writing a .gitignore into a plain
+        directory would be a surprise the caller did not ask for."""
+        plain = Path(self._tmp.name) / "plain"
+        plain.mkdir()
+        self.assertFalse(history.ensure_gitignored(plain))
+        self.assertFalse((plain / ".gitignore").exists())
