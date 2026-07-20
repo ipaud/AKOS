@@ -1,0 +1,19 @@
+case_id: db-missing-index
+lens: database
+profile: Production
+source: "RAK shipped 0064_budgets_org_index.sql late, which is the shape this reproduces"
+
+must_find:
+  - id: organization-id-unindexed
+    concept: organization_id is unindexed despite being the RLS predicate and the query filter
+    match_all: [organization_id]
+    match_any: [index, "no index", unindexed, "sequential scan", "seq scan", "full scan"]
+    min_severity: MEDIUM
+    why: "The RLS policy evaluates organization_id on every candidate row and every read filters on it. Without an index both degrade linearly with tenant count. client_id is indexed and is not the hot column — the index that exists is the one not needed."
+
+must_not_find:
+  - id: rls-called-missing
+    concept: reporting the table as lacking RLS
+    match_all: [budgets]
+    match_any: ["no rls", "rls is not enabled", "without row level security", "missing rls"]
+    why: "RLS is enabled and a policy exists two lines below the table. This is a performance finding on a correctly secured table, and conflating the two is how a real defect gets buried under a wrong one."

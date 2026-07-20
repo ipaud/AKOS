@@ -1,0 +1,19 @@
+case_id: perf-budget-not-enforced
+lens: performance
+profile: Production
+source: "RAK ships a check-build-budget script; this reproduces the shape where it reports without gating"
+
+must_find:
+  - id: budget-never-fails
+    concept: the build-budget script warns and exits 0, so the budget never blocks anything
+    match_all: [budget]
+    match_any: ["exit 0", "never fail", "does not fail", "warn", "not enforced", "no gate", "does not gate"]
+    min_severity: MEDIUM
+    why: "It prints, it warns, and it falls through. The CI step runs it and passes regardless, so the budget is a report rather than a limit. A bundle can grow past 150 kB indefinitely with CI green the whole way — the same masked-gate shape as a suppressed error, arrived at by omission instead of by 2>/dev/null."
+
+must_not_find:
+  - id: script-called-absent
+    concept: reporting that no build budget exists
+    match_all: [budget]
+    match_any: ["no budget", "add a budget", "there is no", "budget is missing", "introduce a budget"]
+    why: "The script exists and is wired into CI. The defect is that it does not gate, which is a different and more interesting finding than its absence — and recommending what already exists reads as not having looked."

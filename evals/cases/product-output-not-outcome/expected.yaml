@@ -1,0 +1,19 @@
+case_id: product-output-not-outcome
+lens: product
+profile: Production
+source: "two briefs side by side; the difference is measurable, not a matter of taste"
+
+must_find:
+  - id: dashboard-success-is-shipping
+    concept: the dashboard brief defines success as delivery, with no outcome and no validated need
+    match_all: [dashboard]
+    match_any: [outcome, output, "more visibility", "més visibilitat", shipping, "success is", unvalidated, "who asked"]
+    min_severity: MEDIUM
+    why: "Its success criterion is 'ship six charts by a date', which is output. The stated need is a paraphrase — 'more visibility' — with no user, no decision anyone is trying to make, and no way to tell afterwards whether it worked. This is checkable against the document, not a matter of taste: there is no metric in it."
+
+must_not_find:
+  - id: invites-brief-flagged
+    concept: reporting the invitations brief as lacking an outcome
+    match_all: [invitacions]
+    match_any: ["no outcome", "lacks an outcome", "no metric", "not measurable", "output not outcome"]
+    why: "It names a measured problem (14 técnics, 2 days, three arrived without access), a success condition stated as a user capability, two metrics, and an explicit out-of-scope with its reason. Flagging it means grading on format rather than reading what it says."

@@ -9,6 +9,12 @@ Version staleness, made into a check after recurring.
 
 ### Added
 
+- **Eval cases for the last four lenses — product, UX, performance and database — completing one case per lens across all twelve.** A floor rather than a claim of depth: most lenses have exactly one case, so a green run means "did not regress on one known artifact per lens" and nothing more. The README says so.
+
+  The traps carry the weight, as before. `ux-async-states` pairs a component missing the empty and error branches with one that has all four, so a review that flags both has matched on the query hook instead of reading the branches. `db-missing-index` puts a performance defect on a correctly secured table, because conflating the two buries the real finding under a wrong one. `perf-budget-not-enforced` ships a budget script that reports and exits 0 — the masked-gate shape reached by omission rather than by `2>/dev/null` — and traps a review that recommends adding what already exists. `product-output-not-outcome` sets two briefs side by side so the difference is checkable against the documents rather than a matter of taste: one names a measured problem, two metrics and an explicit out-of-scope; the other defines success as shipping six charts by a date.
+
+### Added
+
 - **Eval cases for the testing, release, accessibility, architecture, mobile, copy and frontend lenses** — coverage goes from one lens to eight. Every fixture is a shape read by hand in a real repository. The traps matter more than the finds: reporting a `Field`-wrapped input as unlabelled, flagging an advisory `|| true` as a gate, translating away strings the project's own style direction commits to, calling a `forwardRef` primitive an anti-pattern.
 - **`doctor.sh` runs AKOS's own rules against this repository** and fails on a CRITICAL, so "AKOS passes its own rules" is a check rather than a sentence. It distinguishes exit 0, 2, and *anything else* — a run that broke is not a clean result. Covered by its own integration script, because a gate nobody tests is a gate nobody knows works.
 - **`doctor.sh` warns when VERSION has drifted behind the work.** Two checks: VERSION must agree with the newest CHANGELOG entry, and — the one that would have caught what actually happened — a warning when commits touching source have landed since VERSION last changed.

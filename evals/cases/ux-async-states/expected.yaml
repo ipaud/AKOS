@@ -1,0 +1,19 @@
+case_id: ux-async-states
+lens: ux
+profile: Production
+source: "constitution Article 8 — four async states on every user-facing surface"
+
+must_find:
+  - id: crewlist-missing-states
+    concept: CrewList handles loading and success but not empty or error
+    match_all: [crewlist]
+    match_any: [empty, error, "four states", "async states", "data.map", crashes]
+    min_severity: HIGH
+    why: "isError is never read, so a failed fetch renders `data.map` on undefined and the component throws. An empty crew renders an empty <ul> with nothing telling the user what to do. Article 8 makes all four mandatory on a user-facing surface, and the sibling file shows the team already knows the pattern."
+
+must_not_find:
+  - id: projectlist-flagged
+    concept: reporting ProjectList as missing states
+    match_all: [projectlist]
+    match_any: [missing, "does not handle", lacks, "no empty", "no error"]
+    why: "It handles all four, including an empty state that offers the next action rather than a bare 'no results'. Flagging it means matching on the query hook rather than reading the branches."
