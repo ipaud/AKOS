@@ -1,6 +1,6 @@
 ---
 name: akos-review
-description: Run the AKOS review pipeline on a screen, feature, diff, or codebase — either the full twelve-lens pass or a single targeted lens (product, UX, accessibility, mobile, copy, frontend, architecture, security, performance, testing, database, release). Emits the unified Review Summary with severity-ranked findings, scores, and a PASS / PASS WITH FIXES / BLOCKED decision. Use when asked to review, audit, or critique work, or when the user says "run the AKOS review".
+description: Run the AKOS review pipeline on a screen, feature, diff, or codebase — either the full twelve-lens pass or a single targeted lens (product, UX, accessibility, mobile, copy, frontend, architecture, security, performance, testing, personal rules, release), plus the database and backend lenses routed from architecture or security. Emits the unified Review Summary with severity-ranked findings, scores, and a PASS / PASS WITH FIXES / BLOCKED decision. Use when asked to review, audit, or critique work, or when the user says "run the AKOS review".
 ---
 
 # AKOS — review mode
@@ -69,8 +69,17 @@ step 11).
 | 11 | Personal rules | all agents — `packs/personal/<personal_profile>/` |
 | 12 | Release readiness | `release-reviewer.md` |
 
-`agents/database-reviewer.md` sits outside the twelve — run it on schema,
-migration, query, or RLS work, routed from lens 7 or 8.
+Two agents sit outside the twelve and are routed *from* a lens rather than
+being one:
+
+- `agents/database-reviewer.md` — run on schema, migration, query, or RLS
+  work, routed from lens 7 or 8.
+- `agents/backend-reviewer.md` — run on any API or service change: REST and
+  GraphQL design, resolver and query cost, twelve-factor discipline. Routed
+  from lens 7, and alongside lens 8 when the surface is an API. It carries
+  profile weights in `core/reasoning-profiles.md` like every other agent
+  (1 in Prototype → 3 in Production/Enterprise); apply them as you would for
+  a numbered lens.
 
 - **Targeted run** — the user named a lens ("run the AKOS UX review"). Run that
   one alone, inline. Spawning a subagent for a single lens costs more than it saves.
@@ -94,11 +103,52 @@ migration, query, or RLS work, routed from lens 7 or 8.
   ux → accessibility → mobile → copy → frontend). Check there before assembling
   a chain by hand.
 
-## 3. Run each lens
+## 3. Run the deterministic pass first
+
+Before dispatching any lens, run:
+
+```bash
+akos rules run <project-dir> --profile "<active profile>" --format json
+```
+
+Seven executable detectors cover checks the lenses would otherwise perform by
+reading: hardcoded secrets, `service_role` reachable from client code,
+Supabase tables created without RLS, always-true RLS policies, migrations
+with no rollback, unguarded destructive SQL, and inputs with no accessible
+name. A regex that runs is more reliable than a model asked to grep, and it
+costs one command.
+
+**You must run this yourself, in this thread.** The lens subagents hold
+`tools: Read, Grep, Glob` — no Bash — so none of them can invoke it. A
+security lens told to check for committed secrets *by hand* when a detector
+for exactly that exists is the reliability defect this step removes.
+
+Hand each lens its own findings when you dispatch it:
+
+| Rule domain | Goes to |
+|---|---|
+| `security` | lens 8 — and `database-reviewer` for the RLS rules |
+| `accessibility` | lens 3 |
+| `devops` | lens 12 |
+
+Exit codes: `0` no findings · `2` at least one CRITICAL · `1` the run itself
+failed. Treat `1` as "this check did not run" and say so in Coverage — not as
+a clean result. Findings arrive with `rule_id`, `severity`, `evidence[]` and
+a `recommendation`; carry the `rule_id` into the Review Summary so a reader
+can re-run the single rule.
+
+`A11Y_INPUT_NO_LABEL` is Level B (heuristic) and capped at MEDIUM — treat it
+as a lead to verify, not a confirmed finding. The rest are Level A.
+
+## 4. Run each lens
 
 Read the agent file. It defines, in order: purpose · when to use · **packs to
 load** · review checklist · severity levels · scoring rubric · refusal limits ·
 output format.
+
+Start from the deterministic findings routed to this lens in step 3: confirm
+each against the artifact, then continue with the checklist for everything
+the detectors cannot see.
 
 1. Load the packs it names — `review-checklist.md` and `prompt-fragments.md`
    (the review-mode lens block) from each.
@@ -116,7 +166,7 @@ Apply profile strictness from `core/review-pipeline.md`:
 
 Lenses 2, 3, and 8 never drop below weight 1 in any profile.
 
-## 4. Severity and confidence
+## 5. Severity and confidence
 
 - **CRITICAL** — safety-floor violation or data-loss risk. Blocks in every profile.
 - **HIGH** — real user harm or likely defect. Blocks at weight 3; fix-soon at weight 2.
@@ -129,7 +179,7 @@ require Certain or High confidence. A hunch is at most MEDIUM.
 Every finding names the element, the concrete problem, the pack it came from,
 and the smallest fix. "Consider improving UX" is not a finding (Article 10).
 
-## 5. Output — the unified Review Summary
+## 6. Output — the unified Review Summary
 
 Same format for every lens, every run:
 
@@ -180,7 +230,7 @@ Decision semantics:
 A multi-lens run reports **one** merged summary, and its final decision is the
 **worst** individual decision.
 
-## 6. Record it
+## 7. Record it
 
 After emitting the Review Summary, save it to a file and call:
 

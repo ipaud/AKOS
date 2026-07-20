@@ -22,7 +22,7 @@ Reviews user-facing screens and flows for usability: can a first-time user accom
 - [ux/nielsen-norman-group](../packs/ux/nielsen-norman-group/README.md) — heuristic taxonomy
 - [ux/laws-of-ux](../packs/ux/laws-of-ux/README.md) — cognitive laws
 - [ux/universal-principles-of-design](../packs/ux/universal-principles-of-design/README.md)
-- [personal/pau-avila/ux-preferences](../packs/personal/pau-avila/ux-preferences.md) — Level 0
+- `packs/personal/<personal_profile>/ux-preferences.md` — Level 0 (profile named in `.akos/config.md`, default `pau-avila`)
 - Accessibility routes to [accessibility-reviewer](accessibility-reviewer.md); visual craft to [frontend-reviewer](frontend-reviewer.md).
 
 ## Review checklist

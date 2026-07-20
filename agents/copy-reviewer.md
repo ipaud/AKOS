@@ -21,7 +21,7 @@ Reviews interface copy: is every word earning its place? Are labels honest, spec
 - [content/gov-uk-content-design](../packs/content/gov-uk-content-design/README.md) — **conditional, not a default load.** Only when the surface carries prose the user must read: guidance, help, onboarding, docs, release notes. On a control-dense screen — buttons, cells, dialogs, toasts — it costs context and returns nothing; `ux-writing` owns labels. Validated on a real editor screen where it fired on one finding out of nineteen.
 - [ux/steve-krug](../packs/ux/steve-krug/README.md) — copy reduction, label rules
 - [ux/nielsen-norman-group](../packs/ux/nielsen-norman-group/README.md) — H2 real-world-language, H9 error copy
-- [personal/pau-avila/ux-preferences](../packs/personal/pau-avila/ux-preferences.md) — copy defaults, Level 0
+- `packs/personal/<personal_profile>/ux-preferences.md` — copy defaults, Level 0 (profile named in `.akos/config.md`, default `pau-avila`)
 
 ## Review checklist
 
