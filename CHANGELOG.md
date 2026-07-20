@@ -18,7 +18,7 @@ and alternatives considered) and `docs/migration/v1.1-to-next.md`
 ### Added
 
 - **Contracts** — `schemas/{knowledge-pack,agent,workflow}.schema.json`,
-  a ~350-line stdlib-only YAML parser (`schemas/yaml_subset.py`, no
+  a 303-line stdlib-only YAML parser (`schemas/yaml_subset.py`, no
   PyYAML/ruamel), and `bin/migrate-pack-metadata.py` (idempotent,
   append-only, already run against all 48 pre-existing packs).
 - **`akos validate [packs|agents|workflows]`** — schema validation,
@@ -102,6 +102,17 @@ Opens a new top-level family. Until now AKOS packaged senior judgment about *sof
 
 - **The schema validator declared a bound it never enforced.** `knowledge-pack.schema.json` has specified `minimum: 0, maximum: 4` on `authority-level` since the contract shipped, but `schemas/validate.py` implemented neither keyword — they were the schema's only use of them. Any pack could ship `authority-level: 9` and validate clean at exit 0. Reproduced first, then fixed, with three regression tests locking both directions and both boundaries; `bool` is excluded from the numeric check since it subclasses `int`. Unit suite 79 → 82.
 - The bug was found while authoring `coding-agents`, by deliberately trying to make the validator fail rather than trusting its green — the discipline that pack exists to teach, so it is now also its own worked example.
+
+### Corrected — claims this project made about itself that were not true
+
+Found by pointing the new `ai-engineering/` packs at AKOS itself, as the first real use of them. Each was established by running a command, not by re-reading the prose.
+
+- **CI was red for the entire 1.4.0 release, and the 1.4.0 entry below announces it as delivered.** `gh run list` shows three consecutive failures on the `akos rules registry sanity` step: run `29733824899` on the 1.4.0 PR at 10:05:44Z, run `29733878337` on the `main` push at 10:06:35Z, and run `29739121045` at 11:36:02Z — 2h15m red across two merges. The 1.4.0 PR was merged with its own check failing, because the merge was gated on `mergeable`, never on `gh pr checks`.
+- **The fix commit `d1a55c0` misdiagnosed the incident it fixed.** It states the workflows "had never actually run on GitHub" and that "the first real run failed in 12s". Both are false: they had run three times, and the 12s run was the third. The repair itself was verified by execution; the causal story around it was asserted from inference. A single `gh run list` would have settled it before the sentence was written. The real lesson is not "an unrun workflow slipped through" but "a visible red check was merged past" — which calls for branch protection, a control this repo still lacks.
+- **`benchmarks/README.md` claimed every case was sabotage-verified.** One was (`supabase-rls-basic`, recorded in `b9e0b93`); the claim was generalized to all 21. A whole-engine sabotage pass has since confirmed the 19 deterministic cases genuinely go red — so they are live — but also found that **the 2 Level C cases cannot fail at all**: their `must_mention` phrases sit in their own `prompt`, the mock provider echoes the prompt, and the assertion checks that echo. Both pass with the fixture removed entirely. The defect was introduced by the M8 "fix" that made canned responses repeat their trigger phrases verbatim — closing the loop it was meant to open.
+- `tests/README.md` said 79 tests; 82 run. `CHANGELOG` said the YAML parser is ~350 lines; it is 303, and was 303 at every commit.
+
+None of these were caught by `doctor.sh`, the 82 unit tests, the 21 benchmark cases, or CI. Every one of them is a claim in prose that no check reads.
 
 ### Deferred, not dropped
 
