@@ -48,12 +48,19 @@ for cf in "${core_files[@]}"; do
   if [ -f "$AKOS_HOME/core/$cf.md" ]; then ok "core/$cf.md"; else fail "missing core/$cf.md"; fi
 done
 
-# --- Pack 17-file contract ---
-printf '\n%sPacks (17-file contract)%s\n' "$c_bold" "$c_reset"
-pack_files=(README.md metadata.yaml philosophy.md mental-models.md principles.md \
-  heuristics.md engineering-rules.md decision-framework.md anti-patterns.md \
-  review-checklist.md examples.md prompt-fragments.md scoring-rubric.md glossary.md \
-  references.md CHANGELOG.md VERSION)
+# --- Pack file contract ---
+# REQUIRED: the files every consumer (agents, skills, scoring) actually loads,
+# plus the identity/lifecycle files. OPTIONAL: present when the source has
+# something distinct to say — a pack with nothing unique in philosophy.md gains
+# an agent nothing and costs a maintainer a file. Enforced as presence-only, so
+# these are the floor, not a quality bar.
+# OPTIONAL (not checked here): philosophy.md, mental-models.md, examples.md,
+# prompt-fragments.md, glossary.md — present when the source has something
+# distinct to say.
+printf '\n%sPacks (required-file contract)%s\n' "$c_bold" "$c_reset"
+pack_files=(README.md metadata.yaml principles.md heuristics.md \
+  engineering-rules.md decision-framework.md anti-patterns.md \
+  review-checklist.md scoring-rubric.md references.md CHANGELOG.md VERSION)
 pack_count=0; pack_issues=0
 for pack in "$AKOS_HOME"/packs/*/*/; do
   [ -d "$pack" ] || continue

@@ -11,7 +11,7 @@ AKOS is a personal, reusable knowledge system, but it's structured so contributi
 ## Adding a knowledge pack
 
 ```bash
-akos create-pack <domain>/<name>     # scaffolds the 17-file structure
+akos create-pack <domain>/<name>     # scaffolds the required files
 ```
 
 Then, per [core/knowledge-schema.md](core/knowledge-schema.md):
@@ -22,7 +22,7 @@ Then, per [core/knowledge-schema.md](core/knowledge-schema.md):
 4. Fill the rest: philosophy, mental-models, heuristics, decision-framework, anti-patterns, examples (invented), prompt-fragments, scoring-rubric, glossary, references, README.
 5. Link the pack in the relevant [graphs/](graphs/) file.
 6. Add the pack to the routing table in [skills/akos/SKILL.md](skills/akos/SKILL.md) — a pack that isn't listed there is a pack agents can't route to.
-7. Run `./doctor.sh` — the 17-file contract must pass, every pack must appear in the routing table, no empty files.
+7. Run `./doctor.sh` — the required-file contract must pass, every pack must appear in the routing table, no empty files.
 
 ## Distinguishing content types
 
