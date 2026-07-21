@@ -4,7 +4,7 @@ authority-level: 2
 version: 1.0.0
 tags: [ci, cd, pipeline, continuous-integration, continuous-delivery, gating]
 sources:
-  - title: "Continuous Delivery"
+  - title: "Continuous Delivery: Reliable Software Releases through Build, Test, and Deployment Automation"
     author: Jez Humble & David Farley
     url: https://continuousdelivery.com/
 related:

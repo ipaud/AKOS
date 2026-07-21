@@ -4,7 +4,7 @@ authority-level: 1
 version: 1.0.0
 tags: [performance, bundle-size, code-splitting, lazy-loading, images, fonts, caching]
 sources:
-  - title: "web.dev — Performance"
+  - title: "web.dev — Learn Performance"
     author: Google
     url: https://web.dev/learn/performance
 related:

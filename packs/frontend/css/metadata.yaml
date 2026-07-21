@@ -7,7 +7,7 @@ sources:
   - title: "CSS specifications"
     author: W3C
     url: https://www.w3.org/Style/CSS/
-  - title: "MDN CSS"
+  - title: "MDN CSS Reference"
     author: Mozilla
     url: https://developer.mozilla.org/en-US/docs/Web/CSS
 related:

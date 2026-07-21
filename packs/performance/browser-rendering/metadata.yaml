@@ -7,7 +7,7 @@ sources:
   - title: "Rendering Performance"
     author: Google / web.dev
     url: https://web.dev/articles/rendering-performance
-  - title: "Inside look at modern web browser"
+  - title: "Inside look at modern web browser (series)"
     author: Chrome Developers
     url: https://developer.chrome.com/blog/inside-browser-part1
 related:

@@ -4,7 +4,7 @@ authority-level: 2
 version: 1.0.0
 tags: [psychology, cognition, hick, fitts, jakob, miller, tesler, peak-end, von-restorff, goal-gradient]
 sources:
-  - title: "Laws of UX (site and book: Laws of UX — Using Psychology to Design Better Products & Services)"
+  - title: "Laws of UX: Using Psychology to Design Better Products & Services"
     author: Jon Yablonski
     url: https://lawsofux.com/
 related:

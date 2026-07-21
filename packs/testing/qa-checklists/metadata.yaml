@@ -4,7 +4,7 @@ authority-level: 3
 version: 1.0.0
 tags: [qa, exploratory-testing, edge-cases, cross-browser, states, release-verification]
 sources:
-  - title: "A Practical Guide to Testing"
+  - title: "Ministry of Testing — community resources"
     author: Ministry of Testing (community practice)
     url: https://www.ministryoftesting.com/
 related:
