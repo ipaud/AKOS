@@ -1,14 +1,14 @@
 # Review Checklist — CSS Pack
 
 ## High
-- [ ] Design values from tokens, not hardcoded literals. (CE1)
-- [ ] Animations use transform/opacity only. (CE3)
+- [ ] Design values from tokens, not hardcoded literals. (CSE1)
+- [ ] Animations use transform/opacity only. (CSE3)
 
 ## Medium
-- [ ] Mobile-first media query structure. (CE2)
-- [ ] No `!important` outside documented exceptions. (CE4)
-- [ ] Container queries used for size-aware reusable components. (CE6)
+- [ ] Mobile-first media query structure. (CSE2)
+- [ ] No `!important` outside documented exceptions. (CSE4)
+- [ ] Container queries used for size-aware reusable components. (CSE6)
 
 ## Low
-- [ ] Selector nesting shallow. (CE5)
-- [ ] Logical properties where RTL matters. (CE7)
+- [ ] Selector nesting shallow. (CSE5)
+- [ ] Logical properties where RTL matters. (CSE7)

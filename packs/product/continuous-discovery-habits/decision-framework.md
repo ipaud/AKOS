@@ -10,7 +10,7 @@ Prefer the solution with the fewest, cheapest-to-test unevidenced assumptions ov
 
 ## Assumption test design
 
-1. List assumptions (CE4).
+1. List assumptions (CDE4).
 2. Plot importance × evidence; pick the top-right quadrant (important, unevidenced) item.
 3. Choose the cheapest test that produces real evidence: a story-based interview probe, a concierge test, a fake-door/landing-page test, a feasibility spike ([Inspired's prototype-fidelity framework](../inspired/decision-framework.md) applies directly here).
 4. Record the result on the tree next to the solution node; update the assumption map.

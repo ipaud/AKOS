@@ -2,14 +2,14 @@
 
 ## High
 
-- [ ] Strategy document states a diagnosed problem + guiding policy, not a feature list. (BE1)
-- [ ] Roadmap uses outcome/theme framing with rough horizons, not committed feature-dates beyond one cycle. (BE2)
-- [ ] Team initiatives trace to a stated higher-level outcome via explicit reasoning. (BE3)
+- [ ] Strategy document states a diagnosed problem + guiding policy, not a feature list. (BTE1)
+- [ ] Roadmap uses outcome/theme framing with rough horizons, not committed feature-dates beyond one cycle. (BTE2)
+- [ ] Team initiatives trace to a stated higher-level outcome via explicit reasoning. (BTE3)
 
 ## Medium
 
-- [ ] Leadership reporting includes outcome/value metrics as primary, not only output/velocity. (BE4)
-- [ ] Evidence of explicitly declined requests exists, tied to strategic reasoning. (BE5)
+- [ ] Leadership reporting includes outcome/value metrics as primary, not only output/velocity. (BTE4)
+- [ ] Evidence of explicitly declined requests exists, tied to strategic reasoning. (BTE5)
 - [ ] PM role mandate includes problem understanding and direction-setting, not delivery coordination alone.
 
 ## Low
