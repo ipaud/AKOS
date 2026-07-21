@@ -24,7 +24,7 @@ Conflict → grammar wins ([R3](../../../core/conflict-resolution.md)); identity
 
 ## iOS-first web app: how native to feel?
 
-- Traffic mostly iOS Safari + installable → adopt AP18 fully, bottom-oriented primary actions, sheet-style modals, iOS-calibrated tap targets.
+- Traffic mostly iOS Safari + installable → adopt AHE18 fully, bottom-oriented primary actions, sheet-style modals, iOS-calibrated tap targets.
 - Mixed traffic → platform-neutral web idioms ([Krug](../steve-krug/README.md) + [Material](../material-design/README.md)/HIG blend), but never fake one platform's chrome on another's device.
 
 ## When HIG and WCAG diverge
