@@ -4,13 +4,13 @@ authority-level: 2
 version: 1.0.0
 tags: [touch, mobile, ergonomics, target-size, thumb-zones, hit-area, hover, pointer-events, virtual-keyboard, inputmode, locale-input, gestures, touch-action, accidental-activation, accessibility]
 sources:
-  - title: "Web Content Accessibility Guidelines (WCAG) 2.2 — SC 2.5.8 Target Size (Minimum)"
+  - title: "SC 2.5.8 Target Size (Minimum), AA"
     org: W3C
     url: https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
-  - title: "Web Content Accessibility Guidelines (WCAG) 2.2 — SC 2.5.1 Pointer Gestures"
+  - title: "SC 2.5.1 Pointer Gestures, A"
     org: W3C
     url: https://www.w3.org/WAI/WCAG22/Understanding/pointer-gestures.html
-  - title: "Web Content Accessibility Guidelines (WCAG) 2.2 — SC 2.5.2 Pointer Cancellation"
+  - title: "SC 2.5.2 Pointer Cancellation, A"
     org: W3C
     url: https://www.w3.org/WAI/WCAG22/Understanding/pointer-cancellation.html
   - title: "Human Interface Guidelines — Gestures"
@@ -28,7 +28,7 @@ sources:
   - title: "Pointer events"
     org: MDN Web Docs (Mozilla)
     url: https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events
-  - title: "inputmode — HTML global attribute"
+  - title: "`inputmode` — HTML global attribute"
     org: MDN Web Docs (Mozilla)
     url: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inputmode
 related:

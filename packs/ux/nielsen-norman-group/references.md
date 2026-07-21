@@ -8,6 +8,7 @@ Attribution only; this pack is an original operational distillation.
 - **Why You Only Need to Test with 5 Users** — Jakob Nielsen, NN/g. https://www.nngroup.com/articles/why-you-only-need-to-test-with-5-users/
 - **Jakob's Law of Internet User Experience** — NN/g. https://www.nngroup.com/videos/jakobs-law-internet-ux/
 - **Usability Engineering** — Jakob Nielsen. Academic Press.
+- **Nielsen Norman Group — Articles & Research** — Nielsen Norman Group. https://www.nngroup.com/articles/
 
 ## Related AKOS packs
 

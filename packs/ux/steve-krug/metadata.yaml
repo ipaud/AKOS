@@ -4,10 +4,10 @@ authority-level: 2
 version: 1.0.0
 tags: [usability, web, cognitive-load, navigation, testing, copywriting, mobile]
 sources:
-  - title: "Don't Make Me Think, Revisited: A Common Sense Approach to Web Usability"
+  - title: "Don't Make Me Think, Revisited: A Common Sense Approach to Web Usability (3rd ed.)"
     author: Steve Krug
     url: https://sensible.com/dont-make-me-think/
-  - title: "Rocket Surgery Made Easy"
+  - title: "Rocket Surgery Made Easy: The Do-It-Yourself Guide to Finding and Fixing Usability Problems"
     author: Steve Krug
     url: https://sensible.com/rocket-surgery-made-easy/
 related:

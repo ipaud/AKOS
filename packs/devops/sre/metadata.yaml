@@ -4,7 +4,7 @@ authority-level: 2
 version: 1.0.0
 tags: [sre, sli, slo, error-budget, monitoring, alerting, incident-response]
 sources:
-  - title: "Site Reliability Engineering"
+  - title: "Site Reliability Engineering: How Google Runs Production Systems"
     author: Google (Betsy Beyer, Chris Jones, Jennifer Petoff, Niall Richard Murphy, eds.)
     url: https://sre.google/books/
 related:

@@ -4,7 +4,7 @@ authority-level: 1
 version: 1.0.0
 tags: [network, http2, http3, compression, cdn, dns, tls, offline, service-worker]
 sources:
-  - title: "Network Performance guides"
+  - title: "Network Connectivity guides"
     author: Google / web.dev
     url: https://web.dev/explore/network-connectivity
 related:
