@@ -29,7 +29,7 @@ Exit `0` every case met the threshold · `1` usage error · `2` at least one cas
 
 **It does not run a review.** It grades a report someone else produced — by an agent, by hand, or replayed out of a project's `.akos/reviews/`. Generating the review inside the grader would make the suite depend on a provider and on run-to-run variance, and there is no honest way to gate CI on that. Grading is deterministic; producing is not.
 
-**It says nothing about a project that is not this case's fixture.** Three cases is a small corpus. A passing run means "did not regress on one known artifact", and that is the entire claim.
+**It says nothing about a project that is not this case's fixture.** Fourteen cases is a small corpus. A passing run means "did not regress on one known artifact", and that is the entire claim.
 
 **It cannot tell reporting a finding from explaining why something is *not* a finding.** Both put the same words in the report. A review that correctly refutes a trap reads identically to one that falls for it — observed on a real report that discussed a false positive in order to dismiss it, and was marked as having committed it. Separating the two needs a judge, which needs its own calibration.
 

@@ -4,7 +4,7 @@
 # Idempotent. Verifies structure, chmods scripts, creates the ~/DEV symlink
 # (if the repo lives elsewhere) and the ~/bin/akos symlink. Never destroys content.
 #
-set -uo pipefail
+set -euo pipefail
 
 AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
@@ -14,7 +14,7 @@ warn() { printf '%s!%s %s\n' "$c_yellow" "$c_reset" "$*"; }
 printf '%sInstalling AKOS%s from %s\n\n' "$c_bold" "$c_reset" "$AKOS_HOME"
 
 # 1. chmod scripts.
-for s in install.sh update.sh doctor.sh uninstall.sh bin/akos; do
+for s in install.sh update.sh doctor.sh uninstall.sh merge-pr.sh bin/akos; do
   if [ -f "$AKOS_HOME/$s" ]; then chmod +x "$AKOS_HOME/$s"; ok "chmod +x $s"; fi
 done
 
@@ -93,14 +93,15 @@ case ":$PATH:" in
   *) warn "~/bin is not on PATH. Add:  export PATH=\"\$HOME/bin:\$PATH\"  to your shell profile." ;;
 esac
 
-# 5. Structure verification (non-fatal report).
+# 5. Structure verification (non-fatal report). Output is discarded — no
+#    predictable /tmp path (a pre-planted symlink at a guessable name would
+#    be followed by the > redirection, CWE-377).
 printf '\n%sVerifying structure%s\n' "$c_bold" "$c_reset"
-if bash "$AKOS_HOME/doctor.sh" >/tmp/akos_doctor.$$  2>&1; then
+if bash "$AKOS_HOME/doctor.sh" >/dev/null 2>&1; then
   ok "doctor: all checks passed"
 else
   warn "doctor reported issues — run ./doctor.sh for detail"
 fi
-rm -f /tmp/akos_doctor.$$
 
 # 6. Summary.
 packs="$(find "$AKOS_HOME/packs" -mindepth 2 -maxdepth 2 -type d | wc -l | tr -d ' ')"

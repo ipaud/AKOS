@@ -11,7 +11,7 @@ TMP="$(mktemp -d)"
 # no "scratch AKOS repo" mode for it) — clean it up on ANY exit path, not
 # just the success path, so a failed assertion never leaves test cruft in
 # the real repo.
-trap 'rm -rf "$TMP" "$AKOS_HOME/packs/personal/_e2e-test-profile"' EXIT
+trap 'rm -rf "$TMP" "$AKOS_HOME/packs/personal/e2e-test-profile"' EXIT
 
 pass() { printf '  ok - %s\n' "$1"; }
 fail() { printf '  FAIL - %s\n' "$1"; exit 1; }
@@ -38,13 +38,13 @@ pass "akos benchmark: all cases pass"
 rm -f /tmp/bench-e2e.$$
 
 # profile — create, use in a scratch project, verify the config line.
-"$AKOS" profile create _e2e-test-profile >/dev/null 2>&1
-[ -d "$AKOS_HOME/packs/personal/_e2e-test-profile" ] || fail "profile create did not scaffold the directory"
-pass "profile create scaffolded packs/personal/_e2e-test-profile"
+"$AKOS" profile create e2e-test-profile >/dev/null 2>&1
+[ -d "$AKOS_HOME/packs/personal/e2e-test-profile" ] || fail "profile create did not scaffold the directory"
+pass "profile create scaffolded packs/personal/e2e-test-profile"
 
 "$AKOS" install-project "$TMP" >/dev/null 2>&1
-"$AKOS" profile use _e2e-test-profile "$TMP" >/dev/null 2>&1
-grep -q "personal_profile: _e2e-test-profile" "$TMP/.akos/config.md" \
+"$AKOS" profile use e2e-test-profile "$TMP" >/dev/null 2>&1
+grep -q "personal_profile: e2e-test-profile" "$TMP/.akos/config.md" \
   || fail "profile use did not set personal_profile in .akos/config.md"
 pass "profile use set personal_profile correctly"
 

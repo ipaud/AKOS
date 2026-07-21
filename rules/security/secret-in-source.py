@@ -18,13 +18,13 @@ sys.path.insert(0, str(Path(__file__).parent))
 from _secret_utils import (  # noqa: E402
     VENDOR_PATTERNS, GENERIC_ASSIGNMENT_RE, JWT_RE,
     shannon_entropy, looks_like_placeholder, is_fixture_or_doc_path, decode_jwt_claims,
-    gitignored_paths,
+    gitignored_paths, classification_path,
 )
 
 MIN_ENTROPY = 3.0
 
 
-def run(files: list[Path]) -> list[dict]:
+def run(files: list[Path], scan_root: Path | None = None) -> list[dict]:
     # This rule is about a secret "committed to source". A key in a gitignored
     # file is not committed — it is in the one place it belongs. Resolved once
     # for the whole batch; see gitignored_paths for why not per file.
@@ -44,7 +44,10 @@ def run(files: list[Path]) -> list[dict]:
         # high-entropy branch, so the vendor-pattern and JWT branches
         # reported AKOS's own benchmark fixtures as CRITICAL leaks and
         # `akos rules run .` exited 2 on this repository.
-        in_fixture = is_fixture_or_doc_path(path_str)
+        # Classify on the path RELATIVE to the scan root: ancestor directories
+        # above the project (a checkout under .../test/... or /tmp/fixtures/...)
+        # must not downgrade real findings.
+        in_fixture = is_fixture_or_doc_path(classification_path(path, scan_root))
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:

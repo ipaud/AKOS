@@ -68,10 +68,28 @@ def _leading_ws(line: str) -> str:
 
 
 def _strip_comment(line: str) -> str:
-    """Remove a trailing '# comment', respecting quoted strings."""
+    """Remove a trailing '# comment', respecting quoted strings.
+
+    Backslash escapes inside a double-quoted string are honoured: a `\\"` does
+    not close the string, so a `#` after it is still inside the value, not a
+    comment. Without this, `key: "a \\" b # c"` was truncated mid-string and
+    left with a stray quote — silently wrong data, no error."""
     out = []
     in_single = in_double = False
-    for i, c in enumerate(line):
+    i = 0
+    n = len(line)
+    while i < n:
+        c = line[i]
+        if in_double and c == "\\":
+            # Keep the escape pair intact; neither char can end the string
+            # or start a comment.
+            out.append(c)
+            if i + 1 < n:
+                out.append(line[i + 1])
+                i += 2
+                continue
+            i += 1
+            continue
         if c == "'" and not in_double:
             in_single = not in_single
         elif c == '"' and not in_single:
@@ -80,6 +98,7 @@ def _strip_comment(line: str) -> str:
             if i == 0 or line[i - 1] in (" ", "\t"):
                 break
         out.append(c)
+        i += 1
     return "".join(out).rstrip()
 
 
@@ -142,13 +161,38 @@ def _unquote_if_wrapped(s: str) -> str:
 # --- Scalars and flow lists ---------------------------------------------------
 
 
-def _parse_scalar(s: str):
+def _double_quote_close(s: str) -> int:
+    """Index of the closing quote of a double-quoted scalar that starts at 0,
+    honouring `\\` escapes. -1 if never closed. A well-formed scalar closes at
+    len(s)-1; anything else (early close with trailing junk, or no close) is
+    malformed."""
+    i, n = 1, len(s)
+    while i < n:
+        if s[i] == "\\":
+            i += 2
+            continue
+        if s[i] == '"':
+            return i
+        i += 1
+    return -1
+
+
+def _parse_scalar(s: str, line_no: int = 0):
     s = s.strip()
     if s == "":
         return None
-    if len(s) >= 2 and s[0] == s[-1] == '"':
+    # A nested flow list ([a, [b, c]]) would otherwise be returned as the raw
+    # string "[b, c]" — a silent mis-parse the module's docstring promises not
+    # to do. Raise instead, consistent with flow mappings.
+    if s.startswith("["):
+        raise YamlSubsetError("nested flow lists ('[[...]]') are not supported", line_no)
+    if s[0] == '"':
+        if _double_quote_close(s) != len(s) - 1:
+            raise YamlSubsetError("unterminated double-quoted string", line_no)
         return s[1:-1].replace('\\"', '"').replace("\\\\", "\\")
-    if len(s) >= 2 and s[0] == s[-1] == "'":
+    if s[0] == "'":
+        if len(s) < 2 or s[-1] != "'":
+            raise YamlSubsetError("unterminated single-quoted string", line_no)
         return s[1:-1].replace("''", "'")
     if s in ("true", "True", "TRUE"):
         return True
@@ -195,7 +239,7 @@ def _parse_flow_list(s: str, line_no: int):
     inner = s[1:-1].strip()
     if inner == "":
         return []
-    return [_parse_scalar(item.strip()) for item in _split_flow_items(inner)]
+    return [_parse_scalar(item.strip(), line_no) for item in _split_flow_items(inner)]
 
 
 # --- Structural parsing -------------------------------------------------------
@@ -232,7 +276,7 @@ def _consume_value(tokens, i, indent, rest, line_no, container, key):
         return i
     if rest.startswith("{"):
         raise YamlSubsetError("flow mappings ('{...}') are not supported", line_no)
-    container[key] = _parse_scalar(rest)
+    container[key] = _parse_scalar(rest, line_no)
     return i
 
 
@@ -277,9 +321,14 @@ def _parse_list(tokens, start, indent):
             result.append(value)
             continue
 
+        # "- - a" (a nested list item) reaches here as item_content "- a";
+        # _split_key_value returns None and it would silently parse as the
+        # string "- a". Raise instead — nested lists are unsupported.
+        if item_content == "-" or item_content.startswith("- "):
+            raise YamlSubsetError("nested block lists ('- -') are not supported", line_no)
         kv = _split_key_value(item_content)
         if kv is None:
-            result.append(_parse_scalar(item_content))
+            result.append(_parse_scalar(item_content, line_no))
             continue
 
         # "- key: value" — this item is a map. Consume this key, then any

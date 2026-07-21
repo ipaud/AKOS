@@ -102,3 +102,21 @@ fi
 
 gh pr merge "$pr" --"$strategy" --delete-branch
 ok "Merged PR #$pr with --$strategy and deleted the branch."
+
+# Tag the release if this merge lands a new VERSION on the default branch.
+# A plugin install resolves whatever is on `main` at fetch time, so without a
+# tag the version a user sees is tied to no immutable ref. Only tags when
+# VERSION and the newest CHANGELOG heading agree and no such tag exists yet —
+# never overwrites an existing tag.
+default_branch="$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name 2>/dev/null || echo main)"
+if git rev-parse --abbrev-ref HEAD 2>/dev/null | grep -qx "$default_branch"; then
+  git pull --ff-only >/dev/null 2>&1 || true
+  ver="$(tr -d '[:space:]' < VERSION)"
+  if grep -q "^## \[$ver\]" CHANGELOG.md 2>/dev/null; then
+    if git rev-parse "v$ver" >/dev/null 2>&1; then
+      warn "Tag v$ver already exists — leaving it."
+    else
+      git tag -a "v$ver" -m "AKOS v$ver" && git push origin "v$ver" && ok "Tagged and pushed v$ver."
+    fi
+  fi
+fi

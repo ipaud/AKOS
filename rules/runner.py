@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import inspect
 import re
 import sys
 from pathlib import Path
@@ -28,7 +29,7 @@ AKOS_HOME = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
 sys.path.insert(0, str(AKOS_HOME / "rules" / "security"))
 import yaml_subset  # noqa: E402
-from _secret_utils import is_fixture_or_doc_path  # noqa: E402
+from _secret_utils import is_fixture_or_doc_path, classification_path  # noqa: E402
 
 DEFAULT_IGNORE_DIRS = {"node_modules", ".git", "dist", "build", "vendor", ".next", "__pycache__", ".venv"}
 
@@ -62,7 +63,13 @@ class Rule:
 def discover_rules(domain_filter=None, rule_filter=None) -> list[Rule]:
     rules = []
     for yaml_path in sorted((AKOS_HOME / "rules").glob("*/*.yaml")):
-        data = yaml_subset.load(yaml_path)
+        # One broken registry file must not take down discovery for every
+        # rule — same contract run_rules already applies to a broken detector.
+        try:
+            data = yaml_subset.load(yaml_path)
+        except yaml_subset.YamlSubsetError as e:
+            print(f"warning: skipping unparseable rule registry {yaml_path}: {e}", file=sys.stderr)
+            continue
         rule = Rule(yaml_path, data)
         if rule_filter and rule.id not in rule_filter:
             continue
@@ -75,13 +82,23 @@ def discover_rules(domain_filter=None, rule_filter=None) -> list[Rule]:
 
 
 def collect_files(target_dir: Path, globs: list[str]) -> list[Path]:
+    # Symlinks are skipped, and anything whose real location falls outside the
+    # scanned tree is skipped too (glob on Python <=3.12 recurses through
+    # symlinked directories). Without this, scanning an untrusted repository
+    # that plants `link -> ~/.ssh/id_rsa` makes the secret detectors read the
+    # host's private key — and a review report quotes the evidence it finds.
+    root_resolved = target_dir.resolve()
     files = []
     seen = set()
     for pattern in globs:
         for p in target_dir.glob(pattern):
-            if not p.is_file():
+            if p.is_symlink() or not p.is_file():
                 continue
             if any(part in DEFAULT_IGNORE_DIRS for part in p.parts):
+                continue
+            try:
+                p.resolve().relative_to(root_resolved)
+            except (ValueError, OSError):
                 continue
             if p in seen:
                 continue
@@ -132,7 +149,12 @@ def run_rules(target_dir: Path, rules: list[Rule], profile: str | None) -> list[
             continue
         try:
             module = load_detector(rule)
-            raw_findings = module.run(files)
+            # Detectors that classify by path take the scan root so they can
+            # judge the project-relative path, not the absolute one.
+            if len(inspect.signature(module.run).parameters) >= 2:
+                raw_findings = module.run(files, scan_dir)
+            else:
+                raw_findings = module.run(files)
         except Exception as e:  # noqa: BLE001 - a broken detector must not crash the whole run
             all_findings.append({
                 "rule_id": rule.id, "title": rule.title, "domain": rule.domain,
@@ -156,8 +178,11 @@ def run_rules(target_dir: Path, rules: list[Rule], profile: str | None) -> list[
             # says why it was lowered. Done here rather than per detector so
             # one rule cannot quietly opt out — which is how SECRET_IN_SOURCE
             # came to apply it to one of its three branches.
+            # Classify the evidence path RELATIVE to the scanned root —
+            # ancestor directories above the project must not vote.
             evidence_path = (f.get("evidence") or [{}])[0].get("path", "")
-            in_fixture = evidence_path and is_fixture_or_doc_path(str(evidence_path))
+            in_fixture = evidence_path and is_fixture_or_doc_path(
+                classification_path(evidence_path, scan_dir))
             if in_fixture and severity != "LOW":
                 severity = "LOW"
             finding = {

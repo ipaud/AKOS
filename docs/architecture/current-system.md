@@ -1,4 +1,13 @@
-# AKOS — Current System Architecture
+# AKOS — Architecture Baseline (v1.3.0, historical)
+
+> **This is a dated baseline, not the current state.** It captures the
+> repository as of **v1.3.0** and is kept as the starting point the
+> quality-infrastructure work (`schemas/`, `rules/`, `benchmarks/`, `evals/`,
+> `tests/`, `.github/`, `docs/` — all of which **now exist**, contrary to the
+> "Not present today" note below) was layered onto. Counts below (49 packs, 10
+> commands, six config sections, …) are the v1.3.0 numbers and have since
+> drifted — for live counts run `./doctor.sh`. Do not read this as an
+> inventory of the system as it stands.
 
 Snapshot as of v1.3.0, written from a direct audit of the repository (not from memory or aspiration). This is the baseline the quality-infrastructure work (schemas, validation, rules, benchmarks, CI, tests — see `docs/migration/v1.1-to-next.md`) builds on top of, additively.
 
