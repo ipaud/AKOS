@@ -21,6 +21,8 @@ Relative weights applied to the assessed dimensions (unassessed dimensions get `
 
 Weight 0 = the dimension is typically `n/a` for that profile (not scored), not scored-as-zero.
 
+Each dimension scores against its own rubric (`scoring/<dimension>-score.md`). Maintainability is the one dimension with no dedicated review agent — it is scored across the code-review pass per [scoring/maintainability-score.md](maintainability-score.md).
+
 ## Computation
 
 `Overall = Σ(dimension_score × weight) / Σ(weight)` over assessed dimensions, then apply the two hard caps above.

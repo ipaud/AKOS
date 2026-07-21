@@ -176,7 +176,41 @@ if [ -f "$AKOS_HOME/VERSION" ]; then
     grep -qF "\"version\": \"$ver\"" "$AKOS_HOME/$m" || {
       fail "$m version does not match VERSION ($ver)"; ver_issues=$((ver_issues+1)); }
   done
-  [ "$ver_issues" -eq 0 ] && ok "manifest versions match VERSION ($ver)"
+  if [ "$ver_issues" -eq 0 ]; then ok "manifest versions match VERSION ($ver)"; fi
+
+  # Version is not the only duplicated field across the four manifests. A
+  # one-line edit to the description in one file ships two different product
+  # descriptions to two marketplaces with a green build. Compare the
+  # user-visible descriptive fields too (plugin.json at top level,
+  # marketplace.json at plugins[0]).
+  if [ "$HAVE_PYTHON3" -eq 1 ]; then
+    if python3 - "$AKOS_HOME" <<'PY'
+import json, sys
+home = sys.argv[1]
+def fields(path, at_plugin):
+    d = json.load(open(f"{home}/{path}"))
+    src = d["plugins"][0] if at_plugin else d
+    return {k: src.get(k) for k in ("displayName", "description", "license")}
+manifests = [
+    (".claude-plugin/plugin.json", False),
+    (".codex-plugin/plugin.json", False),
+    (".claude-plugin/marketplace.json", True),
+    (".agents/plugins/marketplace.json", True),
+]
+vals = {p: fields(p, a) for p, a in manifests}
+ref_path, ref = next(iter(vals.items()))
+bad = False
+for field in ("displayName", "description", "license"):
+    seen = {p: v[field] for p, v in vals.items() if v[field] is not None}
+    if len(set(seen.values())) > 1:
+        bad = True
+        print(f"{field} disagrees across manifests: {seen}")
+sys.exit(1 if bad else 0)
+PY
+    then ok "manifest displayName/description/license agree"
+    else fail "manifest descriptive fields drifted (see above)"
+    fi
+  fi
 
   # VERSION must not drift behind the CHANGELOG's newest entry. Twice now the
   # version has sat stale while a day's work accumulated under it — the first
