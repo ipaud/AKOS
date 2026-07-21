@@ -23,9 +23,15 @@ VENDOR_PATTERNS = {
     "stripe_test_key": re.compile(r"sk_test_[A-Za-z0-9]{16,}"),
 }
 
+# The keyword may be the *suffix* of a longer name (STRIPE_API_KEY, myApiKey,
+# DB_PASSWORD) — that is the dominant naming convention, not the exception.
+# A leading \b cannot express that: `_` is a word character, so \b never fires
+# between `STRIPE_` and `API_KEY`, and every prefixed name sailed past this
+# pattern while the benchmark stayed green. The optional [A-Za-z0-9_.-]* prefix
+# closes that; the [:=] + quoted-value requirement is what keeps precision.
 GENERIC_ASSIGNMENT_RE = re.compile(
     r"""(?ix)
-    \b(?:api[_-]?key|secret|token|password|service_role[_-]?key)\b
+    [A-Za-z0-9_.-]*(?:api[_-]?key|secret|token|password|service_role[_-]?key)\b
     \s*[:=]\s*
     ['"]([^'"]{16,})['"]
     """
@@ -52,12 +58,34 @@ def looks_like_placeholder(value: str) -> bool:
     return any(d in low for d in DENYLIST_SUBSTRINGS)
 
 
+def classification_path(path, scan_root=None) -> str:
+    """Path string to use for fixture/server-convention CLASSIFICATION.
+
+    Relative to the scanned root whenever possible. Classifying the absolute
+    path lets every ancestor directory ABOVE the project vote: a repo checked
+    out under `/Users/bob/test/proj/` or `/tmp/fixtures/proj/` had all its
+    real secrets downgraded to LOW because an ancestor segment happened to be
+    named `test` or `fixtures`. Only segments inside the scanned tree may
+    influence classification; the absolute path is still what gets read.
+    """
+    p = Path(path)
+    if scan_root is None:
+        return str(p)
+    try:
+        return str(p.resolve().relative_to(Path(scan_root).resolve()))
+    except (ValueError, OSError):
+        return str(p)
+
+
 def is_fixture_or_doc_path(path_str: str) -> bool:
     """Match whole path SEGMENTS and filename markers, not arbitrary
     substrings — a naive substring check would skip real production files
     like `src/testUtils.ts` or anything under a directory that merely
     contains "test" as part of a longer name (e.g. a repo checked out into
-    a path like `.../my-test-project/...`)."""
+    a path like `.../my-test-project/...`).
+
+    Callers with a scan root must pass `classification_path(path, root)`
+    rather than the raw absolute path — see that helper for why."""
     p = PurePosixPath(path_str.replace("\\", "/"))
     parts_lower = {part.lower() for part in p.parts}
     if parts_lower & FIXTURE_DIR_SEGMENTS:

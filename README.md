@@ -10,7 +10,7 @@ AI coding agents write plausible code but make junior decisions: unclear navigat
 
 ## How it works
 
-1. **Knowledge packs** (`packs/`) distill one source or domain each (e.g. `packs/ux/steve-krug/`, `packs/security/owasp-top-10/`). Every pack has the same 17-file structure — see [core/knowledge-schema.md](core/knowledge-schema.md).
+1. **Knowledge packs** (`packs/`) distill one source or domain each (e.g. `packs/ux/steve-krug/`, `packs/security/owasp-top-10/`). Domain packs share the same 17-file structure; personal packs under `packs/personal/` use a 10-file layout — see [core/knowledge-schema.md](core/knowledge-schema.md).
 2. **The core layer** (`core/`) defines how agents reason with the packs: [authority hierarchy](core/authority-model.md), [conflict resolution](core/conflict-resolution.md), [reasoning profiles](core/reasoning-profiles.md) (Prototype → Enterprise), and the [review pipeline](core/review-pipeline.md).
 3. **Agents** (`agents/`) are reviewer role definitions — which packs to load, what to check, severity levels, and a unified report format.
 4. **Workflows** (`workflows/`) chain agents for concrete tasks: new project, new feature, pre-release review.
@@ -20,7 +20,7 @@ AI coding agents write plausible code but make junior decisions: unclear navigat
 
 ## Tool-agnostic by design
 
-Everything is plain Markdown + Bash. Works with Claude Code, Codex CLI, Cursor, Gemini CLI, Continue, Cline, Roo Code, Windsurf, and any LLM agent that can read files.
+The knowledge is plain Markdown; the CLI and lifecycle scripts are Bash, and the validation, rules, benchmark and eval tooling is dependency-free Python (stdlib only). Works with Claude Code, Codex CLI, Cursor, Gemini CLI, Continue, Cline, Roo Code, Windsurf, and any LLM agent that can read files.
 
 ## Authority model (short version)
 
@@ -139,6 +139,18 @@ Want your own profile instead of forking pau-avila's? `akos profile create <name
 ./doctor.sh    # verify after update
 ```
 
+`update.sh` backs up `packs/personal/` to `~/.akos-backups/` before pulling and
+aborts if that backup can't be written.
+
+**Rolling back.** Releases are git-tagged (`vX.Y.Z`). To return to an earlier
+one:
+
+```bash
+git checkout v1.7.0 && ./install.sh
+```
+
+`git tag -l` lists available versions; `./doctor.sh` reports the running one.
+
 ## Quality infrastructure
 
 Beyond the knowledge itself, AKOS validates and tests its own consistency:
@@ -152,7 +164,7 @@ akos profile create|use <name> # your own Level-0 layer instead of the shipped d
 akos history compare <a> <b>   # score/decision deltas across two recorded reviews
 ```
 
-Full docs: [`docs/architecture/`](docs/architecture/) (current + target system), [`docs/contracts/`](docs/contracts/) (pack/agent/workflow schemas), [`docs/rules/`](docs/rules/authoring-rules.md), [`docs/benchmarks/`](docs/benchmarks/overview.md), [`docs/scoring/`](docs/scoring/evidence-confidence-coverage.md), [`docs/profiles/`](docs/profiles/personal-profiles.md), [`docs/reviews/`](docs/reviews/history-and-comparison.md), [`docs/maintenance/`](docs/maintenance/freshness.md), [`docs/cli/`](docs/cli/exit-codes.md), [`docs/migration/`](docs/migration/v1.1-to-next.md). Tests: [`tests/README.md`](tests/README.md). CI: `.github/workflows/`.
+Full docs: [`docs/architecture/`](docs/architecture/) (a dated v1.3.0 baseline + target system), [`docs/contracts/`](docs/contracts/) (pack/agent/workflow schemas), [`docs/rules/`](docs/rules/authoring-rules.md), [`docs/benchmarks/`](docs/benchmarks/overview.md), [`docs/scoring/`](docs/scoring/evidence-confidence-coverage.md), [`docs/profiles/`](docs/profiles/personal-profiles.md), [`docs/reviews/`](docs/reviews/history-and-comparison.md), [`docs/maintenance/`](docs/maintenance/freshness.md), [`docs/cli/`](docs/cli/exit-codes.md), [`docs/migration/`](docs/migration/v1.1-to-next.md). Tests: [`tests/README.md`](tests/README.md). CI: `.github/workflows/`.
 
 ## Repository layout
 

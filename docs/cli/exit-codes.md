@@ -6,7 +6,7 @@
 
 ## The new commands — a documented 0/1/2 scheme
 
-`validate`, `rules`, `benchmark`, `freshness` (and `profile`, `history`, which don't have a meaningful "found a problem" state and just use 0/1):
+`validate`, `rules`, `benchmark`, `freshness`, `check-config`, `eval` (and `profile`, `history`, which don't have a meaningful "found a problem" state and just use 0/1):
 
 | Code | Meaning |
 |---|---|
@@ -20,6 +20,8 @@ What "found something" means per command:
 - `akos rules run` — `2` only if an open **CRITICAL** finding exists — the one severity `core/review-pipeline.md` itself says "always blocks, every profile." HIGH/MEDIUM/LOW findings print but don't gate, since the rules runner doesn't necessarily know the caller's full reasoning-profile weight table the way an LLM-driven review does.
 - `akos benchmark run` — `2` if any case fails (a missed `must_detect` or an unexpected `must_not_detect` hit).
 - `akos freshness --fail-on BAND` — `2` if any pack is at `BAND` or worse. Without `--fail-on`, always `0` (it's a report, not a gate, by default).
+- `akos check-config [dir]` — `2` if the project's `.akos/config.md` has a disallowed value or a pack reference that escapes `packs/` (the check both SKILL.md files gate on); `1` on a setup error; `0` when the config is clean **or** absent (no config is not a failure).
+- `akos eval --report PATH` — `2` if the graded report fails an eval case; `1` on usage/setup error (missing `--report`/`--case`, unreadable file); `0` when it passes.
 
 ## Why not unify everything under one scheme
 

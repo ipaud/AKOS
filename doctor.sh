@@ -4,6 +4,9 @@
 # Verifies directory structure, the 17-file pack contract, executable bits,
 # symlinks, and empty files. Exits non-zero on any failure.
 #
+# Deliberately no `set -e` (unlike install/update/uninstall): this script is a
+# report accumulator — individual checks failing IS the data, counted into the
+# summary, and must not abort the remaining checks.
 set -uo pipefail
 
 AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -75,7 +78,7 @@ printf '\n%sEmpty files%s\n' "$c_bold" "$c_reset"
 empty="$(find "$AKOS_HOME/packs" "$AKOS_HOME/core" "$AKOS_HOME/agents" \
   "$AKOS_HOME/workflows" "$AKOS_HOME/scoring" "$AKOS_HOME/graphs" \
   "$AKOS_HOME/prompts" "$AKOS_HOME/templates" -type f -empty 2>/dev/null || true)"
-if [ -z "$empty" ]; then ok "no empty files"; else fail "empty files found:"; printf '   %s\n' $empty; fi
+if [ -z "$empty" ]; then ok "no empty files"; else fail "empty files found:"; printf '%s\n' "$empty" | sed 's/^/   /'; fi
 
 # --- Agents / workflows / scoring / graphs counts ---
 printf '\n%sComponents%s\n' "$c_bold" "$c_reset"
@@ -208,6 +211,16 @@ if [ -f "$AKOS_HOME/VERSION" ]; then
         ok "no source commits since VERSION was last set"
       fi
     fi
+
+    # A plugin install resolves whatever is on the default branch at fetch
+    # time, so the version a user runs must be tied to an immutable ref. Warn
+    # when the current VERSION has no matching tag — merge-pr.sh creates it on
+    # a release merge, but a local build or a bypassed merge can miss it.
+    if git -C "$AKOS_HOME" rev-parse "v$ver" >/dev/null 2>&1; then
+      ok "release tag v$ver exists"
+    else
+      warn "no git tag v$ver — releases should be tagged (merge-pr.sh does this; 'git tag -a v$ver' to backfill)"
+    fi
   fi
 fi
 
@@ -272,7 +285,7 @@ printf '\n%sSelf-scan%s\n' "$c_bold" "$c_reset"
 if [ "$HAVE_PYTHON3" -eq 0 ]; then
   warn "python3 not found — skipping self-scan"
 else
-  self_out="$(python3 "$AKOS_HOME/rules/runner.py" "$AKOS_HOME" 2>&1)"
+  python3 "$AKOS_HOME/rules/runner.py" "$AKOS_HOME" >/dev/null 2>&1
   self_rc=$?
   case "$self_rc" in
     0) ok "akos rules run finds no CRITICAL in this repository" ;;
@@ -283,7 +296,7 @@ fi
 
 # --- Executable bits ---
 printf '\n%sExecutables%s\n' "$c_bold" "$c_reset"
-for s in install.sh update.sh doctor.sh uninstall.sh bin/akos; do
+for s in install.sh update.sh doctor.sh uninstall.sh merge-pr.sh bin/akos; do
   if [ -x "$AKOS_HOME/$s" ]; then ok "$s executable"; else warn "$s not executable (run ./install.sh)"; fi
 done
 

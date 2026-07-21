@@ -200,6 +200,7 @@ def check_workflows(schema: dict) -> list[dict]:
         warnings: list[dict] = []
 
         m = FRONTMATTER_RE.match(text)
+        skipped = False
         if m:
             try:
                 data = yaml_subset.loads(m.group(1))
@@ -208,10 +209,15 @@ def check_workflows(schema: dict) -> list[dict]:
                 warnings.extend(fm_warnings)
             except yaml_subset.YamlSubsetError as e:
                 errors.append({"field": "<frontmatter>", "message": str(e), "rule": "parse"})
-        # No frontmatter is valid — legacy format, never claimed to have any.
-        # Not even a warning; the schema's own `required: []` says so.
+        else:
+            # No frontmatter is valid — legacy format, never claimed to have
+            # any. But it is not "validated clean" either: there was nothing
+            # to check. Mark it skipped so the summary does not count a no-op
+            # as a pass (the agent/pack references these files make are covered
+            # separately by tests/unit/test_link_integrity.py).
+            skipped = True
 
-        results.append({"file": rel, "errors": errors, "warnings": warnings})
+        results.append({"file": rel, "errors": errors, "warnings": warnings, "skipped": skipped})
     return results
 
 
@@ -256,10 +262,12 @@ def main(argv=None) -> int:
                 print(f"{c_red}✗{c_reset} {r['file']}: {e['field']} — {e['message']}")
             for w in r["warnings"]:
                 print(f"{c_yellow}!{c_reset} {r['file']}: {w['field']} — {w['message']}")
-        clean = sum(1 for r in all_results if not r["errors"] and not r["warnings"])
+        skipped = sum(1 for r in all_results if r.get("skipped"))
+        clean = sum(1 for r in all_results if not r["errors"] and not r["warnings"] and not r.get("skipped"))
+        skipped_note = f"  {c_yellow}· {skipped} skipped (no frontmatter){c_reset}" if skipped else ""
         print(
             f"\n{c_bold}Summary{c_reset}  {c_green}✓ {clean} clean{c_reset}  "
-            f"{c_yellow}! {total_warnings} warnings{c_reset}  {c_red}✗ {total_errors} errors{c_reset}  "
+            f"{c_yellow}! {total_warnings} warnings{c_reset}  {c_red}✗ {total_errors} errors{c_reset}{skipped_note}  "
             f"({len(all_results)} files checked)"
         )
 

@@ -5,22 +5,31 @@
 # pulls and reports changed files. Otherwise reports that manual update is needed.
 # Never deletes personal packs.
 #
-set -uo pipefail
+set -euo pipefail
 
 AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
+c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_red=$'\033[31m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
 ok()   { printf '%s✓%s %s\n' "$c_green" "$c_reset" "$*"; }
 warn() { printf '%s!%s %s\n' "$c_yellow" "$c_reset" "$*"; }
+fail() { printf '%s✗%s %s\n' "$c_red" "$c_reset" "$*"; }
 
 printf '%sUpdating AKOS%s at %s\n\n' "$c_bold" "$c_reset" "$AKOS_HOME"
 
 PERSONAL="$AKOS_HOME/packs/personal"
 
 # Always back up the personal layer before any update operation.
+# Durable location, not mktemp: macOS periodically purges /var/folders, and a
+# recovery path the user must scroll back through terminal output to find, in
+# a directory that may be gone, is not a backup. A failed backup ABORTS the
+# update — proceeding after printing "backed up" was the data-loss path.
 backup=""
 if [ -d "$PERSONAL" ]; then
-  backup="$(mktemp -d)/personal"
-  cp -R "$PERSONAL" "$backup"
+  backup="$HOME/.akos-backups/personal-$(date +%Y%m%dT%H%M%S)"
+  mkdir -p "$(dirname "$backup")"
+  if ! cp -R "$PERSONAL" "$backup"; then
+    fail "could not back up $PERSONAL to $backup — aborting update"
+    exit 1
+  fi
   ok "backed up personal layer to $backup"
 fi
 
@@ -55,8 +64,8 @@ else
 fi
 
 # Re-chmod in case new scripts arrived.
-for s in install.sh update.sh doctor.sh uninstall.sh bin/akos; do
-  [ -f "$AKOS_HOME/$s" ] && chmod +x "$AKOS_HOME/$s"
+for s in install.sh update.sh doctor.sh uninstall.sh merge-pr.sh bin/akos; do
+  if [ -f "$AKOS_HOME/$s" ]; then chmod +x "$AKOS_HOME/$s"; fi
 done
 
 printf '\n'

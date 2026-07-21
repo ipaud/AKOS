@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # AKOS ships no application package manifest (no package.json / requirements
+  # / pyproject) by design — the only third-party dependency surface is the
+  # GitHub Actions used in .github/workflows/. Keep those current; they are
+  # SHA-pinned, so this is how the pins get bumped.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

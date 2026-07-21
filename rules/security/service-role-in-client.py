@@ -23,13 +23,17 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _secret_utils import JWT_RE, decode_jwt_claims, mask_js_comments  # noqa: E402
+from _secret_utils import JWT_RE, decode_jwt_claims, mask_js_comments, classification_path  # noqa: E402
 
 SERVER_PATH_MARKERS = ("api", "server", "functions", "middleware")
 SERVICE_ROLE_RE = re.compile(r"service_role", re.IGNORECASE)
 
 
 def is_server_convention_path(path: Path) -> bool:
+    """Callers with a scan root must pass a path already relativized via
+    classification_path — an ancestor named `api` above the project root
+    made this return True for every file in the checkout, silencing the
+    rule entirely."""
     parts_lower = {p.lower() for p in path.parts}
     if parts_lower & set(SERVER_PATH_MARKERS):
         return True
@@ -37,10 +41,10 @@ def is_server_convention_path(path: Path) -> bool:
     return ".server." in name_lower or name_lower == "middleware.ts" or name_lower == "middleware.js"
 
 
-def run(files: list[Path]) -> list[dict]:
+def run(files: list[Path], scan_root: Path | None = None) -> list[dict]:
     findings = []
     for path in files:
-        if is_server_convention_path(path):
+        if is_server_convention_path(Path(classification_path(path, scan_root))):
             continue
         try:
             text = path.read_text(encoding="utf-8", errors="replace")

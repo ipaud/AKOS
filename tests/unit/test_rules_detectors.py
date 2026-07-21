@@ -128,6 +128,46 @@ class TestSecretInSource(TempDirCase):
         findings = self.mod.run([f])
         self.assertEqual(findings, [])
 
+    def test_prefixed_env_var_names_are_caught(self):
+        # The real bug: \b never fires between `_` and the keyword (`_` is a
+        # word char), so STRIPE_API_KEY / OPENAI_API_KEY / DB_PASSWORD — the
+        # dominant naming convention — all sailed past the generic branch.
+        import secrets as pysecrets
+        for name in ("STRIPE_API_KEY", "SUPABASE_SERVICE_ROLE_KEY", "DB_PASSWORD", "myApiKey"):
+            with self.subTest(name=name):
+                f = write(self.tmp, f"src/{name}.ts", f'const {name} = "{pysecrets.token_urlsafe(24)}";\n')
+                findings = self.mod.run([f])
+                self.assertEqual(len(findings), 1, f"{name} must be caught by the generic branch")
+
+    def test_keyword_as_prefix_of_a_longer_word_is_not_matched(self):
+        # `secretName`, `tokenizer`: keyword must END the identifier.
+        f = write(self.tmp, "src/config.ts",
+                  'const tokenizer = "abcdefghijklmnop1234";\nconst secretName = "abcdefghijklmnop1234";\n')
+        findings = self.mod.run([f])
+        self.assertEqual(findings, [])
+
+    def test_ancestor_test_dir_above_scan_root_does_not_downgrade(self):
+        # The real bug: classification ran on the ABSOLUTE path, so a repo
+        # checked out under .../test/proj/ had every real secret skipped.
+        # With scan_root the ancestor segments stop voting.
+        import secrets as pysecrets
+        proj = self.tmp / "test" / "proj"
+        f = proj / "src" / "config.ts"
+        f.parent.mkdir(parents=True)
+        f.write_text(f'const apiKey = "{pysecrets.token_urlsafe(24)}";\n')
+        findings = self.mod.run([f], scan_root=proj)
+        self.assertEqual(len(findings), 1,
+                         "an ancestor 'test/' ABOVE the scanned root must not downgrade findings")
+
+    def test_test_dir_inside_scan_root_still_downgrades(self):
+        import secrets as pysecrets
+        proj = self.tmp / "proj"
+        f = proj / "test" / "config.ts"
+        f.parent.mkdir(parents=True)
+        f.write_text(f'const apiKey = "{pysecrets.token_urlsafe(24)}";\n')
+        findings = self.mod.run([f], scan_root=proj)
+        self.assertEqual(findings, [], "a real test/ segment INSIDE the scanned tree keeps its exclusion")
+
     def test_anon_jwt_not_flagged(self):
         import base64
         import json as jsonlib
@@ -162,6 +202,52 @@ class TestServiceRoleInClient(TempDirCase):
         f = write(self.tmp, "src/client.ts", "const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n")
         findings = self.mod.run([f])
         self.assertEqual(len(findings), 1)
+
+    def test_ancestor_api_dir_above_scan_root_does_not_silence(self):
+        # The real bug: an ancestor named `api` above the project root made
+        # is_server_convention_path true for EVERY file, silencing the rule.
+        proj = self.tmp / "api" / "proj"
+        f = proj / "src" / "client.ts"
+        f.parent.mkdir(parents=True)
+        f.write_text("const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n")
+        findings = self.mod.run([f], scan_root=proj)
+        self.assertEqual(len(findings), 1,
+                         "an ancestor 'api/' ABOVE the scanned root must not classify files as server-side")
+
+
+class TestCollectFilesSymlinks(TempDirCase):
+    """Locks down the symlink escape: scanning an untrusted repository that
+    plants a symlink out of its own tree must not read host files."""
+
+    def setUp(self):
+        super().setUp()
+        import importlib.util as ilu
+        p = paths.AKOS_HOME / "rules" / "runner.py"
+        spec = ilu.spec_from_file_location("akos_rules_runner_under_test", p)
+        self.runner = ilu.module_from_spec(spec)
+        spec.loader.exec_module(self.runner)
+
+    def test_symlink_to_outside_file_is_skipped(self):
+        outside = self.tmp / "outside"
+        outside.mkdir()
+        secret = outside / "id_rsa"
+        secret.write_text("-----BEGIN OPENSSH PRIVATE KEY-----\n")
+        proj = self.tmp / "proj"
+        proj.mkdir()
+        (proj / "real.ts").write_text("const x = 1;\n")
+        (proj / "link.ts").symlink_to(secret)
+        files = self.runner.collect_files(proj, ["**/*"])
+        self.assertEqual([f.name for f in files], ["real.ts"])
+
+    def test_file_reached_through_a_symlinked_directory_outside_the_tree_is_skipped(self):
+        outside = self.tmp / "outside"
+        (outside / "sub").mkdir(parents=True)
+        (outside / "sub" / "creds.ts").write_text('const k = "x";\n')
+        proj = self.tmp / "proj"
+        proj.mkdir()
+        (proj / "vendor-link").symlink_to(outside, target_is_directory=True)
+        files = self.runner.collect_files(proj, ["**/*"])
+        self.assertEqual(files, [], "files whose real location is outside the scanned root must be skipped")
 
 
 class TestDestructiveMigrationNoGuard(TempDirCase):

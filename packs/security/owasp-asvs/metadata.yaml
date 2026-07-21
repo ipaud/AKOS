@@ -4,7 +4,7 @@ authority-level: 1
 version: 1.0.0
 tags: [security, owasp, asvs, verification, compliance, security-levels, architecture]
 sources:
-  - title: "OWASP Application Security Verification Standard (ASVS) 4.0.3"
+  - title: "OWASP Application Security Verification Standard (ASVS) 5.0.0"
     author: OWASP Foundation
     url: https://owasp.org/www-project-application-security-verification-standard/
 related:

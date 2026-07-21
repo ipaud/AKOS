@@ -3,6 +3,33 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.8.0] — 2026-07-21
+
+Audit remediation. A multi-lens audit (self-run plus an external report) found
+that AKOS applied its own "a claim that must stay true belongs in a check, not
+in prose" discipline to its packs and rules but not to its own detectors,
+lifecycle scripts, or release mechanics. This release closes the load-bearing
+gaps. Two of them were CRITICAL and reproduced in a live harness.
+
+### Fixed
+
+- **The generic secret detector was blind to prefixed env-var names.** `SECRET_IN_SOURCE`'s catch-all keyed on `\b(api_key|secret|token|password|...)` — but `_` is a word character, so `\b` never fired between `STRIPE_` and `API_KEY`. `STRIPE_API_KEY`, `OPENAI_API_KEY`, `DB_PASSWORD`, `myApiKey` — the dominant naming convention — all slipped past while the benchmark stayed green. The keyword may now be the suffix of a longer name; the `[:=]`-plus-quoted-value requirement still carries precision. Locked down in `test_rules_detectors.py` with prefixed and negative cases.
+- **Fixture/server-path downgrades keyed on the absolute path, so ancestors above the project voted.** A repo checked out under `.../test/proj/` or `/tmp/fixtures/proj/` had every real secret downgraded CRITICAL→LOW, and a `service_role` reference under an ancestor named `api/` produced zero findings. Detectors now classify on the path relative to the scanned root; the absolute path is still what gets read. `runner.py` passes the scan root through, and both detectors take it.
+- **Rule detectors followed symlinks out of the scanned tree.** Scanning an untrusted repository that planted `link -> ~/.ssh/id_rsa` made the secret detectors read the host's private key — which a review report then quotes as evidence. `collect_files` now skips symlinks and any path whose real location escapes the scanned root.
+- **`uninstall.sh` could delete the personal layer while reporting it preserved.** Under `set -uo pipefail` (no `-e`), a failed backup `cp` did not abort — `rm -rf` ran anyway and printed "personal layer preserved". Now `set -e`, the backup covers all of `packs/` (not just `personal/` — `create-pack` writes user packs elsewhere), a failed backup aborts, and the script refuses to `rm -rf` a directory that does not look like an AKOS root. The confirmation prompt now enumerates what is lost.
+- **`update.sh` reported a backup that might not exist, in a purgeable location.** Same missing-`set -e` shape; the backup also went to `mktemp -d` under `/var/folders`, which macOS purges. Now a durable `$HOME/.akos-backups/` location, and a failed backup aborts the update.
+- **Path traversal and code injection in the CLI.** `akos create-pack "../../evil"` scaffolded outside `packs/` (verified), and a quote in a profile name broke out of an inline `python3 -c` script into arbitrary Python. Names are now validated against the schema's pack-name charset, and values travel to Python as argv, never interpolated into the script text.
+- **`yaml_subset.py` silently mis-parsed several constructs its own contract says it rejects.** An escaped quote before a `#` truncated the value mid-string; nested flow lists (`[a, [b, c]]`) and nested block lists (`- -`) returned raw strings; unterminated quotes were accepted with the quote embedded. The comment-stripper now honours `\` escapes, and the four silent mis-parses raise `YamlSubsetError`. New adversarial test class.
+- **`discover_rules` crashed the whole run on one broken rule registry.** One unparseable `rules/*/*.yaml` took down discovery for every rule with a raw traceback; the three sibling call-sites already guarded this. Now it skips the broken file with a warning.
+- **Committed Python bytecode.** `schemas/__pycache__/*.pyc` was tracked despite `.gitignore`; it regenerated locally and broke `git pull --ff-only` in `update.sh`. Untracked, with a CI guard so it cannot recur.
+
+### Added
+
+- **shellcheck now gates CI** (was `|| true`, permanently green), at `-S warning`, over all six scripts including `merge-pr.sh`, which was absent from every protective loop. `merge-pr.sh` added to the CI syntax check, the install/update chmod loops, and the `doctor.sh` executable check.
+- **Release traceability.** `merge-pr.sh` tags `vX.Y.Z` on a release merge to the default branch (only when VERSION and the CHANGELOG agree and no such tag exists); `doctor.sh` warns when the current VERSION has no matching tag; README documents rollback via `git checkout vX.Y.Z && ./install.sh`. A retroactive `v1.7.0` tag marks the prior release.
+- **Supply-chain hardening.** `permissions: contents: read` on all three workflows; `actions/checkout` and `actions/upload-artifact` pinned to commit SHAs; `.github/dependabot.yml` keeps the (SHA-pinned) actions current; `SECURITY.md` documents private disclosure.
+- **Isolated lifecycle-script tests.** `test_install_isolated.sh` and `test_uninstall_isolated.sh` run the real scripts against a scratch `$HOME` and cover the no-clobber guards and the backup-abort path — previously untested, the highest-blast-radius code in the repo. `test_update_preserves_personal.sh` now also exercises the durable-backup path.
+
 ## [1.7.0] — 2026-07-20
 
 Version staleness, made into a check after recurring.

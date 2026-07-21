@@ -22,9 +22,16 @@ Produce ONE aggregate Review Summary in the standard format:
 ## Low Priority Improvements
 ## Tradeoffs
 ## Relevant Knowledge Packs Used
+## Coverage
 ## Scores (UX / Accessibility / Architecture / Security / Performance / Product / Maintainability / Overall)
 ## Recommended Next Iteration
 ## Final Decision — PASS / PASS WITH FIXES / BLOCKED
 ```
+
+Before the security and other deterministic-detector lenses, run the executable
+checks rather than grepping by hand: `akos rules run <project-dir>`. A detector
+exists for secrets, RLS, permissive policies, service-role-in-client,
+destructive migrations, and unlabelled inputs — a lens told to find those by eye
+when a check exists is the reliability defect this step removes.
 
 Final decision = the worst individual step's decision. Any open CRITICAL → BLOCKED. Skip steps the profile sets to weight 0, noting them as skipped-by-profile; steps 2, 3, 8 never drop below weight 1.

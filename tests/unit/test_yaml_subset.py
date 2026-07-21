@@ -120,5 +120,45 @@ class TestYamlSubsetRejections(unittest.TestCase):
             y.loads("x:\n\tkey: value\n")
 
 
+class TestYamlSubsetAdversarial(unittest.TestCase):
+    """The module's contract (docstring) is that it RAISES on constructs it
+    can't handle rather than silently mis-parsing. These lock down the silent
+    mis-parses an audit found — each one previously returned plausible-looking
+    but wrong data with no error."""
+
+    def test_escaped_quote_before_hash_is_not_a_comment(self):
+        # Was truncated to '"a \\" b' — the escaped quote flipped the
+        # quote-state and the '#' read as a comment start.
+        self.assertEqual(y.loads('key: "a \\" b # c"'), {"key": 'a " b # c'})
+
+    def test_unterminated_double_quote_raises(self):
+        with self.assertRaises(y.YamlSubsetError):
+            y.loads('key: "unterminated')
+
+    def test_unterminated_single_quote_raises(self):
+        with self.assertRaises(y.YamlSubsetError):
+            y.loads("key: 'unterminated")
+
+    def test_nested_flow_list_raises(self):
+        # Was returned as the string "[b, c]" for the middle element.
+        with self.assertRaises(y.YamlSubsetError):
+            y.loads("key: [a, [b, c], d]")
+
+    def test_nested_block_list_raises(self):
+        # Was returned as the string "- a" for the first element.
+        with self.assertRaises(y.YamlSubsetError):
+            y.loads("items:\n  - - a\n  - c")
+
+    def test_flow_scalar_still_parses_after_the_nested_guard(self):
+        self.assertEqual(y.loads("tags: [a, b, c]"), {"tags": ["a", "b", "c"]})
+
+    def test_windows_path_backslashes_still_parse(self):
+        self.assertEqual(y.loads('p: "C:\\\\x"'), {"p": "C:\\x"})
+
+    def test_empty_and_whitespace_only_documents(self):
+        self.assertEqual(y.loads(""), {})
+        self.assertEqual(y.loads("   \n  \n"), {})
+
+
 if __name__ == "__main__":
     unittest.main()

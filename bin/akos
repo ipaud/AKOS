@@ -28,6 +28,16 @@ ok()    { printf '%s✓%s %s\n' "$c_green" "$c_reset" "$*"; }
 warn()  { printf '%s!%s %s\n' "$c_yellow" "$c_reset" "$*"; }
 err()   { printf '%s✗%s %s\n' "$c_red" "$c_reset" "$*" >&2; }
 
+# --- Name validation for commands that build filesystem paths from user input ---
+# Exactly the charset knowledge-pack.schema.json enforces for a pack `name`
+# (^[a-z0-9]+(-[a-z0-9]+)*$), so a scaffolded pack always validates. This is
+# the CLI-side twin of schemas/config_check.py's packs_root prefix check:
+# without it, `akos create-pack "../../evil"` scaffolded outside packs/
+# (verified), and a quote in a profile name broke out of an inline
+# python3 -c script. Reserved `_`-prefixed dirs (e.g. _template) are fixtures,
+# not user-creatable — the schema rejects that name too.
+valid_segment() { [[ "$1" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; }
+
 # --- Marker-safe file section writer ---
 # Writes a section between AKOS:START/END markers. Creates file if absent,
 # appends the section if markers absent, replaces between markers if present.
@@ -272,11 +282,15 @@ BODY
 cmd_create_pack() {
   local path="${1:-}"
   if [ -z "$path" ]; then err "Usage: akos create-pack <domain>/<name>"; return 1; fi
+  local name; name="$(basename "$path")"
+  local domain; domain="$(dirname "$path")"
+  if [ "$path" != "$domain/$name" ] || ! valid_segment "$domain" || ! valid_segment "$name"; then
+    err "Invalid pack path: '$path'. Expected <domain>/<name>, each lowercase [a-z0-9-]."
+    return 1
+  fi
   local dest="$AKOS_HOME/packs/$path"
   if [ -d "$dest" ]; then err "Pack already exists: $dest"; return 1; fi
   mkdir -p "$dest"
-  local name; name="$(basename "$path")"
-  local domain; domain="$(dirname "$path")"
 
   local files=(README.md philosophy.md mental-models.md principles.md heuristics.md \
     engineering-rules.md decision-framework.md anti-patterns.md review-checklist.md \
@@ -351,19 +365,25 @@ cmd_profile_show() {
 cmd_profile_create() {
   local name="${1:-}"
   if [ -z "$name" ]; then err "Usage: akos profile create <name>"; return 1; fi
+  if ! valid_segment "$name"; then
+    err "Invalid profile name: '$name'. Lowercase [a-z0-9-] only."
+    return 1
+  fi
   local dir="$AKOS_HOME/packs/personal/$name"
   if [ -d "$dir" ]; then err "Profile already exists: $dir"; return 1; fi
   cp -R "$AKOS_HOME/packs/personal/_template" "$dir"
   # Fill in the placeholder name across the copied files. Shells to python3
   # rather than `sed -i` — BSD and GNU sed diverge on the in-place suffix
   # argument; python3 is already the repo's one accepted dependency.
-  python3 -c "
-import pathlib
-d = pathlib.Path('$dir')
+  # Values travel as argv, never interpolated into the script text: an
+  # interpolated name containing a quote was an arbitrary-code injection.
+  python3 - "$dir" "$name" <<'PY'
+import pathlib, sys
+d, name = pathlib.Path(sys.argv[1]), sys.argv[2]
 for f in d.glob('*.md'):
     text = f.read_text()
-    f.write_text(text.replace('<your name>', '$name'))
-"
+    f.write_text(text.replace('<your name>', name))
+PY
   ok "Scaffolded personal profile at $dir (10 files). Fill principles.md first."
   warn "Run 'akos profile use $name' in a project to activate it there."
 }

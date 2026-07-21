@@ -26,7 +26,7 @@ Exit codes: `0` all cases pass, `1` setup error, `2` at least one case failed. N
 
 ## What's covered
 
-21 cases across the 8 rules in `rules/`: for every Level A/B rule, at least one true-positive case and at least one true-negative (the realistic near-miss that shouldn't fire — a suppressed policy, an anon JWT, a guarded destructive statement, a project that never adopted the up/down migration convention). Two Level C cases exercise the mock-provider plumbing end to end.
+28 cases across the 8 rules in `rules/`: for every Level A/B rule, at least one true-positive case and at least one true-negative (the realistic near-miss that shouldn't fire — a suppressed policy, an anon JWT, a guarded destructive statement, a project that never adopted the up/down migration convention). Two Level C cases exercise the mock-provider plumbing end to end.
 
 `PACK_EXPIRED` (the one rule that scans AKOS's own `packs/` rather than a target project) is intentionally **not** a benchmark case here — it's exercised by a unit test in `tests/unit/` instead, since fixturing "AKOS's own repo root" cleanly would need the harness to monkeypatch the rule module's `AKOS_HOME`, adding real complexity for one rule already covered elsewhere. Not a silent gap: stated here, and in `docs/benchmarks/overview.md`.
 

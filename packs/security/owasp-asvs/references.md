@@ -2,7 +2,7 @@
 
 Normative source — authoritative over this pack's restatements.
 
-- **OWASP Application Security Verification Standard (ASVS) 4.0.3** — OWASP Foundation. https://owasp.org/www-project-application-security-verification-standard/
+- **OWASP Application Security Verification Standard (ASVS) 5.0.0** — OWASP Foundation. https://owasp.org/www-project-application-security-verification-standard/ (5.0.0, May 2025, supersedes 4.0.3 and renumbers requirement IDs — this pack distils ASVS by concept and cites no specific requirement number, so it tracks the current version.)
 
 ## Related AKOS packs
 

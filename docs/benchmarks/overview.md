@@ -14,7 +14,7 @@ Each case is a synthetic mini-project (`fixture/`) small enough to read in one s
 
 ## What the numbers mean, and don't
 
-`akos benchmark run` reports recall and precision. Read the printed caveat literally: this is computed **only** over the curated `must_detect`/`must_not_detect` corpus in `benchmarks/cases/`, 21 cases as of this writing. It is a **regression guard** — did a change break a case that used to pass — not a statistically valid claim about detection rates on arbitrary real-world code. A 100% recall/precision score here means "every case we thought to write still passes," not "this rule never misses anything real." The corpus gets more representative only as it grows, and growth is a real, ongoing task — see "No silent caps" below.
+`akos benchmark run` reports recall and precision. Read the printed caveat literally: this is computed **only** over the curated `must_detect`/`must_not_detect` corpus in `benchmarks/cases/`, 28 cases as of this writing. It is a **regression guard** — did a change break a case that used to pass — not a statistically valid claim about detection rates on arbitrary real-world code. A 100% recall/precision score here means "every case we thought to write still passes," not "this rule never misses anything real." The corpus gets more representative only as it grows, and growth is a real, ongoing task — see "No silent caps" below.
 
 ## No silent caps
 
@@ -22,7 +22,7 @@ If a rule or domain isn't covered by any case, that's a real gap, not a hidden o
 
 ## Level A/B vs. Level C
 
-The 21 cases split 19 deterministic (Level A/B, the rules engine) and 2 Level-C (mock-provider, keyword-matched). The deterministic cases are the ones the recall/precision arithmetic covers — Level C cases are graded pass/fail individually and explicitly not pooled into that arithmetic, since "does the response mention this phrase" is a much weaker signal than "did the detector find this exact line."
+The 28 cases split 26 deterministic (Level A/B, the rules engine) and 2 Level-C (mock-provider, keyword-matched). The deterministic cases are the ones the recall/precision arithmetic covers — Level C cases are graded pass/fail individually and explicitly not pooled into that arithmetic, since "does the response mention this phrase" is a much weaker signal than "did the detector find this exact line."
 
 ## Real bugs this benchmark suite already caught
 

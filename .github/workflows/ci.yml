@@ -5,26 +5,42 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
 
       - name: Bash syntax check
         run: |
           set -e
-          for f in bin/akos install.sh update.sh doctor.sh uninstall.sh; do
+          for f in bin/akos install.sh update.sh doctor.sh uninstall.sh merge-pr.sh; do
             echo "bash -n $f"
             bash -n "$f"
           done
 
-      - name: shellcheck (advisory — not gating)
+      - name: shellcheck (gating)
+        # ubuntu-latest ships shellcheck. For a project whose highest-risk code
+        # is bash, the one tool that catches unquoted expansions must be able to
+        # fail the build — no `|| true`, no silent skip.
+        # SC2088 excluded: the scripts print `~/...` in human-readable status
+        # messages by design; every REAL path uses $HOME. Excluding it here
+        # keeps intent in one visible place rather than scattering per-line
+        # disables through the display strings.
         run: |
-          if command -v shellcheck >/dev/null 2>&1; then
-            shellcheck -x bin/akos install.sh update.sh doctor.sh uninstall.sh || true
-          else
-            echo "shellcheck not available on this runner — skipping (advisory only, never gates CI)"
+          shellcheck --version
+          shellcheck -x -S warning -e SC2088 bin/akos install.sh update.sh doctor.sh uninstall.sh merge-pr.sh
+
+      - name: No tracked Python bytecode
+        # .gitignore does not untrack already-tracked files; a committed .pyc
+        # regenerates locally and breaks `git pull --ff-only` in update.sh.
+        run: |
+          if git ls-files | grep -E '\.pyc$|__pycache__/'; then
+            echo "tracked bytecode above — run: git rm -r --cached the paths, then commit"
+            exit 1
           fi
 
       - name: Python syntax check
