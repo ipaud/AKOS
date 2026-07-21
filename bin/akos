@@ -96,7 +96,7 @@ Commands:
   list-skills          List the agent skills (Claude Code + Codex CLI)
   show-profile [name]  Show a reasoning profile (or list them)
   review <domain>      Print the prompt to run a review (ux|security|architecture|full)
-  create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the 17-file structure
+  create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the required file set
   validate [target]    Validate packs/agents/workflows against their schemas (--format json)
   check-config [dir]   Check a project's .akos/config.md against the allowed value set
   profile <sub>        list|show <name>|create <name>|use <name> [dir] — personal profiles
@@ -292,9 +292,13 @@ cmd_create_pack() {
   if [ -d "$dest" ]; then err "Pack already exists: $dest"; return 1; fi
   mkdir -p "$dest"
 
-  local files=(README.md philosophy.md mental-models.md principles.md heuristics.md \
-    engineering-rules.md decision-framework.md anti-patterns.md review-checklist.md \
-    examples.md prompt-fragments.md scoring-rubric.md glossary.md references.md)
+  # Scaffold the REQUIRED files only. The five optional file-types
+  # (philosophy, mental-models, examples, prompt-fragments, glossary) are added
+  # by hand when the source has something distinct to say — scaffolding them as
+  # empty stubs was ceremony that made "the template ran" look like content.
+  local files=(README.md principles.md heuristics.md \
+    engineering-rules.md decision-framework.md anti-patterns.md \
+    review-checklist.md scoring-rubric.md references.md)
   local f
   for f in "${files[@]}"; do
     printf '# %s — %s\n\n<!-- Fill per core/knowledge-schema.md. Distill, never copy (core/source-policy.md). -->\n' \
@@ -326,7 +330,7 @@ maintainer: core
 license: MIT
 deprecated: false
 EOF
-  ok "Scaffolded pack at $dest (17 files). Fill principles.md first."
+  ok "Scaffolded pack at $dest (12 required files). Fill principles.md first."
   warn "Add '$name' to the routing table in skills/akos/SKILL.md, then run ./doctor.sh"
 }
 

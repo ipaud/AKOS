@@ -3,6 +3,23 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.9.0] — 2026-07-21
+
+Audit follow-ups: consistency guards and a right-sized pack contract. Four
+findings the 1.8.0 remediation left for a considered pass, each landed on its
+own with the same discipline — a claim that must stay true became a check.
+
+### Added
+
+- **Sources are grounded in the reading list.** `metadata.yaml`'s `sources[]` and `references.md` are two lists of the same citations, and they had drifted — 18 packs named a structured source that did not appear in the pack's own reading list (a renamed or invented title). Aligned all 18 to their `references.md` bullet verbatim, and added `test_sources_references_integrity.py`: every `sources[].title` must appear in `references.md`. The audit's "52/54 disagree" was a raw-count overcount; the real integrity violation was 18, now 0.
+- **Every rule-code prefix is defined by exactly one pack.** Nine prefixes were owned by two packs (an ambiguous `AP1` — which pack?). Four were genuine dual-definition, resolved by renaming the pack with zero external citations: apple-hig `AP→AHE`, escaping-the-build-trap `BE→BTE`, css `CE→CSE`, continuous-discovery `CE→CDE`, deployment `DP/DP-E→DPL/DPL-E`. The other five (OW, ER, NR, NG, WC) were citation artifacts — one pack defines the series, others cite it — so `test_pack_prefix_uniqueness` now counts definitions only (a code at a list-item start), not citations, and asserts zero collisions with no baseline to grandfather.
+- **The Maintainability rubric that the template required but never had.** `Maintainability` is a scored line in all four Review Summary copies and carries a profile weight, but no `scoring/maintainability-score.md` existed. Added it (naming, unit size, nesting, error handling, coverage, dead code; distinct from Architecture).
+- **`doctor.sh` cross-checks manifest descriptive fields**, not just `version` — `displayName`/`description`/`license` must agree across all four plugin manifests, so a one-line edit can't ship two product descriptions to two marketplaces with a green build.
+
+### Changed
+
+- **The 17-file pack contract is now 12 required + 5 optional.** The optional file-types (`philosophy`, `mental-models`, `examples`, `prompt-fragments`, `glossary`) are present only when the source has something distinct to say; `doctor.sh` enforces the required 12, and `akos create-pack` scaffolds only those rather than emitting empty stubs that make "the template ran" look like content. A read-based audit of all 162 optional files (not a line-count heuristic) found the file-types are overwhelmingly NOT ceremony — every `philosophy.md` is a genuine worldview, every `mental-models.md` names a real framework — so only **3** glossaries that pure-re-index a numbered principle catalog were removed (twelve-factor-app, continuous-discovery-habits, universal-principles-of-design). The audit's premise that these files are mass ceremony did not survive reading them.
+
 ## [1.8.0] — 2026-07-21
 
 Audit remediation. A multi-lens audit (self-run plus an external report) found

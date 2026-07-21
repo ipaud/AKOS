@@ -10,7 +10,7 @@ AI coding agents write plausible code but make junior decisions: unclear navigat
 
 ## How it works
 
-1. **Knowledge packs** (`packs/`) distill one source or domain each (e.g. `packs/ux/steve-krug/`, `packs/security/owasp-top-10/`). Domain packs share the same 17-file structure; personal packs under `packs/personal/` use a 10-file layout — see [core/knowledge-schema.md](core/knowledge-schema.md).
+1. **Knowledge packs** (`packs/`) distill one source or domain each (e.g. `packs/ux/steve-krug/`, `packs/security/owasp-top-10/`). Domain packs share a required-file structure (12 required files, 5 optional); personal packs under `packs/personal/` use a 10-file layout — see [core/knowledge-schema.md](core/knowledge-schema.md).
 2. **The core layer** (`core/`) defines how agents reason with the packs: [authority hierarchy](core/authority-model.md), [conflict resolution](core/conflict-resolution.md), [reasoning profiles](core/reasoning-profiles.md) (Prototype → Enterprise), and the [review pipeline](core/review-pipeline.md).
 3. **Agents** (`agents/`) are reviewer role definitions — which packs to load, what to check, severity levels, and a unified report format.
 4. **Workflows** (`workflows/`) chain agents for concrete tasks: new project, new feature, pre-release review.
@@ -124,7 +124,7 @@ On tools without skills, use the prompts in `prompts/` (`run-full-review.md`, `r
 akos create-pack ux/my-new-source
 ```
 
-This scaffolds the 17-file structure. Fill it following [core/knowledge-schema.md](core/knowledge-schema.md) and the copyright rules in [core/source-policy.md](core/source-policy.md): distill, never copy; cite by title/author/URL only. `prompts/create-new-pack.md` is a ready prompt to have an agent draft it.
+This scaffolds the required files (optional file-types are added by hand when the source has something distinct to say). Fill it following [core/knowledge-schema.md](core/knowledge-schema.md) and the copyright rules in [core/source-policy.md](core/source-policy.md): distill, never copy; cite by title/author/URL only. `prompts/create-new-pack.md` is a ready prompt to have an agent draft it.
 
 ## Add personal rules
 

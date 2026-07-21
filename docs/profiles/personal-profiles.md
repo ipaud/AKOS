@@ -12,7 +12,7 @@ Personal profiles stay under `packs/personal/<name>/`, not a parallel top-level 
 
 ## The 10-file contract
 
-Different from the standard 17-file knowledge-pack contract (`core/knowledge-schema.md`) — a personal profile encodes one person's preferences, not a distillation of an external source, so it has no `metadata.yaml`, no `philosophy.md`, no `scoring-rubric.md`.
+Different from the standard knowledge-pack contract (`core/knowledge-schema.md`) — a personal profile encodes one person's preferences, not a distillation of an external source, so it has no `metadata.yaml`, no `philosophy.md`, no `scoring-rubric.md`.
 
 | File | Purpose |
 |---|---|

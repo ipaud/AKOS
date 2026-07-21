@@ -1,6 +1,6 @@
 # Contract: knowledge pack `metadata.yaml`
 
-Machine schema: [`schemas/knowledge-pack.schema.json`](../../schemas/knowledge-pack.schema.json). Run `akos validate packs` to check a pack against it. The *why* of the 17-file contract lives in [`core/knowledge-schema.md`](../../core/knowledge-schema.md) — this document is the exact field-by-field *what* of `metadata.yaml` specifically.
+Machine schema: [`schemas/knowledge-pack.schema.json`](../../schemas/knowledge-pack.schema.json). Run `akos validate packs` to check a pack against it. The *why* of the pack file contract lives in [`core/knowledge-schema.md`](../../core/knowledge-schema.md) — this document is the exact field-by-field *what* of `metadata.yaml` specifically.
 
 ## Field reference
 

@@ -20,7 +20,7 @@ The quality-infrastructure initiative (schemas, validation, rules, benchmarks, e
 
 ## What did *not* change
 
-- The 17-file pack contract, the 13 agent files' prose bodies, the 9 workflows, the 45+ knowledge packs' content, the reasoning-profile weight tables, the review pipeline's severity/decision semantics, the personal layer's authority (Level 0, below the safety floor) — none of this initiative touches knowledge content, only the verification layer around it.
+- The pack file contract, the 13 agent files' prose bodies, the 9 workflows, the 45+ knowledge packs' content, the reasoning-profile weight tables, the review pipeline's severity/decision semantics, the personal layer's authority (Level 0, below the safety floor) — none of this initiative touches knowledge content, only the verification layer around it.
 - `bin/akos`'s 10 pre-existing commands' behavior and exit codes.
 - `write_marked_section`'s external contract (still called the same way by every caller) — only its internal implementation changed, to fix the BSD-awk multi-line bug found in M4.
 
