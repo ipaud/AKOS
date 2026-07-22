@@ -32,10 +32,16 @@ else
   fi
 fi
 
-# 3. Create ~/bin and the akos symlink.
+# 3. Create ~/bin and the akos symlink. Never clobbers a real file.
 mkdir -p "$HOME/bin"
-if [ -L "$HOME/bin/akos" ] || [ -e "$HOME/bin/akos" ]; then
-  ln -sf "$AKOS_HOME/bin/akos" "$HOME/bin/akos" && ok "refreshed ~/bin/akos → $AKOS_HOME/bin/akos"
+if [ -L "$HOME/bin/akos" ]; then
+  if [ "$(readlink "$HOME/bin/akos")" = "$AKOS_HOME/bin/akos" ]; then
+    ok "~/bin/akos already linked"
+  else
+    ln -sfn "$AKOS_HOME/bin/akos" "$HOME/bin/akos" && ok "refreshed ~/bin/akos → $AKOS_HOME/bin/akos"
+  fi
+elif [ -e "$HOME/bin/akos" ]; then
+  warn "~/bin/akos is a real file — leaving it untouched (the 'akos' CLI won't be linked; move it aside and re-run)"
 else
   ln -s "$AKOS_HOME/bin/akos" "$HOME/bin/akos" && ok "symlinked ~/bin/akos"
 fi

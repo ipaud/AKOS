@@ -62,4 +62,20 @@ bash "$COPY/install.sh" >"$TMP/out5" 2>&1 || fail "install.sh exited non-zero wi
 [ ! -L "$HOME/DEV" ] || fail "install.sh replaced a real ~/DEV directory with a symlink"
 pass "a real ~/DEV directory is left untouched"
 
+# 6. No-clobber: a REAL file at ~/bin/akos survives untouched.
+rm "$HOME/bin/akos"
+echo "user script" > "$HOME/bin/akos"
+bash "$COPY/install.sh" >"$TMP/out6" 2>&1 || fail "install.sh exited non-zero with a real file at ~/bin/akos"
+[ ! -L "$HOME/bin/akos" ] || fail "install.sh replaced a user's real ~/bin/akos with a symlink"
+grep -q "user script" "$HOME/bin/akos" || fail "user's real ~/bin/akos was overwritten"
+grep -q "leaving it untouched" "$TMP/out6" || fail "expected the no-clobber warning for ~/bin/akos"
+pass "a real file at ~/bin/akos survives with a warning"
+
+# 7. A foreign symlink at ~/bin/akos IS relinked (a symlink holds no content).
+rm "$HOME/bin/akos"
+ln -s /usr/bin/true "$HOME/bin/akos"
+bash "$COPY/install.sh" >"$TMP/out7" 2>&1 || fail "install.sh exited non-zero with a foreign symlink at ~/bin/akos"
+[ "$(readlink "$HOME/bin/akos")" = "$COPY/bin/akos" ] || fail "foreign symlink at ~/bin/akos was not relinked"
+pass "a foreign symlink at ~/bin/akos is relinked"
+
 echo "PASS: test_install_isolated.sh"

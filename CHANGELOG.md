@@ -3,6 +3,25 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.9.1] — 2026-07-22
+
+A data-loss fix in `install.sh`. The 1.8.0 remediation added no-clobber guards
+to the skill and agent link steps, but step 3 — the `~/bin/akos` CLI symlink —
+was left on the old code path.
+
+### Fixed
+
+- **`install.sh` no longer destroys a real `~/bin/akos`.** The guard folded
+  symlinks and regular files into one branch (`[ -L … ] || [ -e … ]`) and ran
+  `ln -sf`, silently replacing any real file a user kept at that path — directly
+  contradicting the script header's "Never destroys content" promise and the
+  no-clobber discipline every other link step already followed. Step 3 now uses
+  the same three-branch shape as `link_skill()`: an own symlink is a no-op, a
+  foreign symlink is relinked (a symlink holds no content), and a **real file is
+  left untouched with a warning**. `test_install_isolated.sh` gained two cases —
+  a real file at `~/bin/akos` survives with the warning, and a foreign symlink
+  is relinked — the first of which failed against the pre-fix script.
+
 ## [1.9.0] — 2026-07-21
 
 Audit follow-ups: consistency guards and a right-sized pack contract. Four
