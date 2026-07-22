@@ -44,7 +44,7 @@ akos rules run <dir> [--rule ID] [--domain D] [--profile NAME] [--format json]
 akos rules explain <RULE_ID>
 ```
 
-Exit codes: `0` clean, `1` setup error, `2` an open CRITICAL finding exists. Only CRITICAL gates the exit code — the one severity `core/review-pipeline.md` itself says "always blocks, every profile."
+Exit codes (fail-closed): `0` ran to completion with no blocking finding; `2` ran to completion with a **blocking** finding (an open CRITICAL, or a finding a rule marks `blocking`); `1` the scan was **incomplete** (bad registry, unloadable detector, detector with no `run()`, internal exception) or a setup error. Errors and findings are separate: a detector that cannot run is an `ExecutionError`, never a finding, and never a clean pass — if both exist, `1` wins. `--format json` returns `{status, summary, findings, errors}`.
 
 ## Adding a rule
 

@@ -3,6 +3,75 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.10.0] — 2026-07-22
+
+P0 security hardening. Five places where a promise in the docs was not enforced
+by the code — the exact "a claim that must stay true belongs in a check, not in
+prose" failure this project exists to prevent, turned on itself. Each fix lands
+with a positive test, an adversarial test, and where relevant a near-miss that
+must still pass.
+
+### Fixed
+
+- **Non-destructive install now covers the CLI, skills, and agents uniformly.**
+  All four symlink sites in `install.sh` route through one portable helper
+  (`link_managed`) with a single classified contract: an own symlink is a no-op;
+  a symlink pointing at a *different, still-valid AKOS install* is refreshed; a
+  **foreign** symlink is left intact with a warning (previously any non-own
+  symlink was relinked); a real file or directory is left untouched with a
+  warning; only a genuinely-absent destination is created. `_is_akos_managed_link`
+  recognises a prior install by a matching sub-path under a home with
+  `core/constitution.md` + `VERSION`, so an unrelated tool at a managed path is
+  never adopted. `test_install_isolated.sh` gains the foreign-symlink,
+  real-directory, prior-install-refresh, and foreign-skill cases.
+
+- **`.akos/config.md` is treated as untrusted manifest data, not authority.**
+  The repo config comes from whatever checkout is under review, so the skills no
+  longer call it "binding": a new precedence — safety floor, then the current
+  user, then the operator's local config, then the repo manifest, then defaults —
+  makes explicit that the repo can supply facts and hints and can *raise*
+  scrutiny (`Deployed: yes`) but can never lower the safety floor, change lens
+  weights, or add arbitrary reading. `schemas/config_check.py` now also validates
+  `Deployed` as exactly `yes`/`no` (duplicates rejected) and flags any non-empty
+  repo-side `Profile overrides`; a clean `check-config` validates *form*, not
+  trust. New `test_config_trust_boundary.py` fails if the authority-conferring
+  phrasing ("is binding", "not negotiable", …) ever returns.
+
+- **The rules runner is fail-closed.** `rules/runner.py` used to turn a broken
+  detector into a MEDIUM finding and skip an unparseable registry with a warning,
+  then exit 0 on an incomplete scan. Findings and operational errors are now
+  separate results (`ScanResult` / `ExecutionError`): a registry that will not
+  parse, a detector that will not load, a detector with no `run()`, or a detector
+  that raises is an error, not a finding — status `error`, exit 1, and if errors
+  and findings coexist, exit 1 wins. `--format json` returns an object
+  `{status, summary, findings, errors}`. `doctor.sh` and CI now gate on the scan
+  *completing* (no operational errors), and CI fails loudly on a malformed
+  registry.
+
+- **A realistic secret blocks on every path.** The blanket per-folder downgrade
+  to LOW (in both the runner and the secret detector) is gone: a live vendor key,
+  a `service_role` JWT, or a high-entropy generic secret is marked `blocking` and
+  gates the exit code wherever it sits — `tests/`, `fixtures/`, `docs/`, or
+  shipping source. Severity is decided per rule and evidence, never by directory.
+  AKOS's own synthetic corpus stays clean not by a path exception but by keeping
+  credential-shaped literals out of version control: benchmark fixtures store
+  non-detectable placeholders that the harness materialises into a throwaway temp
+  copy at scan time, and unit-test tokens are assembled at runtime. The
+  fixture-downgrade tests are rewritten to the new contract (detected and
+  blocking, not LOW).
+
+- **Review history ids are unique and published atomically.** `schemas/history.py`
+  keyed reviews by `timestamp-type` at second precision with
+  `mkdir(exist_ok=True)`, so two records in the same second collided and the
+  second overwrote the first, and the three files were written straight into the
+  final directory, so a crash left a partial review. Ids now carry a
+  `secrets.token_hex(4)` suffix (a sortable prefix, not the identity), and a
+  record is staged in a sibling temp dir and published by an atomic
+  `os.rename` — a published review is never overwritten (rename onto it fails and
+  the id is regenerated), and a mid-write failure leaves no partial review and no
+  orphan staging dir. Concurrent records all survive. Malformed review JSON is
+  handled on read instead of crashing `list`/`compare`.
+
 ## [1.9.1] — 2026-07-22
 
 A data-loss fix in `install.sh`. The 1.8.0 remediation added no-clobber guards

@@ -21,9 +21,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import secrets
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 # The secret patterns live with the detector that owns them. Importing them
@@ -89,9 +93,21 @@ def ensure_gitignored(project_dir: Path) -> bool:
     return True
 
 
+# How many fresh ids to try before giving up on a publish. A collision needs
+# the same UTC second, the same type, AND the same 8 random hex chars, so one
+# retry is already astronomically sufficient; the bound is a safety net, not a
+# hot path.
+MAX_ID_ATTEMPTS = 5
+
+
 def make_review_id(review_type: str, timestamp: str) -> str:
+    # A sortable, legible prefix (timestamp + type) plus stdlib entropy. The
+    # timestamp alone is NOT the identity — two reviews of the same type in the
+    # same second used to collide and the second overwrote the first. The
+    # random suffix is what makes the id unique; no PID, no sub-second clock,
+    # no external ULID dependency.
     safe_type = re.sub(r"[^a-zA-Z0-9_-]", "-", review_type)
-    return f"{timestamp}-{safe_type}"
+    return f"{timestamp}-{safe_type}-{secrets.token_hex(4)}"
 
 
 def cmd_record(args) -> int:
@@ -122,10 +138,8 @@ def cmd_record(args) -> int:
     timestamp = args.timestamp  # injected by caller (bash `date`) — this module never calls
                                   # datetime.now() itself, since Date.now()-equivalents are
                                   # explicitly the one thing that must come from the caller
-                                  # for reproducibility in any replay/resume context.
-    review_id = make_review_id(args.type, timestamp)
-    out_dir = reviews_dir(project_dir) / review_id
-    out_dir.mkdir(parents=True, exist_ok=True)
+                                  # for reproducibility in any replay/resume context. It is a
+                                  # sortable prefix, not the unique id — uniqueness is added here.
 
     # Redact at write time, not at display time. A security review is
     # required to quote the credential it found — the report format demands
@@ -133,24 +147,69 @@ def cmd_record(args) -> int:
     # and it lands in the consuming project where it may well get committed.
     # Once written, unredacting is not an option available to anyone.
     report_text, redacted = redact_secrets(report_path.read_text(encoding="utf-8"))
-    (out_dir / "report.md").write_text(report_text, encoding="utf-8")
+    report_json = json.dumps({"decision": args.decision, "scores": scores}, indent=2)
 
-    metadata = {
-        "review_id": review_id,
-        "type": args.type,
-        "timestamp": timestamp,
-        "profile": args.profile,
-        "decision": args.decision,
-        **git_info(project_dir),
-        "packs_loaded": packs,
-    }
-    (out_dir / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-    (out_dir / "report.json").write_text(json.dumps({"decision": args.decision, "scores": scores}, indent=2), encoding="utf-8")
+    reviews = reviews_dir(project_dir)
+    reviews.mkdir(parents=True, exist_ok=True)
+
+    # Atomic, no-clobber publish. Stage the three files in a sibling temp dir,
+    # verify all three exist and re-parse, then os.rename onto the final id —
+    # atomic within one filesystem (the temp dir is a sibling). A PUBLISHED
+    # review dir is non-empty, so os.rename onto it fails and it is never
+    # overwritten; on that collision we regenerate the id and retry. A crash
+    # mid-write leaves only the temp dir, which is removed — never a partial
+    # final review. Uniqueness comes from the random id + the atomic rename,
+    # not a check-then-create race, so concurrent records all survive.
+    published = False
+    review_id = ""
+    final_dir = reviews
+    last_err: Exception | None = None
+    for _ in range(MAX_ID_ATTEMPTS):
+        review_id = make_review_id(args.type, timestamp)
+        final_dir = reviews / review_id
+        staging = Path(tempfile.mkdtemp(prefix=".tmp-review-", dir=reviews))
+        try:
+            metadata = {
+                "review_id": review_id,
+                "type": args.type,
+                "timestamp": timestamp,
+                "profile": args.profile,
+                "decision": args.decision,
+                **git_info(project_dir),
+                "packs_loaded": packs,
+            }
+            (staging / "report.md").write_text(report_text, encoding="utf-8")
+            (staging / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+            (staging / "report.json").write_text(report_json, encoding="utf-8")
+            for name in ("report.md", "metadata.json", "report.json"):
+                if not (staging / name).is_file():
+                    raise OSError(f"staged file missing: {name}")
+            json.loads((staging / "metadata.json").read_text(encoding="utf-8"))
+            json.loads((staging / "report.json").read_text(encoding="utf-8"))
+            os.rename(staging, final_dir)  # atomic; fails if final_dir is a non-empty published review
+            published = True
+            break
+        except OSError as e:
+            shutil.rmtree(staging, ignore_errors=True)
+            if final_dir.exists():
+                last_err = e
+                continue  # id collision — a published review must never be overwritten
+            print(f"error: could not record review ({e}); nothing was published", file=sys.stderr)
+            return 1
+        except Exception as e:  # noqa: BLE001 - any failure must leave no partial review
+            shutil.rmtree(staging, ignore_errors=True)
+            print(f"error: could not record review ({e}); nothing was published", file=sys.stderr)
+            return 1
+
+    if not published:
+        print(f"error: could not allocate a unique review id after {MAX_ID_ATTEMPTS} attempts "
+              f"({last_err}); nothing was published", file=sys.stderr)
+        return 1
 
     if ensure_gitignored(project_dir):
         print(f"  added {GITIGNORE_ENTRY} to .gitignore (reports can quote what they find)")
 
-    print(f"recorded {review_id} in {out_dir}")
+    print(f"recorded {review_id} in {final_dir}")
     if redacted:
         # Say so. A redaction the caller never learns about is the same
         # class of defect as no redaction: the reviewer keeps believing the
@@ -169,18 +228,28 @@ def cmd_list(args) -> int:
     for entry in sorted(d.iterdir()):
         if not entry.is_dir():
             continue
+        # Skip the in-flight staging dirs a concurrent record may be writing;
+        # they are not published reviews.
+        if entry.name.startswith(".tmp-review-"):
+            continue
         meta_path = entry / "metadata.json"
         if not meta_path.exists():
             continue
-        meta = json.loads(meta_path.read_text())
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            # A corrupt metadata file is not a listable review — skip it with a
+            # note rather than crashing the whole listing on one bad entry.
+            print(f"  {entry.name:<40} (unreadable metadata.json — skipped)")
+            continue
         print(f"  {entry.name:<40} {meta.get('decision', '?'):<16} profile={meta.get('profile', '?')}")
     return 0
 
 
 def _load_review(project_dir: Path, review_id: str) -> tuple[dict, dict]:
     d = reviews_dir(project_dir) / review_id
-    meta = json.loads((d / "metadata.json").read_text())
-    report = json.loads((d / "report.json").read_text())
+    meta = json.loads((d / "metadata.json").read_text(encoding="utf-8"))
+    report = json.loads((d / "report.json").read_text(encoding="utf-8"))
     return meta, report
 
 
@@ -190,6 +259,9 @@ def cmd_show(args) -> int:
         meta, report = _load_review(project_dir, args.review_id)
     except FileNotFoundError:
         print(f"error: no such review: {args.review_id}", file=sys.stderr)
+        return 1
+    except json.JSONDecodeError as e:
+        print(f"error: review {args.review_id} has corrupt JSON ({e})", file=sys.stderr)
         return 1
     print(json.dumps({**meta, **report}, indent=2))
     return 0
@@ -224,6 +296,9 @@ def cmd_compare(args) -> int:
         meta_b, report_b = _load_review(project_dir, args.review_b)
     except FileNotFoundError as e:
         print(f"error: {e}", file=sys.stderr)
+        return 1
+    except json.JSONDecodeError as e:
+        print(f"error: a review being compared has corrupt JSON ({e})", file=sys.stderr)
         return 1
 
     result = {

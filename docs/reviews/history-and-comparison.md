@@ -9,13 +9,15 @@ Same reasoning as `.akos/config.md`: review history is state about *a project*, 
 ## Layout
 
 ```
-.akos/reviews/<timestamp>-<type>/
+.akos/reviews/<timestamp>-<type>-<random>/
   report.md       # the full Review Summary, verbatim
   report.json      # { decision, scores }
   metadata.json     # review_id, type, timestamp, profile, git commit/branch, packs_loaded
 ```
 
-`<timestamp>` is UTC, `YYYYMMDDTHHMMSSZ` — computed by `bin/akos`'s bash wrapper at record time (`date -u +%Y%m%dT%H%M%SZ`), never by the Python module itself, so nothing in the history subsystem depends on wall-clock time except at the one point it's actually needed.
+`<timestamp>` is UTC, `YYYYMMDDTHHMMSSZ` — computed by `bin/akos`'s bash wrapper at record time (`date -u +%Y%m%dT%H%M%SZ`), never by the Python module itself, so nothing in the history subsystem depends on wall-clock time except at the one point it's actually needed. It is a **sortable, human-readable prefix, not the identity**: the id ends with `-<random>` (`secrets.token_hex(4)`), added by the Python module, so two reviews of the same type in the same second get distinct directories instead of the second silently overwriting the first.
+
+**Atomic, no-clobber publish.** A record stages `report.md`, `metadata.json`, and `report.json` into a sibling temp dir, verifies all three exist and re-parse, then `os.rename`s the temp dir onto the final id — atomic within one filesystem. A published review directory is non-empty, so a rename onto it fails and it is never overwritten; on that (astronomically unlikely) collision the id is regenerated and the publish retried. A crash mid-write leaves only the temp dir, which is removed — never a partially-written review. `metadata.json`'s `review_id` always equals the published directory name.
 
 ## Commands
 

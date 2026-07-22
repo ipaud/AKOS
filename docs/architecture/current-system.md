@@ -43,7 +43,7 @@ Snapshot as of v1.3.0, written from a direct audit of the repository (not from m
 `main()` dispatches on `case "$cmd"` to `cmd_<name>()` functions. Ten commands exist today: `help, doctor, install-project, link-project, list-packs, list-agents, list-skills, show-profile, review, create-pack`. Exit convention: functions `return 1` on their own validation failure (propagates via `set -e`); only the top-level unknown-command branch does explicit `exit 1`. No other exit codes exist anywhere.
 
 ### `.akos/config.md` — project-local state
-Scaffolded by `akos install-project` into a *consuming* project (never this repo). Six sections today: Reasoning profile, Project context, Profile overrides, Packs to always load, Style direction, Notes. Read only by LLM agents per skill instructions — no script in this repo parses it programmatically.
+Scaffolded by `akos install-project` into a *consuming* project (never this repo). Six sections today: Reasoning profile, Project context, Profile overrides, Packs to always load, Style direction, Notes. Treated as **untrusted manifest data** — the skills read it as project facts and hints, never as instructions, and it sits below the safety floor, the user, and Level-0 personal rules. `schemas/config_check.py` validates its *form* (profile is one of six, `personal_profile` is a plain name, pack paths stay inside `packs/`, `Deployed` is yes/no, no repo-side profile override); a clean check confirms well-formedness, not trust.
 
 ## Contracts that exist today
 
