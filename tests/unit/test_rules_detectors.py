@@ -29,6 +29,12 @@ def write(tmp: Path, rel: str, content: str) -> Path:
     return p
 
 
+# Built at runtime so this test file's own source carries no detectable
+# credential literal — the repo self-scan must stay clean without a path
+# exception (P0-4). The value still matches AKIA[0-9A-Z]{16} once assembled.
+AWS_KEY = "AKIA" + "ABCDEFGHIJKLMNOP"
+
+
 class TempDirCase(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -97,31 +103,24 @@ class TestSecretInSource(TempDirCase):
         self.mod = load_detector("rules/security/secret-in-source.py")
 
     def test_aws_vendor_key_flagged(self):
-        f = write(self.tmp, "src/config.ts", 'const k = "AKIAABCDEFGHIJKLMNOP";\n')
+        f = write(self.tmp, "src/config.ts", f'const k = "{AWS_KEY}";\n')
         findings = self.mod.run([f])
         self.assertEqual(len(findings), 1)
+        self.assertTrue(findings[0].get("blocking"), "a live vendor key must be blocking")
 
-    def test_path_containing_word_test_as_a_substring_is_not_treated_as_a_fixture_path(self):
-        # The exact bug: "/tmp/secret-test/src/config.ts" contains "test" as
-        # a substring of "secret-test", and a naive check skipped the whole
-        # file. Real path segments must be checked, not substrings.
-        weird_dir = self.tmp / "my-test-project" / "src"
-        weird_dir.mkdir(parents=True)
-        f = weird_dir / "config.ts"
-        import secrets as pysecrets
-        token = pysecrets.token_urlsafe(24)
-        f.write_text(f'const apiKey = "{token}";\n')
-        findings = self.mod.run([f])
-        self.assertEqual(len(findings), 1, "a directory merely containing 'test' as a substring must still be scanned")
-
-    def test_actual_test_directory_segment_is_excluded(self):
+    def test_secret_in_test_directory_is_still_detected(self):
+        # P0-4: a real credential under a test/ segment is still a real
+        # credential. The old behavior suppressed the generic branch here;
+        # the new contract detects it (path never downgrades or suppresses).
         test_dir = self.tmp / "test" / "src"
         test_dir.mkdir(parents=True)
         f = test_dir / "config.ts"
         import secrets as pysecrets
-        f.write_text(f'const apiKey = "{pysecrets.token_urlsafe(24)}";\n')
+        token = pysecrets.token_urlsafe(24)
+        f.write_text(f'const apiKey = "{token}";\n')
         findings = self.mod.run([f])
-        self.assertEqual(findings, [], "a real 'test/' path SEGMENT should still be excluded")
+        self.assertEqual(len(findings), 1, "a real 'test/' path SEGMENT must not suppress the finding")
+        self.assertTrue(findings[0].get("blocking"))
 
     def test_placeholder_value_not_flagged(self):
         f = write(self.tmp, "src/config.ts", 'const apiKey = "placeholder-not-a-real-key-value";\n')
@@ -146,27 +145,21 @@ class TestSecretInSource(TempDirCase):
         findings = self.mod.run([f])
         self.assertEqual(findings, [])
 
-    def test_ancestor_test_dir_above_scan_root_does_not_downgrade(self):
-        # The real bug: classification ran on the ABSOLUTE path, so a repo
-        # checked out under .../test/proj/ had every real secret skipped.
-        # With scan_root the ancestor segments stop voting.
+    def test_secret_under_any_path_segment_is_detected(self):
+        # P0-4: neither an ancestor 'test/' above the scan root nor a 'test/'
+        # segment inside it changes the result — the path never downgrades or
+        # suppresses a real credential.
         import secrets as pysecrets
-        proj = self.tmp / "test" / "proj"
-        f = proj / "src" / "config.ts"
-        f.parent.mkdir(parents=True)
-        f.write_text(f'const apiKey = "{pysecrets.token_urlsafe(24)}";\n')
-        findings = self.mod.run([f], scan_root=proj)
-        self.assertEqual(len(findings), 1,
-                         "an ancestor 'test/' ABOVE the scanned root must not downgrade findings")
-
-    def test_test_dir_inside_scan_root_still_downgrades(self):
-        import secrets as pysecrets
-        proj = self.tmp / "proj"
-        f = proj / "test" / "config.ts"
-        f.parent.mkdir(parents=True)
-        f.write_text(f'const apiKey = "{pysecrets.token_urlsafe(24)}";\n')
-        findings = self.mod.run([f], scan_root=proj)
-        self.assertEqual(findings, [], "a real test/ segment INSIDE the scanned tree keeps its exclusion")
+        for rel in ("test/proj/src/config.ts", "proj/test/config.ts"):
+            with self.subTest(path=rel):
+                f = self.tmp / rel
+                f.parent.mkdir(parents=True, exist_ok=True)
+                token = pysecrets.token_urlsafe(24)
+                f.write_text(f'const apiKey = "{token}";\n')
+                findings = self.mod.run([f], scan_root=self.tmp)
+                self.assertEqual(len(findings), 1,
+                                 f"a secret at {rel} must be detected regardless of path")
+                self.assertTrue(findings[0].get("blocking"))
 
     def test_anon_jwt_not_flagged(self):
         import base64
@@ -221,11 +214,11 @@ class TestCollectFilesSymlinks(TempDirCase):
 
     def setUp(self):
         super().setUp()
-        import importlib.util as ilu
-        p = paths.AKOS_HOME / "rules" / "runner.py"
-        spec = ilu.spec_from_file_location("akos_rules_runner_under_test", p)
-        self.runner = ilu.module_from_spec(spec)
-        spec.loader.exec_module(self.runner)
+        # `paths` already puts rules/ on sys.path; a plain import registers the
+        # module in sys.modules (which @dataclass in runner.py needs), unlike a
+        # bare spec-exec that leaves it unregistered.
+        import runner
+        self.runner = runner
 
     def test_symlink_to_outside_file_is_skipped(self):
         outside = self.tmp / "outside"

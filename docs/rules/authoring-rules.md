@@ -43,7 +43,11 @@ def run(files: list[Path]) -> list[dict]:
     return [{"evidence": [{"path": str(path), "line_start": n, "line_end": n, "snippet": "..."}]}]
 ```
 
-That's the whole contract: `run(files) -> list[dict]`, each dict at least `evidence`. Optional per-finding overrides: `severity_override`, `confidence_override`, `detail` (replaces the registry's `recommendation` just for this finding — used when the fix depends on what was actually found, e.g. the JWT role in `SECRET_IN_SOURCE`).
+That's the whole contract: `run(files) -> list[dict]`, each dict at least `evidence`. Optional per-finding overrides: `severity_override`, `confidence_override`, `detail` (replaces the registry's `recommendation` just for this finding — used when the fix depends on what was actually found, e.g. the JWT role in `SECRET_IN_SOURCE`), and `blocking: True` to make a finding gate the exit code even when its severity is below CRITICAL (used for a realistic live credential that defaults to HIGH — see `SECRET_IN_SOURCE`). CRITICAL always blocks regardless. Don't reach for `blocking` to turn ordinary HIGH findings into gates; reserve it for a finding that must stop a ship on its own.
+
+**Severity is not adjusted by path.** A real credential or a real destructive migration under `tests/`, `fixtures/`, or `docs/` is still real, so the runner never downgrades a finding for living in one of those directories. If AKOS's own synthetic corpus would otherwise trip a detector, keep the realistic value out of version control (a placeholder materialized into a temp copy at scan time — see `benchmarks/runners/run.py`), never a path exclusion.
+
+**A detector that cannot run is an error, not a finding.** If `run` raises, the detector file is missing, or there is no `run()`, the runner records an `ExecutionError` and the scan reports status `error` (exit 1) — it never manufactures a placeholder finding and never reports clean. Let a genuinely unexpected input raise rather than swallowing it into an empty result.
 
 **Suppression is centralized in the runner** (`rules/runner.py`'s `is_suppressed`), checking an `akos:allow RULE_ID` comment on or within a few lines before the evidence line. Don't reimplement suppression inside a detector.
 

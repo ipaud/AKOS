@@ -32,13 +32,53 @@ else
   fi
 fi
 
-# 3. Create ~/bin and the akos symlink.
+# A foreign symlink counts as AKOS-managed — and so is safe to refresh toward
+# this install — only when it points at the SAME sub-path inside a DIFFERENT,
+# still-valid AKOS checkout (one that has core/constitution.md + VERSION). That
+# is the "moved the repo, re-run install" case. Anything else (a link to an
+# unrelated tool, or a dangling link into a deleted repo) is foreign and left
+# untouched. POSIX parameter expansion + case only — no GNU realpath/sed.
+_is_akos_managed_link() {
+  local src="$1" target="$2"
+  local subpath="${src#"$AKOS_HOME"/}"          # e.g. bin/akos, skills/akos, agents/x.md
+  case "$target" in
+    */"$subpath")
+      local other_home="${target%/"$subpath"}"
+      [ -f "$other_home/core/constitution.md" ] && [ -f "$other_home/VERSION" ]
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+# Install or refresh an AKOS-managed symlink without ever clobbering foreign
+# content. Classifies the destination BEFORE touching it — no `ln -sf`/`-sfn`
+# runs against an unclassified path. `quiet` suppresses the per-item ok line
+# (used by the 13-agent loop) but never suppresses a warning.
+link_managed() {
+  local src="$1" dest="$2" label="$3" quiet="${4:-}"
+  if [ -L "$dest" ]; then
+    local target; target="$(readlink "$dest")"
+    if [ "$target" = "$src" ]; then
+      [ -n "$quiet" ] || ok "$label already linked"
+    elif _is_akos_managed_link "$src" "$target"; then
+      ln -sfn "$src" "$dest" && { [ -n "$quiet" ] || ok "$label refreshed → $src (migrated from a prior AKOS install)"; }
+    else
+      warn "$label is a foreign symlink (→ $target) — leaving it untouched"
+    fi
+  elif [ -e "$dest" ]; then
+    if [ -d "$dest" ]; then
+      warn "$label is a real directory — leaving it untouched (link manually if intended)"
+    else
+      warn "$label is a real file — leaving it untouched (move it aside and re-run to link)"
+    fi
+  else
+    ln -s "$src" "$dest" && { [ -n "$quiet" ] || ok "$label linked"; }
+  fi
+}
+
+# 3. Create ~/bin and the akos CLI symlink.
 mkdir -p "$HOME/bin"
-if [ -L "$HOME/bin/akos" ] || [ -e "$HOME/bin/akos" ]; then
-  ln -sf "$AKOS_HOME/bin/akos" "$HOME/bin/akos" && ok "refreshed ~/bin/akos → $AKOS_HOME/bin/akos"
-else
-  ln -s "$AKOS_HOME/bin/akos" "$HOME/bin/akos" && ok "symlinked ~/bin/akos"
-fi
+link_managed "$AKOS_HOME/bin/akos" "$HOME/bin/akos" "~/bin/akos"
 
 # 3b. Link skills into Claude Code (~/.claude/skills) and Codex CLI
 #     (~/.agents/skills). Symlinks, not copies — edits to packs go live in both
@@ -48,14 +88,7 @@ link_skill() {
   local src="$AKOS_HOME/skills/$skill" dest="$dest_dir/$skill"
   [ -d "$src" ] || { warn "skill '$skill' not found at $src"; return; }
   mkdir -p "$dest_dir"
-  if [ -L "$dest" ]; then
-    if [ "$(readlink "$dest")" = "$src" ]; then ok "$tool: $skill already linked"; return; fi
-    ln -sfn "$src" "$dest" && ok "$tool: relinked $skill"
-  elif [ -e "$dest" ]; then
-    warn "$tool: $dest is a real directory — leaving it untouched (link manually if intended)"
-  else
-    ln -s "$src" "$dest" && ok "$tool: linked $skill"
-  fi
+  link_managed "$src" "$dest" "$tool: $skill"
 }
 
 for skill in akos akos-review; do
@@ -66,21 +99,15 @@ done
 # 3c. Link the 13 reviewers as Claude Code subagents, so a full pipeline run
 #     can fan out in parallel with isolated context. Claude-only: Codex
 #     subagents use TOML, and the skills already cover Codex.
-agent_linked=0; agent_skipped=0
 mkdir -p "$HOME/.claude/agents"
 for src in "$AKOS_HOME"/agents/*.md; do
   [ -f "$src" ] || continue
   dest="$HOME/.claude/agents/akos-$(basename "$src")"
-  if [ -L "$dest" ]; then
-    [ "$(readlink "$dest")" = "$src" ] || ln -sfn "$src" "$dest"
-    agent_linked=$((agent_linked+1))
-  elif [ -e "$dest" ]; then
-    warn "agents: $dest is a real file — leaving it untouched"
-    agent_skipped=$((agent_skipped+1))
-  else
-    ln -s "$src" "$dest" && agent_linked=$((agent_linked+1))
-  fi
+  link_managed "$src" "$dest" "agents: akos-$(basename "$src")" quiet
 done
+agent_linked="$(find "$HOME/.claude/agents" -type l -name 'akos-*.md' 2>/dev/null | wc -l | tr -d ' ')"
+agent_srcs="$(find "$AKOS_HOME/agents" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')"
+agent_skipped=$((agent_srcs - agent_linked))
 if [ "$agent_skipped" -gt 0 ]; then
   ok "Claude Code: $agent_linked reviewer subagents linked ($agent_skipped skipped)"
 else

@@ -1,1 +1,1 @@
-const apiKey = "CdFSimyNt_uQbf4nPOpQzp_8fvHH88iH";
+const apiKey = "your-api-key-here-example-value";

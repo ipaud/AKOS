@@ -430,7 +430,9 @@ cmd_history() {
       # Timestamp computed here, not in schemas/history.py, so the LLM
       # caller (akos-review's skill instructions) never needs to supply
       # one — "run akos history record --type ... --report ..." is the
-      # whole ask.
+      # whole ask. This is only the sortable, human-readable PREFIX of the
+      # review id, not the unique identifier: history.py appends random
+      # entropy so two records in the same second do not collide.
       local ts; ts="$(date -u +%Y%m%dT%H%M%SZ)"
       python3 "$AKOS_HOME/schemas/history.py" record --timestamp "$ts" "$@"
       ;;

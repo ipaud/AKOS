@@ -18,6 +18,14 @@ import paths  # noqa: F401,E402
 
 AKOS_HOME = Path(paths.AKOS_HOME)
 
+# Assembled at runtime so this file's own source carries no detectable
+# credential literal — the repo self-scan stays clean without a path exception
+# (P0-4). Each still matches its detector pattern once built.
+AWS_KEY = "AKIA" + "ABCDEFGHIJKLMNOP"
+# header.payload.sig, payload base64url-decodes to {"role":"service_role"};
+# split so the assembled source contains no contiguous JWT literal.
+SERVICE_ROLE_JWT = "eyJhbGciOiJIUzI1NiJ9" + "." + "eyJyb2xlIjoic2VydmljZV9yb2xlIn0" + "." + "sig1234567890"
+
 
 def load(rel: str):
     spec = importlib.util.spec_from_file_location(Path(rel).stem, AKOS_HOME / rel)
@@ -171,11 +179,11 @@ class TestSecretDetectorRespectsGitignore(FixtureCase):
         (self.dir / ".gitignore").write_text(".env\n")
 
     def test_secret_in_a_gitignored_env_is_not_reported(self):
-        f = self.write(".env", "SECRET=AKIAABCDEFGHIJKLMNOP\n")
+        f = self.write(".env", f"SECRET={AWS_KEY}\n")
         self.assertEqual(self.rule.run([f]), [])
 
     def test_the_same_secret_in_tracked_source_is_reported(self):
-        f = self.write("src/config.ts", 'export const K = "AKIAABCDEFGHIJKLMNOP";\n')
+        f = self.write("src/config.ts", f'export const K = "{AWS_KEY}";\n')
         self.assertEqual(len(self.rule.run([f])), 1)
 
 
@@ -279,49 +287,55 @@ class TestRlsDetectorUnderstandsDynamicSql(FixtureCase):
         self.assertEqual(len(self.rule.run([f])), 1)
 
 
-class TestFixturePathsDowngradeRatherThanSuppress(FixtureCase):
-    """The fixture-path exclusion applied only to the generic high-entropy
-    branch, so the vendor-pattern and JWT branches reported AKOS's own
-    benchmark fixtures as CRITICAL leaks — `akos rules run .` exited 2 on
-    this repository, failing its own security rule.
-
-    Downgrade rather than suppress: a real credential pasted into a test file
-    is still committed, so the finding survives at LOW. It stops gating a
-    deploy and says why. Suppressing outright would hide a real leak in a
-    path anyone can name `tests/`."""
+class TestSecretsBlockOnEveryPath(FixtureCase):
+    """P0-4: a realistic credential is dangerous wherever it lives. The path
+    (tests/, fixtures/, docs/) may color the evidence note, but it never
+    downgrades or suppresses the finding — a live vendor key or a service_role
+    JWT stays blocking from a test file exactly as from shipping source. AKOS's
+    own corpus stays clean by keeping realistic values out of version control
+    (materialized at scan time), not by a path exception here."""
 
     def setUp(self):
         super().setUp()
         self.rule = load("rules/security/secret-in-source.py")
 
-    AWS = 'export const K = "AKIAABCDEFGHIJKLMNOP";\n'
-    SERVICE_JWT = (
-        'const k = "eyJhbGciOiJIUzI1NiJ9.'
-        'eyJyb2xlIjoic2VydmljZV9yb2xlIn0.sig1234567890";\n'
-    )
+    AWS = f'export const K = "{AWS_KEY}";\n'
+    SERVICE_JWT = f'const k = "{SERVICE_ROLE_JWT}";\n'
 
-    def _sev(self, rel: str, body: str):
+    def _one(self, rel: str, body: str):
         f = self.write(rel, body)
         findings = self.rule.run([f])
         self.assertEqual(len(findings), 1, f"expected exactly one finding for {rel}")
-        return findings[0].get("severity_override")
+        return findings[0]
 
-    def test_vendor_key_in_source_is_not_downgraded(self):
-        self.assertNotEqual(self._sev("src/config.ts", self.AWS), "LOW")
+    def test_vendor_key_in_source_is_blocking(self):
+        f = self._one("src/config.ts", self.AWS)
+        self.assertNotEqual(f.get("severity_override"), "LOW")
+        self.assertTrue(f.get("blocking"))
 
-    def test_vendor_key_in_a_fixture_path_is_low(self):
-        self.assertEqual(self._sev("tests/fixture.ts", self.AWS), "LOW")
+    def test_vendor_key_in_fixture_is_not_downgraded_to_low(self):
+        f = self._one("tests/fixture.ts", self.AWS)
+        self.assertNotEqual(f.get("severity_override"), "LOW")
+        self.assertTrue(f.get("blocking"), "a live vendor key in a fixture path is still blocking")
 
     def test_service_role_jwt_in_source_is_critical(self):
-        self.assertEqual(self._sev("src/client.ts", self.SERVICE_JWT), "CRITICAL")
+        f = self._one("src/client.ts", self.SERVICE_JWT)
+        self.assertEqual(f.get("severity_override"), "CRITICAL")
+        self.assertTrue(f.get("blocking"))
 
-    def test_service_role_jwt_in_a_fixture_path_is_low(self):
-        self.assertEqual(self._sev("tests/fixture.ts", self.SERVICE_JWT), "LOW")
+    def test_service_role_jwt_in_fixture_remains_critical(self):
+        f = self._one("tests/fixture.ts", self.SERVICE_JWT)
+        self.assertEqual(f.get("severity_override"), "CRITICAL")
+        self.assertTrue(f.get("blocking"))
 
-    def test_the_finding_is_not_suppressed_in_a_fixture(self):
-        """The load-bearing half: downgraded, not silenced."""
-        f = self.write("tests/fixture.ts", self.AWS)
-        self.assertEqual(len(self.rule.run([f])), 1)
+    def test_secret_in_docs_remains_blocking(self):
+        f = self._one("docs/example.ts", self.AWS)
+        self.assertTrue(f.get("blocking"), "a real key in a docs path is still blocking")
+
+    def test_secret_in_fixture_remains_blocking(self):
+        """The load-bearing half: not silenced, and still gates."""
+        f = self._one("tests/fixture.ts", self.AWS)
+        self.assertTrue(f.get("blocking"))
 
 
 class TestRlsDetectorUnderstandsRevokeAll(FixtureCase):
@@ -358,16 +372,11 @@ class TestRlsDetectorUnderstandsRevokeAll(FixtureCase):
         self.assertIn("exposed", findings[0]["evidence"][0]["snippet"])
 
 
-class TestRunnerDowngradesFixturePathsCentrally(FixtureCase):
-    """The fixture downgrade lives in the runner, not in each detector, so a
-    rule cannot quietly opt out — which is how SECRET_IN_SOURCE came to apply
-    it to one of its three branches, leaving AKOS unable to scan its own
-    repository without reporting itself.
-
-    These test the runner because the benchmark corpus no longer can: every
-    benchmark fixture sits under a `fixture/` path, so every benchmark
-    finding is downgraded and a severity regression would not show up there.
-    """
+class TestRunnerDoesNotDowngradeByPath(FixtureCase):
+    """P0-4: the runner used to downgrade every finding under a fixture/tests/
+    doc path to LOW, centrally, for every rule — so a real migration or a real
+    credential parked under tests/ stopped gating. That path-based downgrade is
+    gone: severity comes from the rule and the evidence, never the directory."""
 
     def setUp(self):
         super().setUp()
@@ -375,27 +384,30 @@ class TestRunnerDowngradesFixturePathsCentrally(FixtureCase):
         import runner
         self.runner = runner
 
-    def _severities(self, rel: str, body: str):
+    def _findings(self, rel: str, body: str, rule_id: str):
         self.write(rel, body)
-        rules = [r for r in self.runner.discover_rules(rule_filter={"SUPABASE_RLS_DISABLED"})]
-        findings = self.runner.run_rules(self.dir, rules, "Production")
-        return [f["severity"] for f in findings]
+        rules = list(self.runner.discover_rules(rule_filter={rule_id}))
+        return self.runner.run_rules(self.dir, rules, "Production")
 
     def test_real_migration_path_keeps_its_severity(self):
-        self.assertEqual(
-            self._severities("supabase/migrations/001.sql",
-                             "create table public.notes (id uuid primary key);\n"),
-            ["CRITICAL"])
+        sev = [f["severity"] for f in self._findings(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n", "SUPABASE_RLS_DISABLED")]
+        self.assertEqual(sev, ["CRITICAL"])
 
-    def test_fixture_path_is_downgraded_to_low(self):
-        self.assertEqual(
-            self._severities("tests/fixtures/001.sql",
-                             "create table public.notes (id uuid primary key);\n"),
-            ["LOW"])
+    def test_fixture_path_keeps_full_severity(self):
+        # Previously downgraded to LOW; now the path does not vote.
+        sev = [f["severity"] for f in self._findings(
+            "tests/fixtures/001.sql",
+            "create table public.notes (id uuid primary key);\n", "SUPABASE_RLS_DISABLED")]
+        self.assertEqual(sev, ["CRITICAL"])
 
-    def test_downgrade_does_not_suppress(self):
-        """The load-bearing half. A real migration parked under tests/ is
-        still real; the finding has to survive, just not gate."""
-        sev = self._severities("tests/fixtures/001.sql",
-                               "create table public.notes (id uuid primary key);\n")
-        self.assertEqual(len(sev), 1)
+    def test_akos_self_scan_does_not_depend_on_path_based_secret_downgrades(self):
+        """A service_role JWT under a tests/ path stays CRITICAL and blocking
+        through the runner — the exact case the central downgrade used to
+        hide."""
+        findings = self._findings(
+            "tests/fixtures/config.ts", f'const k = "{SERVICE_ROLE_JWT}";\n', "SECRET_IN_SOURCE")
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["severity"], "CRITICAL")
+        self.assertTrue(findings[0].get("blocking"))

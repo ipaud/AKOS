@@ -2,6 +2,7 @@ case_id: secret-env-example-excluded
 domain: security
 level: A
 rules_under_test: [SECRET_IN_SOURCE]
+notes: "Not excluded by the .example NAME (P0-4 removed path/name-based downgrades) but by its VALUE: an example file should hold an obvious placeholder, which the denylist/entropy gate correctly ignores. A real-looking key in an example file is still a leak and would be flagged."
 must_detect: []
 must_not_detect:
   - rule_id: SECRET_IN_SOURCE

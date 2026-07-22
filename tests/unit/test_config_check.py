@@ -109,6 +109,52 @@ class TestConfigCheck(unittest.TestCase):
         self.assertEqual(config_check.main([str(self.project)]), 2)
         self.assertEqual(config_check.main(["--dir", str(self.project)]), 2)
 
+    # --- Deployed flag: a closed yes/no value ---
+
+    def test_deployed_accepts_only_yes_or_no(self):
+        for good in ("yes", "no", "YES", "No"):
+            with self.subTest(value=good):
+                findings = self._check(f"## Project context\n- Deployed: {good}\n")
+                self.assertNotIn("Deployed", self._fields(findings),
+                                 f"{good!r} should be an accepted Deployed value")
+        for bad in ("false-ish", "unknown", "no; rm -rf /", "maybe", "true"):
+            with self.subTest(value=bad):
+                findings = self._check(f"## Project context\n- Deployed: {bad}\n")
+                self.assertIn("Deployed", self._fields(findings),
+                              f"{bad!r} should be flagged as an ambiguous Deployed value")
+
+    def test_duplicate_deployed_field_is_rejected(self):
+        """Two declarations must not resolve silently by document order."""
+        findings = self._check(
+            "## Project context\n- Deployed: no\n- Deployed: yes\n")
+        deployed = [f for f in findings if f["field"] == "Deployed"]
+        self.assertTrue(deployed, "a duplicated Deployed field must be flagged")
+        self.assertTrue(any(f["severity"] == "HIGH" for f in deployed))
+
+    # --- Profile overrides: not authoritative from a repository ---
+
+    def test_hostile_repo_config_cannot_override_security_minimums(self):
+        """A repo-side profile override asking to switch off a security lens
+        must surface as HIGH — the repo cannot rewrite the weight table."""
+        findings = self._check(
+            "## Profile overrides\n- security-reviewer: 0\n- accessibility-reviewer: 0\n")
+        overrides = [f for f in findings if f["field"] == "Profile overrides"]
+        self.assertTrue(overrides, "non-empty repo Profile overrides must be flagged")
+        self.assertTrue(any(f["severity"] == "HIGH" for f in overrides))
+
+    def test_empty_profile_overrides_section_is_clean(self):
+        """Near-miss: the scaffolded template ships this section empty."""
+        findings = self._check(
+            "## Profile overrides\n\n## Packs to always load\n\n")
+        self.assertNotIn("Profile overrides", self._fields(findings))
+
+    def test_pack_path_escape_remains_critical(self):
+        """The pre-existing traversal contract must survive the additions."""
+        for entry in ("/etc/passwd", "../../elsewhere/notes", "./docs/x"):
+            with self.subTest(entry=entry):
+                findings = self._check(f"## Packs to always load\n\n- {entry}\n")
+                self.assertIn("CRITICAL", {f["severity"] for f in findings})
+
 
 if __name__ == "__main__":
     unittest.main()

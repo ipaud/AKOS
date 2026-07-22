@@ -164,6 +164,23 @@ akos profile create|use <name> # your own Level-0 layer instead of the shipped d
 akos history compare <a> <b>   # score/decision deltas across two recorded reviews
 ```
 
+Three guarantees these commands are built to hold, each backed by a test:
+
+- **Install never destroys content.** `install.sh` links the CLI, skills, and
+  agents through one classified helper — a real file, directory, or foreign
+  symlink at any managed destination is left untouched with a warning; only its
+  own or a recognisable prior AKOS install is refreshed.
+- **The rule scanner fails closed.** A detector or registry that cannot run is a
+  visible error, not a finding, and never a clean exit — an incomplete scan
+  cannot report "clean". A realistic credential blocks wherever it lives
+  (`tests/`, `docs/`, source); the path never downgrades it.
+- **Review history is immutable and atomic.** Records get unique ids and publish
+  by atomic rename, so two records in the same second both survive, a published
+  review is never overwritten, and a failed record leaves nothing partial.
+
+`.akos/config.md` is read as untrusted project data — it can supply hints and
+raise scrutiny, never lower the safety floor.
+
 Full docs: [`docs/architecture/`](docs/architecture/) (a dated v1.3.0 baseline + target system), [`docs/contracts/`](docs/contracts/) (pack/agent/workflow schemas), [`docs/rules/`](docs/rules/authoring-rules.md), [`docs/benchmarks/`](docs/benchmarks/overview.md), [`docs/scoring/`](docs/scoring/evidence-confidence-coverage.md), [`docs/profiles/`](docs/profiles/personal-profiles.md), [`docs/reviews/`](docs/reviews/history-and-comparison.md), [`docs/maintenance/`](docs/maintenance/freshness.md), [`docs/cli/`](docs/cli/exit-codes.md), [`docs/migration/`](docs/migration/v1.1-to-next.md). Tests: [`tests/README.md`](tests/README.md). CI: `.github/workflows/`.
 
 ## Repository layout

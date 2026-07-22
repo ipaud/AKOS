@@ -62,4 +62,53 @@ bash "$COPY/install.sh" >"$TMP/out5" 2>&1 || fail "install.sh exited non-zero wi
 [ ! -L "$HOME/DEV" ] || fail "install.sh replaced a real ~/DEV directory with a symlink"
 pass "a real ~/DEV directory is left untouched"
 
+# 6. No-clobber: a REAL file at ~/bin/akos survives untouched.
+rm "$HOME/bin/akos"
+echo "user script" > "$HOME/bin/akos"
+bash "$COPY/install.sh" >"$TMP/out6" 2>&1 || fail "install.sh exited non-zero with a real file at ~/bin/akos"
+[ ! -L "$HOME/bin/akos" ] || fail "install.sh replaced a user's real ~/bin/akos with a symlink"
+grep -q "user script" "$HOME/bin/akos" || fail "user's real ~/bin/akos was overwritten"
+grep -q "leaving it untouched" "$TMP/out6" || fail "expected the no-clobber warning for ~/bin/akos"
+pass "a real file at ~/bin/akos survives with a warning"
+
+# 7. A FOREIGN symlink at ~/bin/akos is left intact (points at an unrelated
+#    tool, not a recognizable AKOS install — adopting it could hijack the CLI).
+rm "$HOME/bin/akos"
+ln -s /usr/bin/true "$HOME/bin/akos"
+bash "$COPY/install.sh" >"$TMP/out7" 2>&1 || fail "install.sh exited non-zero with a foreign symlink at ~/bin/akos"
+[ "$(readlink "$HOME/bin/akos")" = "/usr/bin/true" ] || fail "install.sh disturbed a foreign symlink at ~/bin/akos"
+grep -q "foreign symlink" "$TMP/out7" || fail "expected the foreign-symlink warning for ~/bin/akos"
+pass "a foreign symlink at ~/bin/akos is left intact with a warning"
+
+# 8. A REAL directory at ~/bin/akos survives (never becomes a symlink).
+rm "$HOME/bin/akos"
+mkdir -p "$HOME/bin/akos"
+echo "user dir file" > "$HOME/bin/akos/keep.txt"
+bash "$COPY/install.sh" >"$TMP/out8" 2>&1 || fail "install.sh exited non-zero with a real dir at ~/bin/akos"
+[ ! -L "$HOME/bin/akos" ] || fail "install.sh replaced a real directory at ~/bin/akos with a symlink"
+grep -q "user dir file" "$HOME/bin/akos/keep.txt" || fail "user's directory at ~/bin/akos was disturbed"
+grep -q "leaving it untouched" "$TMP/out8" || fail "expected the no-clobber warning for the ~/bin/akos directory"
+pass "a real directory at ~/bin/akos survives with a warning"
+
+# 9. A symlink pointing at a DIFFERENT valid AKOS install IS refreshed to this one.
+rm -rf "$HOME/bin/akos"
+OTHER="$TMP/other-akos"
+mkdir -p "$OTHER/core" "$OTHER/bin"
+echo "old constitution" > "$OTHER/core/constitution.md"
+echo "0.0.1" > "$OTHER/VERSION"
+echo "#!/usr/bin/env bash" > "$OTHER/bin/akos"
+ln -s "$OTHER/bin/akos" "$HOME/bin/akos"
+bash "$COPY/install.sh" >"$TMP/out9" 2>&1 || fail "install.sh exited non-zero with a prior-AKOS-install symlink"
+[ "$(readlink "$HOME/bin/akos")" = "$COPY/bin/akos" ] || fail "a symlink from a prior AKOS install was not refreshed to this install"
+pass "a symlink to a valid prior AKOS install is refreshed"
+
+# 10. A foreign symlink at a SKILL destination is left intact (same stricter
+#     contract as the CLI, applied through the shared helper).
+rm -rf "$HOME/.claude/skills/akos"
+ln -s /usr/bin/true "$HOME/.claude/skills/akos"
+bash "$COPY/install.sh" >"$TMP/out10" 2>&1 || fail "install.sh exited non-zero with a foreign symlink at a skill dest"
+[ "$(readlink "$HOME/.claude/skills/akos")" = "/usr/bin/true" ] || fail "install.sh disturbed a foreign symlink at a skill dest"
+grep -q "foreign symlink" "$TMP/out10" || fail "expected the foreign-symlink warning for the skill dest"
+pass "a foreign symlink at a skill destination is left intact"
+
 echo "PASS: test_install_isolated.sh"

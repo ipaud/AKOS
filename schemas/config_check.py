@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 """Check a project's `.akos/config.md` against a closed set of allowed values.
 
-Why this exists. `skills/akos/SKILL.md` tells an agent that every section of
-`.akos/config.md` is binding, that "Packs to always load" is "already
-decided, not negotiable", and that Notes "override your assumptions". That
-file lives in whatever repository the agent is working in — including a
-repository someone else wrote. So a cloned project can currently lower the
-review profile, add arbitrary paths to the agent's mandatory reading, and
-supply free text pre-authorized to override the agent's own conclusions.
+Why this exists. `.akos/config.md` lives in whatever repository the agent is
+working in — including a repository someone else wrote. The skills treat it as
+untrusted manifest data (project facts and hints), never as instructions, and
+never as something that can lower the safety floor. This check enforces the
+*form* of that data so a hostile checkout cannot smuggle a disallowed profile,
+a pack path that escapes `packs/`, an ambiguous `Deployed` flag, or a
+repo-side profile-override into the agent's reading.
 
-What this can and cannot be. The *checking* here is deterministic: a profile
-either is one of the six names or it is not, and a pack path either resolves
-inside AKOS_HOME/packs/ or it does not. A model cannot be argued out of that
-result. But nothing forces an agent to run this — the invocation is prose in
-SKILL.md, so this is a control over the *values*, wrapped in a mitigation
-over the *call*. Do not record it as more than that.
+Form, not trust. The checking here is deterministic: a profile either is one
+of the six names or it is not; a pack path either resolves inside
+AKOS_HOME/packs/ or it does not; `Deployed` is exactly `yes`/`no` or it is a
+finding. A model cannot be argued out of that result. But a clean result means
+only that the file is *well-formed* — it does NOT make the file authoritative
+or turn the repository into a trusted operator. The trust boundary lives in the
+skills (repo config sits below the safety floor, the user, and Level-0 personal
+rules); this script is a control over the values, not a grant of trust. Do not
+record it as more than that.
 
 Exit codes: 0 clean · 1 usage error · 2 findings.
 """
@@ -38,6 +41,10 @@ PERSONAL_RE = re.compile(r"^personal_profile:\s*(.+?)\s*$", re.MULTILINE)
 PACK_LINE_RE = re.compile(r"^\s*-\s*(\S+)\s*$", re.MULTILINE)
 # The only shapes that name a pack shipped with AKOS.
 PACK_ENTRY_RE = re.compile(r"(?:packs/)?[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*")
+# `Deployed:` may raise the safety floor (yes → security/RLS mandatory), so an
+# ambiguous or duplicated value is a security-relevant defect, not a nicety.
+DEPLOYED_RE = re.compile(r"^\s*-?\s*Deployed:\s*(.+?)\s*$", re.MULTILINE)
+DEPLOYED_VALUES = {"yes", "no"}
 
 
 def _section(text: str, heading: str) -> str:
@@ -121,6 +128,47 @@ def check_config(config_path: Path, akos_home: Path) -> list[dict]:
                 "severity": "MEDIUM",
                 "message": f"{entry!r} does not exist. List packs with 'akos list-packs'.",
             })
+
+    # `Deployed:` is a closed flag. A value that is not exactly yes/no is
+    # ambiguous (does it raise the security floor or not?), and two declarations
+    # leave the resolution to chance — either way, resolve it as a finding
+    # rather than let a hostile config decide by ordering.
+    deployed = DEPLOYED_RE.findall(text)
+    if len(deployed) > 1:
+        findings.append({
+            "field": "Deployed",
+            "severity": "HIGH",
+            "message": f"'Deployed' is declared {len(deployed)} times "
+                       f"({', '.join(repr(v) for v in deployed)}). A duplicated safety flag "
+                       f"must not resolve silently — declare it once.",
+        })
+    for value in deployed:
+        if value.strip().lower() not in DEPLOYED_VALUES:
+            findings.append({
+                "field": "Deployed",
+                "severity": "HIGH",
+                "message": f"Deployed: {value!r} is not 'yes' or 'no'. This flag can raise the "
+                           f"safety floor, so an ambiguous value must not be interpreted.",
+            })
+
+    # A repository cannot rewrite the reasoning-profile weight table. Per-lens
+    # weights come from the profile and the user, never from the reviewed repo,
+    # so any content in this section is non-authoritative and flagged. The
+    # scaffolded template ships the section empty — that stays clean.
+    overrides = _section(text, "Profile overrides")
+    override_lines = [
+        ln.strip() for ln in overrides.splitlines()
+        if ln.strip() and not ln.strip().startswith("<!--")
+    ]
+    if override_lines:
+        findings.append({
+            "field": "Profile overrides",
+            "severity": "HIGH",
+            "message": "This section has content, but repository-side profile overrides are not "
+                       "authoritative: an agent takes lens weights from the profile and the user, "
+                       "never from the reviewed repo, and no override can lower the safety floor. "
+                       "Remove it, or move a trusted change to the operator's local config.",
+        })
 
     return findings
 

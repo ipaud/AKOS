@@ -64,9 +64,26 @@ jobs:
           import sys
           sys.path.insert(0, 'rules')
           from runner import discover_rules
+          # No errors collector — a malformed registry raises RegistryError and
+          # fails this step loudly, rather than silently discovering fewer rules.
           rules = discover_rules()
           print(f'{len(rules)} rules discovered')
           assert len(rules) >= 8, f'expected at least 8 rules, found {len(rules)}'
+          PY
+
+      - name: akos rules self-scan completes (fail-closed — no operational errors)
+        run: |
+          bin/akos rules run . --format json > /tmp/akos-self-scan.json
+          python3 - <<'PY'
+          import json
+          d = json.load(open('/tmp/akos-self-scan.json'))
+          # The invariant is that the scan RAN COMPLETELY: every registry parsed
+          # and every detector loaded and executed. Findings on AKOS's own
+          # deliberately-vulnerable corpus are expected; a broken detector or
+          # registry is not.
+          assert d['status'] != 'error', d
+          assert not d['errors'], d['errors']
+          print('self-scan complete:', d['summary'])
           PY
 
       - name: akos freshness (fail only on expired)

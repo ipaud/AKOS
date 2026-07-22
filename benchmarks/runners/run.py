@@ -20,8 +20,12 @@ Exit codes: 0 all cases pass, 1 setup error, 2 at least one case failed.
 from __future__ import annotations
 
 import argparse
-import sys
+import contextlib
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
+import sys
 
 AKOS_HOME = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
@@ -32,6 +36,55 @@ import runner as rules_runner  # noqa: E402  (rules/runner.py)
 
 BENCH_HOME = AKOS_HOME / "benchmarks"
 LINE_TOLERANCE = 3
+
+# Non-detectable placeholders live in the versioned fixtures; the harness swaps
+# them for credential-shaped values inside a throwaway temp copy at scan time.
+# Keeping the real shapes out of version control means AKOS's own repo carries
+# no detectable secret literal, so the secret detector needs no path exception
+# to leave the repo self-scan clean (P0-4).
+SECRET_PLACEHOLDERS = {
+    "{{AKOS_TEST_AWS_ACCESS_KEY}}": "AKIA" + "ABCDEFGHIJKLMNOP",
+    # Decodes to {"role": "service_role"} — header.payload.sig, no real signature.
+    "{{AKOS_TEST_SERVICE_ROLE_JWT}}":
+        "eyJhbGciOiAiSFMyNTYifQ" + "." + "eyJyb2xlIjogInNlcnZpY2Vfcm9sZSJ9" + "." + "sig1234567890",
+}
+
+
+def _materialize_secrets(root: Path) -> None:
+    """Replace placeholder tokens with credential-shaped values, in place,
+    across every text file under `root`."""
+    for p in root.rglob("*"):
+        if not p.is_file() or p.is_symlink():
+            continue
+        try:
+            text = p.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        if "{{AKOS_TEST_" not in text:
+            continue
+        for token, value in SECRET_PLACEHOLDERS.items():
+            text = text.replace(token, value)
+        p.write_text(text, encoding="utf-8")
+
+
+@contextlib.contextmanager
+def materialized_case(case_dir: Path):
+    """Yield a temp mirror of `case_dir` with secret placeholders materialized.
+    The mirror is a git repo so a fixture's own `.gitignore` still governs the
+    secret detector's gitignore check; the temp tree is removed on exit."""
+    tmp = Path(tempfile.mkdtemp(prefix="akos-bench-"))
+    try:
+        base = tmp / case_dir.name
+        shutil.copytree(case_dir, base)
+        _materialize_secrets(base / "fixture")
+        # A fresh git repo lets `git check-ignore` resolve against the fixture's
+        # own .gitignore (isolated from AKOS's), so gitignored-secret cases hold.
+        with contextlib.suppress(OSError, subprocess.SubprocessError):
+            subprocess.run(["git", "init", "-q"], cwd=base, check=True,
+                           capture_output=True, timeout=10)
+        yield base
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def load_manifest() -> dict:
@@ -45,47 +98,61 @@ def load_case(case_entry: dict) -> tuple[dict, Path]:
 
 
 def run_deterministic_case(expected: dict, case_dir: Path) -> dict:
-    fixture_dir = case_dir / "fixture"
     rule_ids = expected.get("rules_under_test", [])
     rules = rules_runner.discover_rules(rule_filter=set(rule_ids) if rule_ids else None)
-    findings = rules_runner.run_rules(fixture_dir, rules, profile=None)
 
     must_detect = expected.get("must_detect", [])
     must_not_detect = expected.get("must_not_detect", [])
 
-    def matches(finding: dict, spec: dict) -> bool:
-        if finding["rule_id"] != spec["rule_id"]:
-            return False
-        ev = finding["evidence"][0] if finding["evidence"] else {}
-        # spec["path"] in expected.yaml is relative to the CASE directory
-        # (e.g. "fixture/supabase/migrations/0001.sql"), not to benchmarks/.
-        spec_path = str((case_dir / spec["path"]).resolve()) if "path" in spec else None
-        if spec_path and str(Path(ev.get("path", "")).resolve()) != spec_path:
-            return False
-        if "line" in spec and ev.get("line_start") is not None:
-            if abs(ev["line_start"] - spec["line"]) > LINE_TOLERANCE:
+    # Fixtures store non-detectable placeholders in version control; realistic
+    # credential-shaped values are materialized only inside a temp copy for the
+    # duration of the scan, then discarded. This keeps AKOS's own repo free of
+    # detectable secret literals (P0-4) without hiding any path from the
+    # scanner. The temp copy mirrors the case directory, so spec paths (relative
+    # to the case dir) still resolve.
+    errors: list = []
+    with materialized_case(case_dir) as scan_base:
+        fixture_dir = scan_base / "fixture"
+        findings = rules_runner.run_rules(fixture_dir, rules, profile=None, errors=errors)
+
+        def matches(finding: dict, spec: dict) -> bool:
+            if finding["rule_id"] != spec["rule_id"]:
                 return False
-        return True
+            ev = finding["evidence"][0] if finding["evidence"] else {}
+            # spec["path"] in expected.yaml is relative to the CASE directory
+            # (e.g. "fixture/supabase/migrations/0001.sql"); the scan runs
+            # against the mirrored temp copy, so resolve against scan_base.
+            spec_path = str((scan_base / spec["path"]).resolve()) if "path" in spec else None
+            if spec_path and str(Path(ev.get("path", "")).resolve()) != spec_path:
+                return False
+            if "line" in spec and ev.get("line_start") is not None:
+                if abs(ev["line_start"] - spec["line"]) > LINE_TOLERANCE:
+                    return False
+            return True
 
-    true_positives = []
-    false_negatives = []
-    for spec in must_detect:
-        hit = next((f for f in findings if matches(f, spec)), None)
-        (true_positives if hit else false_negatives).append(spec)
+        true_positives = []
+        false_negatives = []
+        for spec in must_detect:
+            hit = next((f for f in findings if matches(f, spec)), None)
+            (true_positives if hit else false_negatives).append(spec)
 
-    false_positives = []
-    for spec in must_not_detect:
-        hit = next((f for f in findings if matches(f, spec)), None)
-        if hit:
-            false_positives.append(spec)
+        false_positives = []
+        for spec in must_not_detect:
+            hit = next((f for f in findings if matches(f, spec)), None)
+            if hit:
+                false_positives.append(spec)
 
-    passed = not false_negatives and not false_positives
+    # An operational error means a required rule did not actually execute — the
+    # case cannot be counted as passed on an incomplete run (P0-3).
+    error_messages = [f"{e.phase}:{e.rule_id or e.path}: {e.message}" for e in errors]
+    passed = not false_negatives and not false_positives and not error_messages
     return {
         "true_positives": len(true_positives),
         "false_negatives": false_negatives,
         "false_positives": false_positives,
         "passed": passed,
         "actual_finding_count": len(findings),
+        "execution_errors": error_messages,
     }
 
 
