@@ -1,11 +1,12 @@
 # Contract: knowledge pack `metadata.yaml`
 
-Machine schema: [`schemas/knowledge-pack.schema.json`](../../schemas/knowledge-pack.schema.json). Run `akos validate packs` to check a pack against it. The *why* of the pack file contract lives in [`core/knowledge-schema.md`](../../core/knowledge-schema.md) — this document is the exact field-by-field *what* of `metadata.yaml` specifically.
+Machine schema: [`schemas/v1/knowledge-pack.schema.json`](../../schemas/v1/knowledge-pack.schema.json) (resolved via [`schemas/registry.json`](../../schemas/registry.json)). Run `akos validate packs` to check a pack against it. The *why* of the pack file contract lives in [`core/knowledge-schema.md`](../../core/knowledge-schema.md) — this document is the exact field-by-field *what* of `metadata.yaml` specifically.
 
 ## Field reference
 
 | Field | Type | Required? | Default | Meaning |
 |---|---|---|---|---|
+| `schema_version` | integer, `enum: [1]` | **Yes** | — | Which version of this contract the file was authored against. An unknown value fails explicitly rather than falling back to the current schema |
 | `name` | string | **Yes** | — | Pack's directory name, e.g. `steve-krug` |
 | `domain` | string | **Yes** | — | Domain directory, e.g. `ux` |
 | `authority-level` | integer 0–4 | **Yes** | — | See [`core/authority-model.md`](../../core/authority-model.md) |
@@ -26,13 +27,20 @@ Machine schema: [`schemas/knowledge-pack.schema.json`](../../schemas/knowledge-p
 | `dependencies` | string[] | optional | *(none)* | Packs this one's guidance is genuinely incomplete without. Expected empty for nearly all packs |
 | `conflicts` | object[] `{pack, ruling}` | optional | *(none)* | Pre-registered tensions, feeding [`core/conflict-resolution.md`](../../core/conflict-resolution.md) |
 
-## Required fields are exactly what's already universal
+## Strict since schema_version 1
 
-The 7 required fields are the 7 fields already present in all 48 pre-existing packs, confirmed by direct inspection before this schema was written. This is deliberate: the schema is non-breaking *by construction* — `akos validate packs` reports zero errors against the existing corpus from the moment it ships, with no migration gate in front of it.
+`schema_version: 1` is a versioned, strict contract: `additionalProperties` is `false` at the root and in every nested object (`sources[]` items, `conflicts[]` items, `profiles`), so an unknown top-level or nested key (a typo like `maintaner`) is a validation **error**, not a silently-ignored extra field. The pre-v1 schema was non-breaking by construction (`additionalProperties: true`, no `schema_version`); this version trades that looseness for catching typos and contract drift, backfilled atomically across the whole corpus (see Migration note below) so nothing broke mid-flight.
+
+Two cross-field checks run alongside the schema (`schemas/validate.py`'s `_check_pack_semantics`, not expressible in JSON Schema since they need the file's own path): `domain`/`name`/`id` must actually match the directory the pack lives in, and `deprecated: true` requires a non-empty `replacement`.
+
+## Required fields
+
+The 8 required fields (`schema_version` plus the 7 already universal across the corpus before this version) are exactly what's already present in all 54 non-personal packs post-migration — `akos validate packs` reports zero errors against the real corpus.
 
 ## Minimal valid example (today's real shape)
 
 ```yaml
+schema_version: 1
 name: wcag
 domain: ux
 authority-level: 1
@@ -49,6 +57,7 @@ related:
 ## Fully-populated example
 
 ```yaml
+schema_version: 1
 name: wcag
 domain: ux
 authority-level: 1
@@ -75,7 +84,7 @@ conflicts: []
 
 ## Migration note
 
-All 48 pre-existing packs were migrated on 2026-07-20 by [`bin/migrate-pack-metadata.py`](../../bin/migrate-pack-metadata.py) — a one-time, idempotent, append-only script (re-running it is a no-op). It never rewrites an existing line; it only appends the 7 recommended fields at end-of-file, computing `last_reviewed` from each pack's `CHANGELOG.md` and `review_after` from an authority-level-dependent cadence (18 months for L0–1, 12 for L2, 9 for L3–4). `akos create-pack` now scaffolds all of this directly for new packs (`status: draft`, dates from creation time).
+All 48 pre-existing packs were migrated on 2026-07-20 by [`bin/migrate-pack-metadata.py`](../../bin/migrate-pack-metadata.py) to carry the 7 recommended fields (`id`, `status`, `last_reviewed`, `review_after`, `maintainer`, `license`, `deprecated`). The same idempotent, append-only script backfilled `schema_version: 1` onto all 54 non-personal packs (the original 48 plus the 6 `ai-engineering/*` packs added since) when the strict schema landed — it never rewrites an existing line, only appends missing top-level keys at end-of-file; re-running it is a no-op. `akos create-pack` scaffolds `schema_version: 1` directly for new packs (`status: draft`, dates from creation time).
 
 ## Validate
 

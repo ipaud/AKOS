@@ -1,0 +1,8 @@
+{
+  "registry_version": 1,
+  "kinds": {
+    "knowledge-pack": { "current_version": 1, "schema_path": "v1/knowledge-pack.schema.json" },
+    "agent":          { "current_version": 1, "schema_path": "v1/agent.schema.json" },
+    "workflow":       { "current_version": 1, "schema_path": "v1/workflow.schema.json" }
+  }
+}

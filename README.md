@@ -38,6 +38,10 @@ Security and accessibility form a floor that even Level 0 cannot override. Full 
 
 Reviews adapt to context via profiles: **Prototype**, **Startup MVP**, **Production**, **Enterprise**, **Game Dev**, **Internal Tool**. A prototype skips ceremony but never ships a security leak; production enforces the full pipeline. See [core/reasoning-profiles.md](core/reasoning-profiles.md).
 
+## Prerequisites
+
+**Python 3.10 or newer.** The CLI, schema validation, rules, benchmarks, history, config checking, and the update-safety verifier all depend on it. `install.sh`, `update.sh`, and every operational `akos` subcommand refuse to run — before touching anything — if a valid interpreter can't be resolved; `akos help` and `akos doctor` are the two exceptions (`doctor` is the command that reports Python's absence as a finding). Check yours with `python3 --version`.
+
 ## Install globally
 
 Clone it anywhere — `install.sh` symlinks the canonical `~/DEV/AKOS` path for you:
@@ -135,12 +139,19 @@ Want your own profile instead of forking pau-avila's? `akos profile create <name
 ## Update safely
 
 ```bash
-./update.sh    # preserves packs/personal/, prints changed files
-./doctor.sh    # verify after update
+./update.sh    # preserves packs/personal/, prints changed files, verifies at the end
 ```
 
-`update.sh` backs up `packs/personal/` to `~/.akos-backups/` before pulling and
-aborts if that backup can't be written.
+`update.sh` backs up `packs/personal/` to `~/.akos-backups/` (with a manifest —
+path, mode, sha256, symlink targets) and verifies that backup against the live
+source before pulling; aborts if either fails. After the pull, the personal
+layer is compared against the pre-update manifest, and any drift — even from a
+legitimate upstream commit — triggers a full-tree restore back to the exact
+snapshot, not a partial fill. A concurrency lock rejects a second run while one
+is in progress, and `update.sh` now actually runs `doctor.sh` as a final gate
+instead of only suggesting it: the script only prints "Update complete and
+verified" if the backup, pull, personal-layer check, and final `doctor.sh` all
+passed — a failure at any step exits non-zero.
 
 **Rolling back.** Releases are git-tagged (`vX.Y.Z`). To return to an earlier
 one:
@@ -156,15 +167,17 @@ git checkout v1.7.0 && ./install.sh
 Beyond the knowledge itself, AKOS validates and tests its own consistency:
 
 ```bash
-akos validate all              # schema-check packs/agents/workflows
+akos validate all              # schema-check packs/agents/workflows (schema_version 1, strict)
+akos routing-check             # verify draft packs stay out of the stable routing catalog
 akos rules run <project-dir>   # 8 executable checks: RLS, secrets, a11y, migrations...
 akos benchmark run             # regression suite for the rules above
 akos freshness                 # which packs are due for a re-read
+akos list-packs [--all|--status draft]  # stable packs by default; draft/deprecated on request
 akos profile create|use <name> # your own Level-0 layer instead of the shipped default
 akos history compare <a> <b>   # score/decision deltas across two recorded reviews
 ```
 
-Three guarantees these commands are built to hold, each backed by a test:
+Guarantees these commands are built to hold, each backed by a test:
 
 - **Install never destroys content.** `install.sh` links the CLI, skills, and
   agents through one classified helper — a real file, directory, or foreign
@@ -176,7 +189,22 @@ Three guarantees these commands are built to hold, each backed by a test:
   (`tests/`, `docs/`, source); the path never downgrades it.
 - **Review history is immutable and atomic.** Records get unique ids and publish
   by atomic rename, so two records in the same second both survive, a published
-  review is never overwritten, and a failed record leaves nothing partial.
+  review is never overwritten, and a failed record leaves nothing partial;
+  readers skip in-flight staging directories and report a corrupt review rather
+  than hiding it.
+- **AKOS:START/END markers are never guessed at.** A single shared parser
+  (`bin/marked_sections.py`) classifies a managed file as absent, present, or
+  ambiguous, and refuses to write when ambiguous rather than picking the first
+  marker pair it finds. `install-project` preflights all 4 managed files before
+  writing any of them.
+- **Schema contracts are versioned and strict.** Every pack, agent, and workflow
+  declares `schema_version: 1`; an unknown top-level or nested field is a
+  validation error, and an unrecognized schema version fails explicitly instead
+  of silently validating against whatever the current schema happens to be.
+- **A pack's lifecycle status has real teeth.** `status: draft` packs are
+  excluded from the automatic routing table and from any stable agent's or
+  workflow's dependencies; `akos check-config` flags a project that tries to
+  list one in "Packs to always load."
 
 `.akos/config.md` is read as untrusted project data — it can supply hints and
 raise scrutiny, never lower the safety floor.
@@ -195,7 +223,7 @@ templates/    per-tool integration templates
 prompts/      ready-to-paste prompts (fallback for tools without skills)
 graphs/       concept cross-links between packs
 scoring/      0–100 rubrics per dimension
-schemas/      JSON Schema contracts + the validator + the YAML parser
+schemas/      Versioned JSON Schema contracts (v1/) + registry.json + the validator + the YAML parser + routing/config checks
 rules/        executable checks (Level A/B) — the rules registry + runner
 benchmarks/   reproducible regression cases for rules/
 tests/        unit (Python unittest) + integration (bash) test suites

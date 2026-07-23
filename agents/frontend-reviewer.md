@@ -1,4 +1,5 @@
 ---
+schema_version: 1
 name: akos-frontend-reviewer
 description: AKOS lens 6 — frontend quality and visual craft. Semantic HTML, modern CSS, React correctness, TypeScript safety, design-system discipline, anti-template polish. Use for the AKOS frontend review.
 tools: Read, Grep, Glob

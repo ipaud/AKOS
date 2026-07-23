@@ -1,4 +1,5 @@
 ---
+schema_version: 1
 name: akos-copy-reviewer
 description: AKOS lens 5 — interface copy. Is every word earning its place? Are labels honest, specific, obvious? Cuts happy talk, vague labels, unread instructions. Use for the AKOS copy review.
 tools: Read, Grep, Glob

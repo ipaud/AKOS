@@ -3,6 +3,107 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.11.0] — 2026-07-23
+
+P1 integrity hardening. Six places where a real gap remained after v1.10.0's
+P0 pass, closed with real code, a full corpus migration, and adversarial
+tests — not a plan. `schemas/history.py`'s atomic-publish write path was
+already correct going into this release (staged writes, `secrets`-based
+unique ids, no-clobber `os.rename`); the remaining P0-adjacent gap was on
+the *reader* side only.
+
+### Added
+
+- **`bin/marked_sections.py`** — single shared parser for `AKOS:START`/`END`
+  managed sections, replacing two independent, first-match-only
+  implementations (`write_marked_section`'s `grep -nF | head -n1`, and
+  `cmd_profile_use`'s separate awk state machine). A file is now classified
+  `ABSENT` / `PRESENT` / `INVALID` (multiple starts, multiple ends, one-sided,
+  out of order); `INVALID` refuses to write rather than silently guessing
+  which pair to touch. Atomic via `tempfile.mkstemp` + `os.replace`, mode
+  and newline-style (LF/CRLF) preserving. `akos install-project` now
+  preflights all 4 managed targets (`CLAUDE.md`, `AGENTS.md`,
+  `.cursor/rules/akos.mdc`, `.akos/config.md`) before writing any of them.
+
+- **`bin/akos-common.sh`** — shared `resolve_python`/`check_python`/
+  `require_python`, the one place that resolves and version-floors Python
+  (3.10+) for `install.sh`, `update.sh`, `doctor.sh`, and `bin/akos`.
+  `install.sh`/`update.sh`/every operational `akos` subcommand now refuse to
+  run at all without a valid interpreter — `doctor` and `help` are the two
+  documented exceptions, since `doctor` is the command that *reports*
+  Python's absence as a finding. `doctor.sh`'s own missing/old-Python check
+  changed from a warning to a build failure. Removed the one silent
+  fallback this uncovered (`create-pack`'s `review_after` date computation
+  now fails loudly instead of silently substituting today's date).
+
+- **`schemas/routing_check.py`** — a pack's lifecycle status now has a real
+  operational consequence. `skills/akos/SKILL.md`'s single routing table
+  (which held all 6 `ai-engineering/*` draft packs identically formatted to
+  the 48 stable ones, one labeled "Safety floor") is split into a Stable
+  routing catalog and a separate Experimental section; the checker verifies
+  every stable pack is in the former and every draft pack only in the
+  latter (by table line-position, not a whole-file text search, so the
+  file's own illustrative prose mention of a draft pack doesn't
+  false-positive), and that no `status: stable` agent or workflow depends
+  on a draft pack. `schemas/config_check.py` now flags a draft or deprecated
+  pack listed in a project's `.akos/config.md` "Packs to always load" —
+  advisory (draft is readable, just not promised-stable), not a hard block,
+  and there is no `allow_draft_packs` escape hatch. `bin/akos list-packs`
+  gained `--all` and `--status stable|draft|deprecated` (default: stable
+  only), backed by the real YAML parser instead of a directory walk.
+
+- **`bin/personal_layer_integrity.py`** — manifest-backed backup, verify,
+  and restore for `packs/personal/`. `update.sh`'s restore path was still
+  `cp -Rn ... || true` followed by an unconditional "personal layer
+  preserved," and the script always exited 0 even when `git pull` failed —
+  both fixed. `update.sh` now: acquires an atomic `mkdir` lock (concurrent
+  runs are rejected); backs up personal/ and immediately verifies the
+  backup against the live source; runs `git pull --ff-only`; unconditionally
+  diffs the personal layer against the pre-update manifest and, on any
+  drift — even from a legitimate upstream commit — performs a full-tree
+  staged swap back to the snapshot (not a partial fill; a file the pull
+  *added* is reverted too, because "personal" means the operator's layer to
+  change, not the pull's); and actually invokes `doctor.sh` as a final gate
+  instead of only suggesting it. The exit code now reflects every one of
+  those steps: a failed backup, failed restore, failed pull, non-git
+  checkout, or failing final `doctor.sh` all make the script exit non-zero,
+  and "Update complete" is only ever printed after all of them passed.
+
+### Changed
+
+- **Schemas are versioned and strict.** `schemas/registry.json` resolves
+  each contract kind (`knowledge-pack`, `agent`, `workflow`) to its current
+  version; the 3 schema files moved to `schemas/v1/` (no alias — 8 internal
+  references updated in the same change; nothing external depended on the
+  old flat paths). Every schema now requires `schema_version: 1` and sets
+  `additionalProperties: false` at the root and every nested object
+  (`sources[]`, `conflicts[]`, `profiles` for packs) — an unknown or
+  mistyped field (`maintaner`) is now a validation error, not silently
+  ignored. `schema_version: 1` was backfilled onto all 54 non-personal
+  packs (`bin/migrate-pack-metadata.py`, idempotent, append-only) and all 13
+  agents. Workflow frontmatter, previously optional and universally absent,
+  is now required by `schema_version: 1` — all 9 `workflows/*.md` were
+  migrated to carry `id`, `description`, `agents`, `packs`, `profiles`,
+  `status`, and `maintainer`, each field derived from that file's actual
+  body (agent/pack links, explicit counts checked against the real
+  directories), never invented. `schemas/validate.py` also gained two
+  cross-field checks JSON Schema can't express on its own: a pack's
+  `domain`/`name`/`id` must match the directory it lives in, and
+  `deprecated: true` requires a non-empty `replacement`.
+- **`schemas/yaml_subset.py` rejects a duplicate key within the same mapping
+  scope** (root map, a nested map, or one list-of-maps item) — previously
+  silent last-value-wins via plain dict assignment. A repeated key across
+  *different* list items (two separate `sources:` entries each with their
+  own `title`) is correctly not flagged.
+- **`schemas/history.py`'s readers now match its writer's atomicity
+  guarantees.** `list`/`latest`/`clean` explicitly skip in-flight
+  `.tmp-review-*` staging directories (`list` already did; `latest` and
+  `clean` did not); a published review missing or failing to parse any of
+  its three required files is reported as `(corrupt: ...)` rather than
+  silently omitted or silently treated as clean, and `show`/`compare` return
+  1 on a corrupt review via a new `ReviewCorruptError` (distinct from "no
+  such review").
+
 ## [1.10.0] — 2026-07-22
 
 P0 security hardening. Five places where a promise in the docs was not enforced

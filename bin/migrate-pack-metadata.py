@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Idempotent, additive migration of packs/*/*/metadata.yaml to the extended
-schema in schemas/knowledge-pack.schema.json.
+schema in schemas/v1/knowledge-pack.schema.json.
 
 Never rewrites an existing line — only appends brand-new top-level keys at
 EOF, so a hand-reviewed 48-file corpus doesn't get a noisy reformatting diff.
@@ -26,7 +26,7 @@ AKOS_HOME = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
 import yaml_subset as y  # noqa: E402
 
-CANONICAL_ORDER = ["id", "status", "last_reviewed", "review_after", "maintainer", "license", "deprecated"]
+CANONICAL_ORDER = ["schema_version", "id", "status", "last_reviewed", "review_after", "maintainer", "license", "deprecated"]
 CADENCE_DAYS = {0: 545, 1: 545, 2: 365, 3: 270, 4: 270}  # 18mo / 18mo / 12mo / 9mo / 9mo
 
 # Matches "## [1.0.0] — 2026-07-09" — the em-dash is literal in all 49 real
@@ -66,6 +66,7 @@ def build_missing_block(meta_path: Path, missing: list[str]) -> tuple[str, dict[
     review_after = last_reviewed + timedelta(days=CADENCE_DAYS.get(authority, 365))
 
     values = {
+        "schema_version": "1",
         "id": f"{domain}/{name}",
         "status": "stable",
         "last_reviewed": last_reviewed.isoformat(),

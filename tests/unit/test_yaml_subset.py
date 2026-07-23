@@ -119,6 +119,38 @@ class TestYamlSubsetRejections(unittest.TestCase):
         with self.assertRaises(y.YamlSubsetError):
             y.loads("x:\n\tkey: value\n")
 
+    def test_duplicate_yaml_root_key_is_error(self):
+        # Previously last-value-wins via plain dict assignment: the second
+        # `name:` silently discarded the first with no error at all.
+        with self.assertRaises(y.YamlSubsetError):
+            y.loads("name: foo\ndomain: ux\nname: bar\n")
+
+    def test_duplicate_yaml_nested_key_is_error(self):
+        # Same violation, one level down — a duplicate key within a single
+        # list-of-maps item (both `title:` lines belong to the SAME source).
+        with self.assertRaises(y.YamlSubsetError):
+            y.loads("sources:\n  - title: A\n    title: B\n    url: http://x\n")
+
+    def test_duplicate_yaml_nested_map_key_is_error(self):
+        with self.assertRaises(y.YamlSubsetError):
+            y.loads("profiles:\n  relevant: [a, b]\n  relevant: [c]\n")
+
+    def test_same_key_across_different_sibling_list_items_is_not_a_duplicate(self):
+        # Two SEPARATE `sources:` entries each have their own `title` — this
+        # is the normal, legitimate shape and must not be flagged. Duplicate
+        # detection is scoped per mapping instance, not per file.
+        result = y.loads(
+            "sources:\n"
+            "  - title: A\n"
+            "    url: http://a\n"
+            "  - title: B\n"
+            "    url: http://b\n"
+        )
+        self.assertEqual(result["sources"], [
+            {"title": "A", "url": "http://a"},
+            {"title": "B", "url": "http://b"},
+        ])
+
 
 class TestYamlSubsetAdversarial(unittest.TestCase):
     """The module's contract (docstring) is that it RAISES on constructs it

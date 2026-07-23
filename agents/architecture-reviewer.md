@@ -1,4 +1,5 @@
 ---
+schema_version: 1
 name: akos-architecture-reviewer
 description: AKOS lens 7 — architecture. Right-sized layering, dependency direction, coupling and cohesion, and an explicit challenge to unnecessary complexity. Guards both over- and under-engineering. Use for the AKOS architecture review.
 tools: Read, Grep, Glob

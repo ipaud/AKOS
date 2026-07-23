@@ -492,3 +492,122 @@ class TestHistoryIsUniqueAndAtomic(unittest.TestCase):
             json.loads((d / "metadata.json").read_text())
         self.assertFalse(list((self.project / ".akos/reviews").glob(".tmp-review-*")),
                          "no orphan staging dirs may remain")
+
+    def test_history_json_is_valid_before_publish(self):
+        real_dumps = history.json.dumps
+
+        def bad_dumps(obj, *a, **k):
+            # Corrupt only the report.json payload (decision+scores dict) —
+            # metadata.json must still write cleanly, so this isolates the
+            # re-parse check from the metadata-focused failure test above.
+            if isinstance(obj, dict) and "decision" in obj and "scores" in obj:
+                return "{not valid json"
+            return real_dumps(obj, *a, **k)
+
+        from unittest import mock
+        with mock.patch.object(history.json, "dumps", side_effect=bad_dumps):
+            rc = history.cmd_record(self._args())
+        self.assertEqual(rc, 1, "invalid report.json content must be caught before publish, not after")
+        self.assertEqual(self._dirs(), [], "nothing may be published when report.json fails to reparse")
+        self.assertFalse(list((self.project / ".akos/reviews").glob(".tmp-review-*")),
+                         "a caught pre-publish corruption must leave no staging dir")
+
+    def test_history_failure_removes_staging_directory(self):
+        # A distinct failure point from test_history_write_failure_leaves_no_partial_review
+        # (which fails during metadata construction): this fails at publish
+        # time itself (os.rename), after all three files are already staged.
+        from unittest import mock
+        with mock.patch.object(history.os, "rename", side_effect=OSError(13, "Permission denied")):
+            rc = history.cmd_record(self._args())
+        self.assertEqual(rc, 1, "a publish-time failure must be reported, not silently swallowed")
+        self.assertEqual(self._dirs(), [], "a failed publish must leave no final review directory")
+        self.assertFalse(list((self.project / ".akos/reviews").glob(".tmp-review-*")),
+                         "a failed publish must leave no staging directory behind")
+
+
+class TestHistoryReadersHandleStagingAndCorruption(unittest.TestCase):
+    """`list`/`latest`/`clean` must never mistake an in-flight staging dir for
+    a published review, and a published-but-corrupt review must be reported,
+    not silently hidden as if it never existed and not shown as if clean."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.project = Path(self._tmp.name)
+        self.report = self.project / "report.md"
+        self.report.write_text("# Review\n")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _args(self, ts="20260101T000000Z", rtype="security"):
+        class Args:
+            pass
+        a = Args()
+        a.dir = str(self.project)
+        a.type = rtype
+        a.decision = "PASS"
+        a.profile = "Production"
+        a.report = str(self.report)
+        a.scores_json = '{"security": 90}'
+        a.packs_json = None
+        a.timestamp = ts
+        return a
+
+    def _reviews_dir(self) -> Path:
+        d = self.project / ".akos/reviews"
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    def _capture(self, fn, *args):
+        import io
+        from contextlib import redirect_stdout
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            rc = fn(*args)
+        return rc, buf.getvalue()
+
+    def test_history_staging_directory_is_not_listed(self):
+        self.assertEqual(history.cmd_record(self._args()), 0)
+        staging = self._reviews_dir() / ".tmp-review-orphaned"
+        staging.mkdir()
+        (staging / "report.md").write_text("in flight")
+
+        rc, out = self._capture(history.cmd_list, self._args())
+        self.assertEqual(rc, 0)
+        self.assertNotIn(".tmp-review-orphaned", out, "a staging dir must never appear in `list`")
+
+        # `latest` must resolve to the real published review, never the
+        # staging dir, regardless of how the two names happen to sort.
+        args = self._args()
+        rc, out = self._capture(history.cmd_latest, args)
+        self.assertEqual(rc, 0)
+        self.assertNotIn("no such review", out)
+
+    def test_history_corrupt_published_review_is_reported(self):
+        self.assertEqual(history.cmd_record(self._args()), 0)
+        published = next(p for p in self._reviews_dir().iterdir() if p.is_dir())
+        (published / "report.json").unlink()  # simulate a corrupted publish
+
+        rc, out = self._capture(history.cmd_list, self._args())
+        self.assertEqual(rc, 0, "list itself does not fail — it reports the corrupt entry")
+        self.assertIn(published.name, out)
+        self.assertIn("corrupt", out.lower())
+
+        show_args = self._args()
+        show_args.review_id = published.name
+        rc, _ = self._capture(history.cmd_show, show_args)
+        self.assertEqual(rc, 1, "show must refuse a corrupt review, not print partial/garbage data")
+
+    def test_history_clean_never_deletes_a_staging_directory(self):
+        self.assertEqual(history.cmd_record(self._args()), 0)
+        staging = self._reviews_dir() / ".tmp-review-orphaned"
+        staging.mkdir()
+        (staging / "report.md").write_text("in flight")
+
+        args = self._args()
+        args.keep = 0
+        args.dry_run = False
+        args.confirm_delete = 1  # only the 1 real published review is a candidate
+        rc, _ = self._capture(history.cmd_clean, args)
+        self.assertEqual(rc, 0)
+        self.assertTrue(staging.is_dir(), "clean must never sweep a staging directory")

@@ -1,3 +1,14 @@
+---
+schema_version: 1
+id: pre-release-review
+description: The full twelve-step review pipeline before a production release.
+agents: [product-reviewer, ux-reviewer, accessibility-reviewer, mobile-reviewer, copy-reviewer, frontend-reviewer, architecture-reviewer, security-reviewer, performance-reviewer, testing-reviewer, release-reviewer]
+packs: []
+profiles: [Prototype, Production, Enterprise]
+status: stable
+maintainer: core
+---
+
 # Workflow: Pre-Release Review
 
 The full twelve-step [review pipeline](../core/review-pipeline.md) before a production release.

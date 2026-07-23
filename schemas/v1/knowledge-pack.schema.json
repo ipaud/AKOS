@@ -1,12 +1,17 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://akos.dev/schemas/knowledge-pack.schema.json",
+  "$id": "https://akos.dev/schemas/v1/knowledge-pack.schema.json",
   "title": "AKOS knowledge pack metadata.yaml",
-  "description": "Validates packs/<domain>/<name>/metadata.yaml. Required fields are exactly the 7 already universal across all 48 non-personal packs, so this schema is non-breaking by construction — every existing pack validates clean without a migration. New fields are optional-with-default and additionally listed in x-akos-recommended: absence there produces a warning, never an error.",
+  "description": "Validates packs/<domain>/<name>/metadata.yaml. schema_version 1 is the versioned, strict contract: schema_version and the 7 fields already universal across the corpus are required, additionalProperties is false at the root and every nested object, and an unknown top-level or nested key is an error, not a silently-ignored typo. All 54 non-personal packs were migrated to carry schema_version: 1 by bin/migrate-pack-metadata.py before this schema tightened (see docs/contracts/knowledge-pack.md). New optional fields are additionally listed in x-akos-recommended: absence there produces a warning, never an error.",
   "type": "object",
-  "required": ["name", "domain", "authority-level", "version", "tags", "sources", "related"],
+  "required": ["schema_version", "name", "domain", "authority-level", "version", "tags", "sources", "related"],
   "x-akos-recommended": ["id", "status", "last_reviewed", "review_after", "maintainer"],
   "properties": {
+    "schema_version": {
+      "type": "integer",
+      "enum": [1],
+      "description": "Which version of this contract the file was authored against. An unknown value must fail explicitly, never fall back to the current schema."
+    },
     "name": {
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
@@ -47,6 +52,7 @@
           "org": { "type": "string" },
           "url": { "type": "string" }
         },
+        "additionalProperties": false,
         "description": "Attribution only per core/source-policy.md — either 'author' or 'org' is typically present, but neither is required by the schema since real content uses both patterns depending on the source type (a named author vs. an organization like W3C)."
       }
     },
@@ -101,6 +107,7 @@
           }
         }
       },
+      "additionalProperties": false,
       "description": "Advisory routing narrowing only. Absence means 'applies to all six profiles.' Does not replace or duplicate core/reasoning-profiles.md's per-agent weight table."
     },
     "dependencies": {
@@ -116,10 +123,11 @@
         "properties": {
           "pack": { "type": "string" },
           "ruling": { "type": "string" }
-        }
+        },
+        "additionalProperties": false
       },
       "description": "Pre-registered known tensions with another pack, feeding core/conflict-resolution.md's canonical rulings. Not materialized by migration — populated by hand when a real conflict is identified."
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

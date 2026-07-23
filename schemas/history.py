@@ -219,6 +219,41 @@ def cmd_record(args) -> int:
     return 0
 
 
+STAGING_PREFIX = ".tmp-review-"
+
+# The three files a published review must have, exactly as `cmd_record`
+# stages and verifies them before the atomic rename. Any published directory
+# missing one, or holding one that doesn't parse, is corrupt — visibly
+# reported as such, never silently treated as either clean or absent.
+REQUIRED_FILES = ("report.md", "metadata.json", "report.json")
+
+
+def _is_staging(entry: Path) -> bool:
+    return entry.name.startswith(STAGING_PREFIX)
+
+
+def _review_state(entry: Path) -> tuple[dict | None, str | None]:
+    """Validate a published review directory.
+
+    Returns (metadata, None) if the review is intact — all three required
+    files present, both JSON files parse. Returns (None, reason) otherwise,
+    naming exactly what's wrong so a corrupt review is reported, not hidden
+    as if it didn't exist and not confused with a valid one.
+    """
+    for name in REQUIRED_FILES:
+        if not (entry / name).is_file():
+            return None, f"missing {name}"
+    try:
+        meta = json.loads((entry / "metadata.json").read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as e:
+        return None, f"unreadable metadata.json ({e})"
+    try:
+        json.loads((entry / "report.json").read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as e:
+        return None, f"unreadable report.json ({e})"
+    return meta, None
+
+
 def cmd_list(args) -> int:
     project_dir = Path(args.dir).resolve()
     d = reviews_dir(project_dir)
@@ -230,25 +265,29 @@ def cmd_list(args) -> int:
             continue
         # Skip the in-flight staging dirs a concurrent record may be writing;
         # they are not published reviews.
-        if entry.name.startswith(".tmp-review-"):
+        if _is_staging(entry):
             continue
-        meta_path = entry / "metadata.json"
-        if not meta_path.exists():
-            continue
-        try:
-            meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            # A corrupt metadata file is not a listable review — skip it with a
-            # note rather than crashing the whole listing on one bad entry.
-            print(f"  {entry.name:<40} (unreadable metadata.json — skipped)")
+        meta, reason = _review_state(entry)
+        if reason is not None:
+            print(f"  {entry.name:<40} (corrupt: {reason})")
             continue
         print(f"  {entry.name:<40} {meta.get('decision', '?'):<16} profile={meta.get('profile', '?')}")
     return 0
 
 
+class ReviewCorruptError(Exception):
+    """A published review directory exists but fails its file/JSON contract —
+    distinct from FileNotFoundError (the review id doesn't exist at all) so
+    callers can report "corrupt" rather than the misleading "no such review"."""
+
+
 def _load_review(project_dir: Path, review_id: str) -> tuple[dict, dict]:
     d = reviews_dir(project_dir) / review_id
-    meta = json.loads((d / "metadata.json").read_text(encoding="utf-8"))
+    if not d.is_dir():
+        raise FileNotFoundError(f"no such review: {review_id}")
+    meta, reason = _review_state(d)
+    if reason is not None:
+        raise ReviewCorruptError(f"review {review_id} is corrupt: {reason}")
     report = json.loads((d / "report.json").read_text(encoding="utf-8"))
     return meta, report
 
@@ -259,6 +298,9 @@ def cmd_show(args) -> int:
         meta, report = _load_review(project_dir, args.review_id)
     except FileNotFoundError:
         print(f"error: no such review: {args.review_id}", file=sys.stderr)
+        return 1
+    except ReviewCorruptError as e:
+        print(f"error: {e}", file=sys.stderr)
         return 1
     except json.JSONDecodeError as e:
         print(f"error: review {args.review_id} has corrupt JSON ({e})", file=sys.stderr)
@@ -273,7 +315,7 @@ def cmd_latest(args) -> int:
     if not d.exists():
         print("(no reviews recorded yet)")
         return 0
-    entries = sorted((e for e in d.iterdir() if e.is_dir()), key=lambda e: e.name)
+    entries = sorted((e for e in d.iterdir() if e.is_dir() and not _is_staging(e)), key=lambda e: e.name)
     if not entries:
         print("(no reviews recorded yet)")
         return 0
@@ -295,6 +337,9 @@ def cmd_compare(args) -> int:
         meta_a, report_a = _load_review(project_dir, args.review_a)
         meta_b, report_b = _load_review(project_dir, args.review_b)
     except FileNotFoundError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+    except ReviewCorruptError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     except json.JSONDecodeError as e:
@@ -325,7 +370,9 @@ def cmd_clean(args) -> int:
     if not d.exists():
         print("(nothing to clean)")
         return 0
-    entries = sorted((e for e in d.iterdir() if e.is_dir()), key=lambda e: e.name)
+    # Staging dirs are never candidates: they are not published reviews, and a
+    # concurrent record's in-flight write must not be swept mid-publish.
+    entries = sorted((e for e in d.iterdir() if e.is_dir() and not _is_staging(e)), key=lambda e: e.name)
     to_remove = entries[: max(0, len(entries) - args.keep)]
 
     # Name every review that would go. The scope of this command depends on
@@ -383,7 +430,7 @@ def main(argv=None) -> int:
     p_record.add_argument("--scores-json")
     p_record.add_argument("--packs-json")
     p_record.add_argument("--dir", default=".")
-    p_record.add_argument("--timestamp", required=True, help="Caller-supplied, e.g. from `date -u +%Y%m%dT%H%M%SZ`")
+    p_record.add_argument("--timestamp", required=True, help="Caller-supplied, e.g. from `date -u +%%Y%%m%%dT%%H%%M%%SZ`")
 
     p_list = sub.add_parser("list")
     p_list.add_argument("--dir", default=".")

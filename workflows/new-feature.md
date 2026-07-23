@@ -1,3 +1,14 @@
+---
+schema_version: 1
+id: new-feature
+description: Adding a feature to an existing project.
+agents: [product-reviewer, architecture-reviewer]
+packs: [testing/tdd, devops/git]
+profiles: [Prototype, Production]
+status: stable
+maintainer: core
+---
+
 # Workflow: New Feature
 
 Adding a feature to an existing project.

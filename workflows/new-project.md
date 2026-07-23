@@ -1,3 +1,14 @@
+---
+schema_version: 1
+id: new-project
+description: Bootstrapping a new app/site/tool from scratch with AKOS loaded.
+agents: [product-reviewer]
+packs: []
+profiles: [Prototype, Startup MVP, Production]
+status: stable
+maintainer: core
+---
+
 # Workflow: New Project
 
 Bootstrapping a new app/site/tool from scratch with AKOS loaded.

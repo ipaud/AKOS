@@ -155,6 +155,70 @@ class TestConfigCheck(unittest.TestCase):
                 findings = self._check(f"## Packs to always load\n\n- {entry}\n")
                 self.assertIn("CRITICAL", {f["severity"] for f in findings})
 
+    # --- Draft/deprecated packs: no self-authorization into always-load ---
+
+    def _fake_akos_home_with_pack(self, domain: str, name: str, metadata_body: str) -> Path:
+        home = self.project / "fake-akos-home"
+        pack_dir = home / "packs" / domain / name
+        pack_dir.mkdir(parents=True)
+        (pack_dir / "metadata.yaml").write_text(metadata_body, encoding="utf-8")
+        return home
+
+    def test_config_always_load_rejects_draft_pack(self):
+        home = self._fake_akos_home_with_pack(
+            "ai-engineering", "some-draft-pack",
+            "schema_version: 1\nname: some-draft-pack\ndomain: ai-engineering\n"
+            "authority-level: 3\nversion: 1.0.0\ntags: []\nsources: []\nrelated: []\n"
+            "status: draft\n",
+        )
+        findings = config_check.check_config(
+            self._write("## Packs to always load\n\n- ai-engineering/some-draft-pack\n"),
+            home,
+        )
+        self.assertTrue(any("draft" in f["message"] for f in findings),
+                         f"expected a draft-pack finding, got {findings}")
+        self.assertTrue(all(f["severity"] != "CRITICAL" for f in findings),
+                         "a draft pack is advisory (MEDIUM), not a hard block")
+
+    def test_config_always_load_rejects_deprecated_pack(self):
+        home = self._fake_akos_home_with_pack(
+            "ux", "old-pack",
+            "schema_version: 1\nname: old-pack\ndomain: ux\nauthority-level: 3\n"
+            "version: 1.0.0\ntags: []\nsources: []\nrelated: []\n"
+            "status: deprecated\ndeprecated: true\nreplacement: ux/new-pack\n",
+        )
+        findings = config_check.check_config(
+            self._write("## Packs to always load\n\n- ux/old-pack\n"),
+            home,
+        )
+        self.assertTrue(any("deprecated" in f["message"] and "ux/new-pack" in f["message"] for f in findings),
+                         f"expected a deprecated-pack finding naming the replacement, got {findings}")
+
+    def test_config_always_load_accepts_stable_pack(self):
+        home = self._fake_akos_home_with_pack(
+            "ux", "stable-pack",
+            "schema_version: 1\nname: stable-pack\ndomain: ux\nauthority-level: 3\n"
+            "version: 1.0.0\ntags: []\nsources: []\nrelated: []\nstatus: stable\n",
+        )
+        findings = config_check.check_config(
+            self._write("## Packs to always load\n\n- ux/stable-pack\n"),
+            home,
+        )
+        self.assertEqual(findings, [])
+
+    def test_no_allow_draft_packs_escape_hatch_exists(self):
+        # The only sanctioned opt-in path is the current conversation's user
+        # asking explicitly — never a field in this untrusted file. Locks
+        # down that adding one wouldn't even do anything today.
+        findings = self._check(
+            "## Packs to always load\nallow_draft_packs: true\n\n- ux/wcag\n"
+        )
+        # allow_draft_packs is not a recognized pack-line shape at all under
+        # PACK_LINE_RE/PACK_ENTRY_RE, so it either resolves to nothing or, if
+        # ever matched, must never suppress the draft/deprecated findings for
+        # real entries in the same section.
+        self.assertNotIn("draft", " ".join(f["message"] for f in findings))
+
 
 if __name__ == "__main__":
     unittest.main()

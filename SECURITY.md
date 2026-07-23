@@ -61,4 +61,30 @@ of them is an in-scope vulnerability — report it as above.
   warning.
 - **Review history is immutable.** Records are uniquely identified and published
   by atomic rename; a published review is never overwritten and a failed record
-  leaves no partial state. Reports are secret-redacted at write time.
+  leaves no partial state. Reports are secret-redacted at write time. Readers
+  (`list`/`latest`/`clean`) never mistake an in-flight staging directory for a
+  published review, and never silently present a corrupt review as clean.
+- **Ambiguous AKOS:START/END markers are rejected, not guessed at.** A file with
+  multiple start/end markers, a one-sided marker, or markers out of order is
+  left byte-for-byte untouched and the write refuses — the previous
+  first-match behavior could silently operate on the wrong section of a file.
+- **`update.sh` fails closed.** The personal layer (`packs/personal/`) is
+  backed up with a manifest and verified against the live source before any
+  pull; after the pull, any drift from that manifest — including from a
+  legitimate upstream commit — triggers a full-tree restore, and the restore
+  is itself verified before being reported as successful. A failed backup,
+  failed restore, failed pull, non-git checkout, or failing final `doctor.sh`
+  all exit non-zero; "preserved"/"restored"/"complete" is never printed
+  without the corresponding check having run. Symlinks inside the personal
+  layer are recorded and restored by their target string — never followed or
+  resolved.
+- **Schema contracts reject the unknown.** Every pack, agent, and workflow
+  must declare a `schema_version`; an unrecognized version fails explicitly
+  rather than being validated against whatever the current schema happens to
+  be, and an undeclared top-level or nested field is a validation error, not
+  a silently-ignored typo.
+- **A `status: draft` pack is not stable authority.** It is visible and
+  usable, but excluded from automatic routing and from any `status: stable`
+  agent's or workflow's dependencies; a project's `.akos/config.md` cannot
+  self-authorize one into its always-load set, and there is no
+  `allow_draft_packs` field that would let it.

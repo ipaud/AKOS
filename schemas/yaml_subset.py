@@ -9,7 +9,13 @@ read its own metadata.
 
 Deliberately unsupported (raises YamlSubsetError with the offending line,
 rather than silently mis-parsing): anchors/aliases (&, *), block scalars
-(| or >), flow mappings ({a: b}), multi-document streams, tab indentation.
+(| or >), flow mappings ({a: b}), multi-document streams, tab indentation,
+and a duplicate key within the SAME mapping scope (root map, a nested map,
+or a single list-of-maps item — a repeated key across different sibling
+list items, e.g. two separate `sources:` entries each with their own
+`title`, is not a duplicate and is not flagged). Duplicate keys used to
+resolve last-value-wins via plain dict assignment, so a typo'd repeated
+field silently discarded the first value with no error at all.
 AKOS controls all the YAML this parser ever reads, so the fix for hitting
 one of these is "simplify the YAML," not "extend the parser."
 
@@ -295,6 +301,8 @@ def _parse_map(tokens, start, indent):
         if kv is None:
             raise YamlSubsetError("expected 'key: value'", line_no)
         key, rest = kv
+        if key in result:
+            raise YamlSubsetError(f"duplicate key {key!r} in mapping", line_no)
         i += 1
         i = _consume_value(tokens, i, indent, rest, line_no, result, key)
     return result, i
@@ -346,6 +354,8 @@ def _parse_list(tokens, start, indent):
             if skv is None:
                 break
             skey, srest = skv
+            if skey in item_map:
+                raise YamlSubsetError(f"duplicate key {skey!r} in mapping", sub_line_no)
             i += 1
             i = _consume_value(tokens, i, virtual_indent, srest, sub_line_no, item_map, skey)
         result.append(item_map)

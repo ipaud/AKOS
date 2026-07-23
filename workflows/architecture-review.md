@@ -1,3 +1,14 @@
+---
+schema_version: 1
+id: architecture-review
+description: "Focused structural pass — including the complexity challenge the owner wants enforced."
+agents: [architecture-reviewer]
+packs: [architecture/clean-architecture, architecture/design-patterns, architecture/domain-driven-design, architecture/martin-fowler-refactoring, architecture/solid, architecture/twelve-factor-app]
+profiles: [Prototype, Production, Enterprise]
+status: stable
+maintainer: core
+---
+
 # Workflow: Architecture Review
 
 Focused structural pass — including the complexity challenge the owner wants enforced.

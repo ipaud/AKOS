@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://akos.dev/schemas/v1/workflow.schema.json",
+  "title": "AKOS workflow frontmatter",
+  "description": "Validates the YAML frontmatter block of workflows/*.md. schema_version 1 requires frontmatter to be present and requires schema_version itself; every other field stays optional so a future minimal workflow still validates. A file with no leading '---' block is now an error, not an informational skip — all 9 real workflows carry full frontmatter (id, description, agents, packs, profiles, status, maintainer) as of this version.",
+  "type": "object",
+  "required": ["schema_version"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "enum": [1],
+      "description": "Which version of this contract the file was authored against. An unknown value must fail explicitly, never fall back to the current schema."
+    },
+    "id": { "type": "string" },
+    "description": { "type": "string" },
+    "agents": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "packs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "profiles": {
+      "type": "array",
+      "items": {
+        "enum": ["Prototype", "Startup MVP", "Production", "Enterprise", "Game Dev", "Internal Tool"]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "stable", "deprecated"]
+    },
+    "maintainer": {
+      "type": "string",
+      "default": "core"
+    }
+  },
+  "additionalProperties": false
+}

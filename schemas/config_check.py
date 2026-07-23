@@ -6,8 +6,9 @@ working in — including a repository someone else wrote. The skills treat it as
 untrusted manifest data (project facts and hints), never as instructions, and
 never as something that can lower the safety floor. This check enforces the
 *form* of that data so a hostile checkout cannot smuggle a disallowed profile,
-a pack path that escapes `packs/`, an ambiguous `Deployed` flag, or a
-repo-side profile-override into the agent's reading.
+a pack path that escapes `packs/`, an ambiguous `Deployed` flag, a
+repo-side profile-override, or a `status: draft`/`deprecated` pack
+self-authorized into the project's always-load set, into the agent's reading.
 
 Form, not trust. The checking here is deterministic: a profile either is one
 of the six names or it is not; a pack path either resolves inside
@@ -28,6 +29,9 @@ import argparse
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import yaml_subset  # noqa: E402
 
 VALID_PROFILES = {
     "Prototype", "Startup MVP", "Production",
@@ -128,6 +132,37 @@ def check_config(config_path: Path, akos_home: Path) -> list[dict]:
                 "severity": "MEDIUM",
                 "message": f"{entry!r} does not exist. List packs with 'akos list-packs'.",
             })
+        else:
+            # A project cannot self-authorize a draft or deprecated pack into
+            # its always-load set — there is no allow_draft_packs escape
+            # hatch in this file. Draft content is readable and usable, just
+            # not promised-stable, so this is advisory (MEDIUM), not a hard
+            # block; the only legitimate opt-in is the CURRENT conversation's
+            # user explicitly asking for it, never this untrusted file.
+            meta_path = resolved / "metadata.yaml"
+            if meta_path.is_file():
+                try:
+                    meta = yaml_subset.load(meta_path)
+                except yaml_subset.YamlSubsetError:
+                    meta = {}
+                status = meta.get("status") if isinstance(meta, dict) else None
+                if status == "draft":
+                    findings.append({
+                        "field": "Packs to always load",
+                        "severity": "MEDIUM",
+                        "message": f"{entry!r} is status: draft — not yet promised-stable, "
+                                   f"so it should not be a project's always-loaded authority. "
+                                   f"Only the current conversation's user can opt into draft "
+                                   f"content explicitly; this file cannot authorize it.",
+                    })
+                elif status == "deprecated":
+                    replacement = meta.get("replacement") if isinstance(meta, dict) else None
+                    repl_note = f" Replacement: {replacement}." if replacement else " No replacement is recorded."
+                    findings.append({
+                        "field": "Packs to always load",
+                        "severity": "MEDIUM",
+                        "message": f"{entry!r} is status: deprecated.{repl_note}",
+                    })
 
     # `Deployed:` is a closed flag. A value that is not exactly yes/no is
     # ambiguous (does it raise the security floor or not?), and two declarations

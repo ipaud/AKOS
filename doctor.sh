@@ -10,6 +10,8 @@
 set -uo pipefail
 
 AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=bin/akos-common.sh
+source "$AKOS_HOME/bin/akos-common.sh"
 c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_red=$'\033[31m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
 pass=0; warnc=0; failc=0
 ok()   { printf '%s✓%s %s\n' "$c_green" "$c_reset" "$*"; pass=$((pass+1)); }
@@ -18,15 +20,23 @@ fail() { printf '%s✗%s %s\n' "$c_red" "$c_reset" "$*"; failc=$((failc+1)); }
 
 printf '%sAKOS Doctor%s — %s\n\n' "$c_bold" "$c_reset" "$AKOS_HOME"
 
-# python3 is the repo's one non-coreutils dependency (JSON manifest parsing,
-# schema validation). Checked once, up front, so its absence degrades
-# gracefully (a warning, once) instead of a raw "command not found" at every
-# call site below.
-if command -v python3 >/dev/null 2>&1; then
+# Python 3.10+ is a hard, mandatory dependency (schemas/, rules/, benchmarks/,
+# history, config validation, freshness, the marker parser, and the update
+# restore verifier all require it) — its absence or an out-of-date version is
+# a real FAILURE here, not a soft-degrade warning. A doctor run that reports
+# "clean" on a machine that cannot actually run schema validation, rules, or
+# history was worse than no check at all: it looked healthy while its core
+# integrity guarantees were silently inoperative.
+if check_python; then
   HAVE_PYTHON3=1
 else
   HAVE_PYTHON3=0
+  fail "python3 (3.10+) not found or too old — detected: $(_akos_python_version_report). Schema validation, rules, freshness, and history are NOT operative without it."
 fi
+# Resolved once, used everywhere below — never a second, independently
+# resolved `python3` literal that could point at a different interpreter
+# than the one just verified above.
+AKOS_PYTHON="$(resolve_python)"
 
 # --- Required top-level directories ---
 printf '%sStructure%s\n' "$c_bold" "$c_reset"
@@ -169,7 +179,7 @@ else
 for m in .claude-plugin/plugin.json .claude-plugin/marketplace.json \
          .codex-plugin/plugin.json .agents/plugins/marketplace.json; do
   if [ ! -f "$AKOS_HOME/$m" ]; then fail "missing $m"; continue; fi
-  if python3 -m json.tool "$AKOS_HOME/$m" >/dev/null 2>&1; then ok "$m parses"
+  if "$AKOS_PYTHON" -m json.tool "$AKOS_HOME/$m" >/dev/null 2>&1; then ok "$m parses"
   else fail "$m is not valid JSON"; fi
 done
 fi
@@ -191,7 +201,7 @@ if [ -f "$AKOS_HOME/VERSION" ]; then
   # user-visible descriptive fields too (plugin.json at top level,
   # marketplace.json at plugins[0]).
   if [ "$HAVE_PYTHON3" -eq 1 ]; then
-    if python3 - "$AKOS_HOME" <<'PY'
+    if "$AKOS_PYTHON" - "$AKOS_HOME" <<'PY'
 import json, sys
 home = sys.argv[1]
 def fields(path, at_plugin):
@@ -266,7 +276,7 @@ PY
 fi
 
 # --- Schema validation (advisory) ---
-# Non-breaking by construction: schemas/knowledge-pack.schema.json's required
+# Non-breaking by construction: schemas/v1/knowledge-pack.schema.json's required
 # fields are exactly the 7 already universal across every pack, so this
 # reports 0 errors against the existing corpus without any migration gate.
 # Errors here fail the build; recommended-field warnings don't.
@@ -274,15 +284,15 @@ printf '\n%sSchema validation%s\n' "$c_bold" "$c_reset"
 if [ "$HAVE_PYTHON3" -eq 0 ]; then
   warn "python3 not found — skipping schema validation (packs/agents/workflows)"
 else
-  validate_out="$(python3 "$AKOS_HOME/schemas/validate.py" packs agents workflows --format json 2>&1)"
+  validate_out="$("$AKOS_PYTHON" "$AKOS_HOME/schemas/validate.py" packs agents workflows --format json 2>&1)"
   validate_rc=$?
   if [ "$validate_rc" -gt 1 ]; then
-    schema_errors="$(printf '%s' "$validate_out" | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r['errors']) for r in d))" 2>/dev/null || echo "?")"
-    schema_warnings="$(printf '%s' "$validate_out" | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r['warnings']) for r in d))" 2>/dev/null || echo "?")"
+    schema_errors="$(printf '%s' "$validate_out" | "$AKOS_PYTHON" -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r['errors']) for r in d))" 2>/dev/null || echo "?")"
+    schema_warnings="$(printf '%s' "$validate_out" | "$AKOS_PYTHON" -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r['warnings']) for r in d))" 2>/dev/null || echo "?")"
     fail "schema validation: $schema_errors error(s) — run 'akos validate' for detail"
     [ "$schema_warnings" != "0" ] && [ "$schema_warnings" != "?" ] && warn "schema validation: $schema_warnings recommended-field warning(s)"
   elif [ "$validate_rc" -eq 0 ]; then
-    schema_warnings="$(printf '%s' "$validate_out" | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r['warnings']) for r in d))" 2>/dev/null || echo "0")"
+    schema_warnings="$(printf '%s' "$validate_out" | "$AKOS_PYTHON" -c "import json,sys; d=json.load(sys.stdin); print(sum(len(r['warnings']) for r in d))" 2>/dev/null || echo "0")"
     if [ "$schema_warnings" = "0" ]; then
       ok "packs/agents/workflows validate clean against their schemas"
     else
@@ -294,6 +304,26 @@ else
   fi
 fi
 
+# --- Draft-pack routing isolation ---
+# A pack's lifecycle status must have a real consequence: a draft pack must
+# never silently become part of the stable "2-5 packs closest to the task"
+# routing table, and no stable agent/workflow may depend on one.
+printf '\n%sDraft-pack routing%s\n' "$c_bold" "$c_reset"
+if [ "$HAVE_PYTHON3" -eq 0 ]; then
+  warn "python3 not found — skipping draft-pack routing check"
+else
+  routing_out="$("$AKOS_PYTHON" "$AKOS_HOME/schemas/routing_check.py" 2>&1)"
+  routing_rc=$?
+  if [ "$routing_rc" -eq 0 ]; then
+    ok "stable routing contains only stable packs; drafts are Experimental-only"
+  elif [ "$routing_rc" -eq 2 ]; then
+    fail "draft-pack routing violation(s):"
+    printf '%s\n' "$routing_out" | sed 's/^/    /'
+  else
+    fail "routing check failed to execute (exit $routing_rc)"
+  fi
+fi
+
 # --- Pack freshness (advisory) ---
 # Same PACK_EXPIRED detector `akos rules` uses, called directly — repo
 # self-maintenance a maintainer should see on a routine health check, not
@@ -302,12 +332,12 @@ printf '\n%sPack freshness%s\n' "$c_bold" "$c_reset"
 if [ "$HAVE_PYTHON3" -eq 0 ]; then
   warn "python3 not found — skipping pack freshness check"
 else
-  expired_out="$(python3 "$AKOS_HOME/rules/runner.py" "$AKOS_HOME" --rule PACK_EXPIRED --format json 2>&1)"
+  expired_out="$("$AKOS_PYTHON" "$AKOS_HOME/rules/runner.py" "$AKOS_HOME" --rule PACK_EXPIRED --format json 2>&1)"
   expired_rc=$?
   if [ "$expired_rc" -eq 1 ]; then
     fail "PACK_EXPIRED rule failed to run (exit $expired_rc)"
   else
-    expired_count="$(printf '%s' "$expired_out" | python3 -c "import json,sys; print(len(json.load(sys.stdin)['findings']))" 2>/dev/null || echo "?")"
+    expired_count="$(printf '%s' "$expired_out" | "$AKOS_PYTHON" -c "import json,sys; print(len(json.load(sys.stdin)['findings']))" 2>/dev/null || echo "?")"
     if [ "$expired_count" = "0" ]; then
       ok "no packs past their review_after date"
     else
@@ -329,8 +359,8 @@ printf '\n%sSelf-scan%s\n' "$c_bold" "$c_reset"
 if [ "$HAVE_PYTHON3" -eq 0 ]; then
   warn "python3 not found — skipping self-scan"
 else
-  self_out="$(python3 "$AKOS_HOME/rules/runner.py" "$AKOS_HOME" --format json 2>&1)"
-  self_status="$(printf '%s' "$self_out" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['status'], d['summary']['errors'])" 2>/dev/null || echo "parse-error")"
+  self_out="$("$AKOS_PYTHON" "$AKOS_HOME/rules/runner.py" "$AKOS_HOME" --format json 2>&1)"
+  self_status="$(printf '%s' "$self_out" | "$AKOS_PYTHON" -c "import json,sys; d=json.load(sys.stdin); print(d['status'], d['summary']['errors'])" 2>/dev/null || echo "parse-error")"
   case "$self_status" in
     "error"*) fail "akos rules run did not complete — a detector or registry failed to run (run 'akos rules run .' for detail); this is not a clean result" ;;
     "parse-error") fail "akos rules run produced unparseable output; this is not a clean result" ;;

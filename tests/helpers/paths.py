@@ -10,7 +10,7 @@ from pathlib import Path
 
 AKOS_HOME = Path(__file__).resolve().parent.parent.parent
 
-for sub in ("schemas", "rules", "benchmarks"):
+for sub in ("schemas", "rules", "benchmarks", "bin"):
     p = str(AKOS_HOME / sub)
     if p not in sys.path:
         sys.path.insert(0, p)

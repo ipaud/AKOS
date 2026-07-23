@@ -7,11 +7,20 @@
 set -euo pipefail
 
 AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=bin/akos-common.sh
+source "$AKOS_HOME/bin/akos-common.sh"
 c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
 ok()   { printf '%s✓%s %s\n' "$c_green" "$c_reset" "$*"; }
 warn() { printf '%s!%s %s\n' "$c_yellow" "$c_reset" "$*"; }
 
 printf '%sInstalling AKOS%s from %s\n\n' "$c_bold" "$c_reset" "$AKOS_HOME"
+
+# Python 3.10+ is mandatory before ANY mutation — schemas, rules, benchmarks,
+# history, and config validation all depend on it. Checked here, first,
+# before a single chmod/mkdir/symlink runs, so a missing/old interpreter
+# fails cleanly with zero side effects instead of an install that "succeeds"
+# but ships a system unable to run its own validation.
+require_python || exit 1
 
 # 1. chmod scripts.
 for s in install.sh update.sh doctor.sh uninstall.sh merge-pr.sh bin/akos; do

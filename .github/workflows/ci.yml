@@ -17,7 +17,7 @@ jobs:
       - name: Bash syntax check
         run: |
           set -e
-          for f in bin/akos install.sh update.sh doctor.sh uninstall.sh merge-pr.sh; do
+          for f in bin/akos bin/akos-common.sh install.sh update.sh doctor.sh uninstall.sh merge-pr.sh; do
             echo "bash -n $f"
             bash -n "$f"
           done
@@ -32,7 +32,7 @@ jobs:
         # disables through the display strings.
         run: |
           shellcheck --version
-          shellcheck -x -S warning -e SC2088 bin/akos install.sh update.sh doctor.sh uninstall.sh merge-pr.sh
+          shellcheck -x -S warning -e SC2088 bin/akos bin/akos-common.sh install.sh update.sh doctor.sh uninstall.sh merge-pr.sh
 
       - name: No tracked Python bytecode
         # .gitignore does not untrack already-tracked files; a committed .pyc
@@ -46,7 +46,7 @@ jobs:
       - name: Python syntax check
         run: |
           set -e
-          python3 -m py_compile schemas/*.py rules/*/*.py benchmarks/runners/*.py benchmarks/providers/*.py
+          python3 -m py_compile schemas/*.py bin/*.py rules/*/*.py benchmarks/runners/*.py benchmarks/providers/*.py
 
       - name: chmod scripts
         run: chmod +x install.sh update.sh doctor.sh uninstall.sh bin/akos
@@ -54,8 +54,13 @@ jobs:
       - name: doctor.sh
         run: ./doctor.sh
 
-      - name: akos validate (packs/agents/workflows)
-        run: python3 schemas/validate.py all
+      - name: akos validate (packs/agents/workflows, schema_version 1, strict)
+        run: |
+          python3 schemas/validate.py all
+          python3 schemas/validate.py all --strict
+
+      - name: akos routing-check (draft packs excluded from stable routing)
+        run: python3 schemas/routing_check.py
 
       - name: akos rules registry sanity (list only — no target project to scan in CI)
         run: |

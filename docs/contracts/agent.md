@@ -1,11 +1,12 @@
 # Contract: reviewer agent frontmatter
 
-Machine schema: [`schemas/agent.schema.json`](../../schemas/agent.schema.json). Run `akos validate agents` to check. This validates the YAML frontmatter block of `agents/*.md` only — the prose body is meant for an LLM to read and reason over, not data to be schema-validated. See "Why not the prose body" below.
+Machine schema: [`schemas/v1/agent.schema.json`](../../schemas/v1/agent.schema.json) (resolved via [`schemas/registry.json`](../../schemas/registry.json)). Run `akos validate agents` to check. This validates the YAML frontmatter block of `agents/*.md` only — the prose body is meant for an LLM to read and reason over, not data to be schema-validated. See "Why not the prose body" below.
 
 ## Field reference
 
 | Field | Type | Required? | Meaning |
 |---|---|---|---|
+| `schema_version` | integer, `enum: [1]` | **Yes** | Which version of this contract the file was authored against. An unknown value fails explicitly rather than falling back to the current schema |
 | `name` | string, pattern `^akos-[a-z-]+$` | **Yes** | e.g. `akos-ux-reviewer` |
 | `description` | string, min 20 chars | **Yes** | When Claude Code should delegate to this subagent |
 | `tools` | string (comma-joined, e.g. `Read, Grep, Glob`) | **Yes** | **Not** a YAML list — confirmed the real format across all 13 agents |
@@ -13,10 +14,13 @@ Machine schema: [`schemas/agent.schema.json`](../../schemas/agent.schema.json). 
 | `status` | `draft` \| `stable` \| `deprecated` | optional, default `stable` | |
 | `maintainer` | string | optional, default `core` | |
 
+`additionalProperties` is `false` — an unknown top-level key (a typo) is a validation error, not a silently-ignored extra field. All 13 real agents carry `schema_version: 1`.
+
 ## Minimal valid example (today's real shape)
 
 ```yaml
 ---
+schema_version: 1
 name: akos-ux-reviewer
 description: AKOS lens 2 — UX clarity. Can a first-time user accomplish the task without thinking? Catches cognitive friction, unclear navigation, weak hierarchy, missing async states. Use for the AKOS UX review of a screen or flow.
 tools: Read, Grep, Glob

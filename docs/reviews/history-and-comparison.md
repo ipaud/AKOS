@@ -19,6 +19,8 @@ Same reasoning as `.akos/config.md`: review history is state about *a project*, 
 
 **Atomic, no-clobber publish.** A record stages `report.md`, `metadata.json`, and `report.json` into a sibling temp dir, verifies all three exist and re-parse, then `os.rename`s the temp dir onto the final id — atomic within one filesystem. A published review directory is non-empty, so a rename onto it fails and it is never overwritten; on that (astronomically unlikely) collision the id is regenerated and the publish retried. A crash mid-write leaves only the temp dir, which is removed — never a partially-written review. `metadata.json`'s `review_id` always equals the published directory name.
 
+**Readers match the writer's atomicity.** `list`, `latest`, and `clean` all explicitly skip in-flight `.tmp-review-*` staging directories — a directory mid-publish by a concurrent `record` is never listed, never chosen as `latest`, and never swept by `clean`. A published review directory that's missing one of its three required files, or holds one that fails to parse, is not silently treated as absent or as clean: `list` reports it as `(corrupt: <reason>)`, and `show`/`compare` return `1` (a `ReviewCorruptError`, distinct from "no such review").
+
 ## Commands
 
 ```bash

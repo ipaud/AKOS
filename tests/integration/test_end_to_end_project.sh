@@ -11,7 +11,7 @@ TMP="$(mktemp -d)"
 # no "scratch AKOS repo" mode for it) — clean it up on ANY exit path, not
 # just the success path, so a failed assertion never leaves test cruft in
 # the real repo.
-trap 'rm -rf "$TMP" "$AKOS_HOME/packs/personal/e2e-test-profile"' EXIT
+trap 'rm -rf "$TMP" "$AKOS_HOME/packs/personal/e2e-test-profile" "$AKOS_HOME/packs/e2e-test-domain"' EXIT
 
 pass() { printf '  ok - %s\n' "$1"; }
 fail() { printf '  FAIL - %s\n' "$1"; exit 1; }
@@ -47,6 +47,22 @@ pass "profile create scaffolded packs/personal/e2e-test-profile"
 grep -q "personal_profile: e2e-test-profile" "$TMP/.akos/config.md" \
   || fail "profile use did not set personal_profile in .akos/config.md"
 pass "profile use set personal_profile correctly"
+
+# create-pack — scaffolded metadata.yaml must carry schema_version: 1 and
+# validate clean against the strict v1 schema, not just "look scaffolded."
+"$AKOS" create-pack e2e-test-domain/e2e-test-pack >/dev/null 2>&1
+grep -q "^schema_version: 1$" "$AKOS_HOME/packs/e2e-test-domain/e2e-test-pack/metadata.yaml" \
+  || fail "create-pack did not scaffold schema_version: 1"
+python3 "$AKOS_HOME/schemas/validate.py" packs --format json >/tmp/create-pack-e2e.$$ 2>&1
+python3 -c "
+import json
+d = json.load(open('/tmp/create-pack-e2e.$$'))
+mine = [r for r in d if 'e2e-test-domain' in r['file']]
+assert mine, 'scaffolded pack not found by validate.py'
+assert not mine[0]['errors'], f\"scaffolded pack has schema errors: {mine[0]['errors']}\"
+" || fail "create-pack's scaffolded pack does not validate clean"
+rm -f /tmp/create-pack-e2e.$$
+pass "create_pack_scaffolds_schema_version_1"
 
 # history — record a review and read it back, in the scratch project.
 echo "# Test Review" > "$TMP/report.md"

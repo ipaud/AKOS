@@ -1,3 +1,14 @@
+---
+schema_version: 1
+id: accessibility-review
+description: "Focused WCAG 2.2 AA pass — the safety-floor accessibility check."
+agents: [accessibility-reviewer]
+packs: [ux/wcag]
+profiles: [Prototype, Production, Enterprise]
+status: stable
+maintainer: core
+---
+
 # Workflow: Accessibility Review
 
 Focused WCAG 2.2 AA pass — the safety-floor accessibility check.

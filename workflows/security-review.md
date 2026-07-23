@@ -1,3 +1,14 @@
+---
+schema_version: 1
+id: security-review
+description: 'Focused security pass — mandatory before any deployed project is "done."'
+agents: [security-reviewer, database-reviewer]
+packs: [security/owasp-top-10, security/owasp-api-top-10, security/owasp-asvs, security/nist-ssdf, backend/supabase]
+profiles: [Prototype, Production, Enterprise]
+status: stable
+maintainer: core
+---
+
 # Workflow: Security Review
 
 Focused security pass — mandatory before any deployed project is "done."

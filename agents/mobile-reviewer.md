@@ -1,4 +1,5 @@
 ---
+schema_version: 1
 name: akos-mobile-reviewer
 description: AKOS lens 4 — mobile and responsive. Checks 320px layout, touch ergonomics, and network resilience. Run by default on every web surface. Use for the AKOS mobile review.
 tools: Read, Grep, Glob

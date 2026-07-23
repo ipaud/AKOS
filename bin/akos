@@ -19,8 +19,8 @@ resolve_akos_home() {
 }
 AKOS_HOME="${AKOS_HOME:-$(resolve_akos_home)}"
 
-MARK_START="<!-- AKOS:START -->"
-MARK_END="<!-- AKOS:END -->"
+# shellcheck source=bin/akos-common.sh
+source "$AKOS_HOME/bin/akos-common.sh"
 
 c_bold=$'\033[1m'; c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_red=$'\033[31m'; c_reset=$'\033[0m'
 info()  { printf '%s\n' "$*"; }
@@ -39,45 +39,16 @@ err()   { printf '%s✗%s %s\n' "$c_red" "$c_reset" "$*" >&2; }
 valid_segment() { [[ "$1" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; }
 
 # --- Marker-safe file section writer ---
-# Writes a section between AKOS:START/END markers. Creates file if absent,
-# appends the section if markers absent, replaces between markers if present.
-# Never touches content outside the markers.
+# Thin wrapper around bin/marked_sections.py, the single shared parser for
+# AKOS:START/END sections. Creates the file if absent, appends the section
+# if markers are absent, replaces between markers if present exactly once —
+# and REFUSES (rather than guessing) if the marker structure is ambiguous
+# (multiple starts/ends, one-sided, out of order). The bash predecessor
+# (`grep -nF ... | head -n1`) silently picked the first pair even when
+# duplicates existed; this fails loudly instead, leaving the file untouched.
 write_marked_section() {
   local file="$1"; local body="$2"
-  local block
-  block="$(printf '%s\n%s\n%s\n' "$MARK_START" "$body" "$MARK_END")"
-
-  if [ ! -f "$file" ]; then
-    mkdir -p "$(dirname "$file")"
-    printf '%s\n' "$block" > "$file"
-    ok "created $file"
-    return
-  fi
-  if grep -qF "$MARK_START" "$file" 2>/dev/null; then
-    # Replace between markers via sed line ranges — NOT awk -v with a
-    # multi-line value. Confirmed: BSD awk (macOS's stock /usr/bin/awk)
-    # cannot accept an embedded newline in a `-v var=value` assignment; it
-    # exits nonzero with "newline in string" and prints nothing. Under
-    # `set -e` that aborts before `mv` runs, so it never corrupts the file —
-    # but it also never updates it, silently, which is worse: every rerun of
-    # `install-project` against an already-marked file was a silent no-op.
-    local start_line end_line total_lines
-    start_line="$(grep -nF "$MARK_START" "$file" | head -n1 | cut -d: -f1)"
-    end_line="$(grep -nF "$MARK_END" "$file" | head -n1 | cut -d: -f1)"
-    total_lines="$(wc -l < "$file" | tr -d ' ')"
-    local tmp; tmp="$(mktemp)"
-    {
-      [ "$start_line" -gt 1 ] && sed -n "1,$((start_line - 1))p" "$file"
-      printf '%s\n' "$block"
-      [ "$end_line" -lt "$total_lines" ] && sed -n "$((end_line + 1)),\$p" "$file"
-      true
-    } > "$tmp"
-    mv "$tmp" "$file"
-    ok "updated AKOS section in $file"
-  else
-    printf '\n%s\n' "$block" >> "$file"
-    ok "appended AKOS section to $file"
-  fi
+  printf '%s' "$body" | "$AKOS_PYTHON" "$AKOS_HOME/bin/marked_sections.py" write "$file" --body -
 }
 
 cmd_help() {
@@ -91,7 +62,7 @@ Commands:
   doctor               Run the AKOS health check
   install-project      Add AKOS integration files to the current project
   link-project         Alias for install-project (current directory)
-  list-packs           List all knowledge packs
+  list-packs [opts]    List stable knowledge packs (--all for every status, --status draft|deprecated|stable)
   list-agents          List all review agents
   list-skills          List the agent skills (Claude Code + Codex CLI)
   show-profile [name]  Show a reasoning profile (or list them)
@@ -99,6 +70,7 @@ Commands:
   create-pack <path>   Scaffold a new pack (e.g. ux/my-source) with the required file set
   validate [target]    Validate packs/agents/workflows against their schemas (--format json)
   check-config [dir]   Check a project's .akos/config.md against the allowed value set
+  routing-check        Verify stable/draft pack routing isolation in skills/akos/SKILL.md
   profile <sub>        list|show <name>|create <name>|use <name> [dir] — personal profiles
   rules <sub>          list|run <dir> [--rule ID] [--domain D] [--profile P]|explain <ID>
   freshness [opts]     Pack review-freshness report (--expired|--due-soon|--pack ID|--fail-on BAND)
@@ -115,18 +87,61 @@ cmd_doctor() {
 }
 
 cmd_list_packs() {
-  info "${c_bold}Knowledge packs${c_reset} (in $AKOS_HOME/packs):"
-  local domain
-  for domain in "$AKOS_HOME"/packs/*/; do
-    [ -d "$domain" ] || continue
-    local dname; dname="$(basename "$domain")"
-    printf '  %s%s%s\n' "$c_bold" "$dname" "$c_reset"
-    local pack
-    for pack in "$domain"*/; do
-      [ -d "$pack" ] || continue
-      printf '    - %s\n' "$(basename "$pack")"
-    done
+  local status_filter="stable"
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --all) status_filter=""; shift ;;
+      --status) status_filter="${2:-}"; shift 2 ;;
+      --status=*) status_filter="${1#--status=}"; shift ;;
+      *) err "Unknown list-packs option: $1 (usage: list-packs [--all | --status stable|draft|deprecated])"; return 1 ;;
+    esac
   done
+  if [ -n "$status_filter" ]; then
+    case "$status_filter" in
+      stable|draft|deprecated) ;;
+      *) err "Unknown status: '$status_filter' (must be stable, draft, or deprecated)"; return 1 ;;
+    esac
+  fi
+
+  # Status-aware listing shells to Python (yaml_subset) rather than a fragile
+  # grep over metadata.yaml — draft/stable/deprecated is a real parsed field,
+  # not a text pattern. packs/personal/* is excluded: it has no status field
+  # and is never a routing choice (see skills/akos/SKILL.md) — use
+  # 'akos profile list' for that layer instead.
+  "$AKOS_PYTHON" - "$AKOS_HOME" "$status_filter" <<'PY'
+import sys
+from pathlib import Path
+
+akos_home = Path(sys.argv[1])
+status_filter = sys.argv[2] or None
+sys.path.insert(0, str(akos_home / "schemas"))
+import yaml_subset
+
+c_bold, c_yellow, c_reset = "\033[1m", "\033[33m", "\033[0m"
+
+entries = []
+for meta_path in sorted(akos_home.glob("packs/*/*/metadata.yaml")):
+    if "personal" in meta_path.parts:
+        continue
+    domain, name = meta_path.parent.parent.name, meta_path.parent.name
+    try:
+        data = yaml_subset.load(meta_path)
+    except yaml_subset.YamlSubsetError:
+        data = {}
+    status = data.get("status", "stable") if isinstance(data, dict) else "stable"
+    entries.append((domain, name, status))
+
+if status_filter:
+    entries = [e for e in entries if e[2] == status_filter]
+
+label = f"status: {status_filter}" if status_filter else "all"
+print(f"{c_bold}Knowledge packs{c_reset} ({label}) — {len(entries)} pack(s):")
+for domain, name, status in entries:
+    tag = f" {c_yellow}({status}){c_reset}" if status != "stable" else ""
+    print(f"  {domain}/{name}{tag}")
+if not entries:
+    print("  (none)")
+PY
 }
 
 cmd_list_agents() {
@@ -187,18 +202,23 @@ cmd_validate() {
   # Tail-call, deliberately the literal last statement: under `set -e` this
   # propagates schemas/validate.py's own exit code (0/1/2) with nothing extra
   # needed. Do not add post-processing here without `|| rc=$?` guarding.
-  python3 "$AKOS_HOME/schemas/validate.py" "$@"
+  "$AKOS_PYTHON" "$AKOS_HOME/schemas/validate.py" "$@"
 }
 
 cmd_eval() {
   # Tail-call: literal last statement so 0/1/2 propagates untouched.
-  python3 "$AKOS_HOME/evals/runners/grade.py" "$@"
+  "$AKOS_PYTHON" "$AKOS_HOME/evals/runners/grade.py" "$@"
 }
 
 cmd_check_config() {
   # Same tail-call rule as cmd_validate: literal last statement, so the
   # 0/1/2 exit code propagates untouched.
-  python3 "$AKOS_HOME/schemas/config_check.py" "$@"
+  "$AKOS_PYTHON" "$AKOS_HOME/schemas/config_check.py" "$@"
+}
+
+cmd_routing_check() {
+  # Same tail-call rule: literal last statement, 0/1/2 propagates untouched.
+  "$AKOS_PYTHON" "$AKOS_HOME/schemas/routing_check.py" "$@"
 }
 
 cmd_install_project() {
@@ -256,6 +276,20 @@ personal_profile: pau-avila
 BODY
 )
 
+  # Preflight all 4 targets BEFORE writing any of them. Without this, a
+  # malformed 3rd or 4th target used to leave the 1st and 2nd already
+  # updated and the rest not — a partially-applied install with no signal
+  # that anything went wrong beyond that one file's silent no-op. Output is
+  # captured and only shown on failure — the common case (all 4 clean) stays
+  # quiet, exactly as install-project always has been.
+  local preflight_out
+  if ! preflight_out="$("$AKOS_PYTHON" "$AKOS_HOME/bin/marked_sections.py" validate-all \
+      "$dir/CLAUDE.md" "$dir/AGENTS.md" "$dir/.cursor/rules/akos.mdc" "$dir/.akos/config.md" 2>&1)"; then
+    err "One or more AKOS-managed files have an ambiguous marker structure — nothing was written:"
+    printf '%s\n' "$preflight_out" >&2
+    return 1
+  fi
+
   write_marked_section "$dir/CLAUDE.md" "$claude_body"
   write_marked_section "$dir/AGENTS.md" "$agents_body"
   write_marked_section "$dir/.cursor/rules/akos.mdc" "$cursor_body"
@@ -308,13 +342,23 @@ cmd_create_pack() {
   local today; today="$(date +%Y-%m-%d)"
   # Cadence matches bin/migrate-pack-metadata.py's CADENCE_DAYS for
   # authority-level 3 (books/methodologies, the default for a new pack).
-  # Date math shells to python3 rather than bash `date` arithmetic — BSD and
-  # GNU `date` diverge on epoch<->calendar conversion, python3's stdlib
-  # doesn't, and it's already the repo's one accepted dependency.
+  # Date math shells to $AKOS_PYTHON rather than bash `date` arithmetic — BSD
+  # and GNU `date` diverge on epoch<->calendar conversion, Python's stdlib
+  # doesn't. require_python has already verified 3.10+ is present by this
+  # point (main() gates every operational command on it), so a failure HERE
+  # is a genuine unexpected error, not "python3 is missing" — it must fail
+  # loudly, not silently substitute a wrong-but-plausible date. No partial
+  # pack is left behind on that failure, matching the "no half-finished
+  # artifact" discipline schemas/history.py's own publish path already has.
   local review_after
-  review_after="$(python3 -c "from datetime import date, timedelta; print((date.today()+timedelta(days=270)).isoformat())" 2>/dev/null || echo "$today")"
+  if ! review_after="$("$AKOS_PYTHON" -c "from datetime import date, timedelta; print((date.today()+timedelta(days=270)).isoformat())")"; then
+    rm -rf "$dest"
+    err "review_after date computation failed — no partial pack was left behind at $dest"
+    return 1
+  fi
   printf '# Changelog — %s\n\n## [1.0.0] — %s\n\n### Added\n\n- Scaffolded.\n' "$name" "$today" > "$dest/CHANGELOG.md"
   cat > "$dest/metadata.yaml" <<EOF
+schema_version: 1
 name: $name
 domain: $domain
 authority-level: 3
@@ -331,7 +375,8 @@ license: MIT
 deprecated: false
 EOF
   ok "Scaffolded pack at $dest (12 required files). Fill principles.md first."
-  warn "Add '$name' to the routing table in skills/akos/SKILL.md, then run ./doctor.sh"
+  warn "status: draft — this pack will NOT be auto-routed until promoted to stable."
+  warn "Add '$name' to the Experimental section in skills/akos/SKILL.md, then run ./doctor.sh"
 }
 
 cmd_profile() {
@@ -381,13 +426,23 @@ cmd_profile_create() {
   # argument; python3 is already the repo's one accepted dependency.
   # Values travel as argv, never interpolated into the script text: an
   # interpolated name containing a quote was an arbitrary-code injection.
-  python3 - "$dir" "$name" <<'PY'
+  # Wrapped in `if ! ... ; then` (rather than a bare tail statement) so a
+  # failure here is caught instead of letting `set -e` abort mid-scaffold —
+  # the copy at line 384 already exists on disk by this point, and a raw
+  # abort here used to leave a half-filled profile dir with literal
+  # '<your name>' placeholders and no indication anything went wrong.
+  if ! "$AKOS_PYTHON" - "$dir" "$name" <<'PY'
 import pathlib, sys
 d, name = pathlib.Path(sys.argv[1]), sys.argv[2]
 for f in d.glob('*.md'):
     text = f.read_text()
     f.write_text(text.replace('<your name>', name))
 PY
+  then
+    rm -rf "$dir"
+    err "Failed to scaffold profile '$name' — no partial profile was left behind."
+    return 1
+  fi
   ok "Scaffolded personal profile at $dir (10 files). Fill principles.md first."
   warn "Run 'akos profile use $name' in a project to activate it there."
 }
@@ -403,12 +458,15 @@ cmd_profile_use() {
   if [ ! -f "$config" ]; then
     err "$config not found — run 'akos install-project' in $dir first"; return 1
   fi
+  # Extracted via the same shared parser install-project's writer uses —
+  # previously an independent awk state machine that silently returned an
+  # empty string both when the section was truly absent AND when it was
+  # malformed (multiple/mismatched markers), making the two indistinguishable
+  # to the caller. marked_sections.py's own stderr names which one it is.
   local body
-  body="$(awk -v start="$MARK_START" -v end="$MARK_END" '
-    $0 ~ start {f=1; next} $0 ~ end {f=0} f {print}
-  ' "$config")"
-  if [ -z "$body" ]; then
-    err "$config has no AKOS-managed section — run 'akos install-project' first"; return 1
+  if ! body="$("$AKOS_PYTHON" "$AKOS_HOME/bin/marked_sections.py" extract "$config")"; then
+    err "$config has no usable AKOS-managed section — run 'akos install-project' first, or fix the marker structure named above."
+    return 1
   fi
   if printf '%s\n' "$body" | grep -q '^personal_profile:'; then
     body="$(printf '%s\n' "$body" | sed "s/^personal_profile:.*/personal_profile: $name/")"
@@ -420,7 +478,7 @@ cmd_profile_use() {
 }
 
 cmd_freshness() {
-  python3 "$AKOS_HOME/schemas/freshness.py" "$@"
+  "$AKOS_PYTHON" "$AKOS_HOME/schemas/freshness.py" "$@"
 }
 
 cmd_history() {
@@ -434,24 +492,24 @@ cmd_history() {
       # review id, not the unique identifier: history.py appends random
       # entropy so two records in the same second do not collide.
       local ts; ts="$(date -u +%Y%m%dT%H%M%SZ)"
-      python3 "$AKOS_HOME/schemas/history.py" record --timestamp "$ts" "$@"
+      "$AKOS_PYTHON" "$AKOS_HOME/schemas/history.py" record --timestamp "$ts" "$@"
       ;;
     list|show|latest|compare|clean)
-      python3 "$AKOS_HOME/schemas/history.py" "$sub" "$@"
+      "$AKOS_PYTHON" "$AKOS_HOME/schemas/history.py" "$sub" "$@"
       ;;
     *) err "Usage: akos history <record|list|show <id>|latest|compare <a> <b>|clean>"; return 1 ;;
   esac
 }
 
 cmd_benchmark() {
-  python3 "$AKOS_HOME/benchmarks/runners/run.py" "$@"
+  "$AKOS_PYTHON" "$AKOS_HOME/benchmarks/runners/run.py" "$@"
 }
 
 cmd_rules() {
   local sub="${1:-}"; shift || true
   case "$sub" in
     list)    cmd_rules_list ;;
-    run)     python3 "$AKOS_HOME/rules/runner.py" "$@" ;;
+    run)     "$AKOS_PYTHON" "$AKOS_HOME/rules/runner.py" "$@" ;;
     explain) cmd_rules_explain "$@" ;;
     *)       err "Usage: akos rules <list|run <dir>|explain <ID>>"; return 1 ;;
   esac
@@ -487,16 +545,24 @@ cmd_rules_explain() {
 main() {
   local cmd="${1:-help}"; shift || true
   case "$cmd" in
-    help|-h|--help)     cmd_help ;;
-    doctor)             cmd_doctor ;;
+    help|-h|--help) cmd_help; return ;;
+    doctor)
+      # Doctor must run without Python — it is the health check that REPORTS
+      # Python's absence (or too-old a version) as a finding among others,
+      # not a command that can refuse to run because of it.
+      cmd_doctor; return ;;
+  esac
+  require_python || exit 1
+  case "$cmd" in
     install-project)    cmd_install_project "$@" ;;
     link-project)       cmd_install_project "$@" ;;
-    list-packs)         cmd_list_packs ;;
+    list-packs)         cmd_list_packs "$@" ;;
     list-agents)        cmd_list_agents ;;
     list-skills)        cmd_list_skills ;;
     show-profile)       cmd_show_profile "$@" ;;
     validate)           cmd_validate "$@" ;;
     check-config)       cmd_check_config "$@" ;;
+    routing-check)      cmd_routing_check "$@" ;;
     eval)               cmd_eval "$@" ;;
     review)             cmd_review "$@" ;;
     create-pack)        cmd_create_pack "$@" ;;

@@ -1,4 +1,5 @@
 ---
+schema_version: 1
 name: akos-ux-reviewer
 description: AKOS lens 2 — UX clarity. Can a first-time user accomplish the task without thinking? Catches cognitive friction, unclear navigation, weak hierarchy, missing async states. Use for the AKOS UX review of a screen or flow.
 tools: Read, Grep, Glob

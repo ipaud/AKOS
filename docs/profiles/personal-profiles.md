@@ -46,7 +46,11 @@ akos profile create <name>           # scaffold a new 10-file profile from packs
 akos profile use <name> [project-dir]  # set personal_profile in .akos/config.md (default: current dir)
 ```
 
-`akos profile create` copies `packs/personal/_template/` and fills in the `<your name>` placeholder across all 10 files. `akos profile use` rewrites just the `personal_profile:` line inside the project's existing `.akos/config.md`, via the same marker-safe helper `install-project` uses — it requires `.akos/config.md` to already exist (run `akos install-project` first).
+`akos profile create` copies `packs/personal/_template/` and fills in the `<your name>` placeholder across all 10 files. `akos profile use` rewrites just the `personal_profile:` line inside the project's existing `.akos/config.md`, via `bin/marked_sections.py` (the same shared, cardinality-checking parser `install-project` uses) — it requires `.akos/config.md` to already exist (run `akos install-project` first) and refuses rather than guessing if the file's marker structure is ambiguous.
+
+## Backup and restore during `update.sh`
+
+`update.sh` treats `packs/personal/` as the operator's protected layer: before touching anything, it backs it up to a durable, timestamped, uniquely-suffixed directory under `$HOME/.akos-backups/` alongside a `manifest.json` (path, type, POSIX mode, sha256, and — for symlinks — the target string, never resolved) built by `bin/personal_layer_integrity.py`, and immediately verifies that backup against the live source before touching git. After the pull (whether it succeeded, failed, or there was no git repo at all), the personal layer is compared against that pre-update manifest; any drift — including a *legitimate* upstream commit to the shipped `pau-avila` default — triggers a full-tree staged restore back to the exact pre-update snapshot, not a partial fill of missing files. This is deliberate: "personal" means the layer changes only when the operator changes it (`akos profile create`/`use`, or hand-editing), never silently via `update.sh`, even from a real upstream improvement.
 
 ## What did *not* change
 

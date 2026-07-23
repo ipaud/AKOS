@@ -1,3 +1,14 @@
+---
+schema_version: 1
+id: ui-screen-review
+description: Reviewing a single user-facing screen or flow.
+agents: [ux-reviewer, accessibility-reviewer, mobile-reviewer, copy-reviewer, frontend-reviewer]
+packs: []
+profiles: [Prototype, Production]
+status: stable
+maintainer: core
+---
+
 # Workflow: UI Screen Review
 
 Reviewing a single user-facing screen or flow.

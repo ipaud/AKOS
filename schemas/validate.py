@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """A micro JSON-Schema interpreter for AKOS's 3 contracts.
 
-Implements only the keywords schemas/{knowledge-pack,agent,workflow}.schema.json
+Implements only the keywords schemas/v1/{knowledge-pack,agent,workflow}.schema.json
 actually use: type, required, properties, enum, pattern, format:date, items,
-minLength, minimum, maximum, plus the AKOS-specific x-akos-recommended
-(-> warning, never an error). This is deliberately not a full JSON Schema engine — the schema files
-themselves stay standards-compliant JSON Schema (any real `ajv`/`jsonschema`
-tool could validate against them too), but AKOS's own tooling stays
-dependency-free rather than vendoring or requiring the `jsonschema` package.
+minLength, minimum, maximum, additionalProperties (enforced at every level a
+schema declares it, not just the root), plus the AKOS-specific
+x-akos-recommended (-> warning, never an error). This is deliberately not a
+full JSON Schema engine — the schema files themselves stay standards-compliant
+JSON Schema (any real `ajv`/`jsonschema` tool could validate against them
+too), but AKOS's own tooling stays dependency-free rather than vendoring or
+requiring the `jsonschema` package.
+
+The current schema version for each contract kind is resolved through
+schemas/registry.json, never a hardcoded path — see load_schema() below.
 
 Usage:
     python3 schemas/validate.py [packs|agents|workflows|all] [--format text|json] [--strict]
@@ -33,6 +38,20 @@ sys.path.insert(0, str(AKOS_HOME / "schemas"))
 import yaml_subset  # noqa: E402
 
 VALID_TARGETS = {"packs", "agents", "workflows", "all"}
+
+REGISTRY_PATH = AKOS_HOME / "schemas" / "registry.json"
+_TARGET_TO_KIND = {"packs": "knowledge-pack", "agents": "agent", "workflows": "workflow"}
+
+
+def load_schema(kind: str) -> dict:
+    """Resolve a schema's CURRENT version through the registry rather than a
+    hardcoded path — the one place that knows "knowledge-pack means
+    v1/knowledge-pack.schema.json today" so a future v2 is a registry edit,
+    not a hunt through every call site."""
+    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    entry = registry["kinds"][kind]
+    schema_path = AKOS_HOME / "schemas" / entry["schema_path"]
+    return json.loads(schema_path.read_text(encoding="utf-8"))
 
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
 AGENT_REQUIRED_HEADINGS = [
@@ -134,16 +153,62 @@ def validate_instance(instance, schema: dict) -> tuple[list[dict], list[dict]]:
             warnings.append({"field": rec, "message": "recommended field missing", "rule": "x-akos-recommended"})
 
     properties = schema.get("properties", {})
+    additional_allowed = schema.get("additionalProperties", True)
     for key, value in instance.items():
         prop_schema = properties.get(key)
         if prop_schema is None:
-            continue  # additionalProperties: true in all 3 schemas
+            if additional_allowed is False:
+                errors.append({
+                    "field": key,
+                    "message": f"unknown property {key!r} is not declared in the schema (additionalProperties: false)",
+                    "rule": "additionalProperties",
+                })
+            continue
         errors.extend(_validate_value(value, prop_schema, key))
 
     return errors, warnings
 
 
 # --- Per-target file walks ----------------------------------------------------
+
+
+def _check_pack_semantics(data: dict, meta_path: Path) -> list[dict]:
+    """Cross-field checks the generic schema interpreter can't express (it
+    only ever sees the parsed instance, never the file's own path) — a typo'd
+    domain/name/id must not pass just because each field is independently
+    well-typed, and a pack marked deprecated without saying what replaces it
+    leaves nothing for a reader steered here to actually reach for."""
+    errors: list[dict] = []
+    dir_name = meta_path.parent.name
+    dir_domain = meta_path.parent.parent.name
+
+    if "domain" in data and data["domain"] != dir_domain:
+        errors.append({
+            "field": "domain",
+            "message": f"domain {data['domain']!r} does not match the directory it lives under ({dir_domain!r})",
+            "rule": "path-consistency",
+        })
+    if "name" in data and data["name"] != dir_name:
+        errors.append({
+            "field": "name",
+            "message": f"name {data['name']!r} does not match its directory name ({dir_name!r})",
+            "rule": "path-consistency",
+        })
+    if "id" in data:
+        expected_id = f"{dir_domain}/{dir_name}"
+        if data["id"] != expected_id:
+            errors.append({
+                "field": "id",
+                "message": f"id {data['id']!r} does not match domain/name ({expected_id!r})",
+                "rule": "path-consistency",
+            })
+    if data.get("deprecated") is True and not data.get("replacement"):
+        errors.append({
+            "field": "replacement",
+            "message": "deprecated: true requires a replacement pack id — a deprecated pack must say what replaces it",
+            "rule": "deprecated-requires-replacement",
+        })
+    return errors
 
 
 def check_packs(schema: dict) -> list[dict]:
@@ -158,6 +223,8 @@ def check_packs(schema: dict) -> list[dict]:
             results.append({"file": rel, "errors": [{"field": "<parse>", "message": str(e), "rule": "parse"}], "warnings": []})
             continue
         errors, warnings = validate_instance(data, schema)
+        if isinstance(data, dict):
+            errors.extend(_check_pack_semantics(data, meta_path))
         results.append({"file": rel, "errors": errors, "warnings": warnings})
     return results
 
@@ -200,7 +267,6 @@ def check_workflows(schema: dict) -> list[dict]:
         warnings: list[dict] = []
 
         m = FRONTMATTER_RE.match(text)
-        skipped = False
         if m:
             try:
                 data = yaml_subset.loads(m.group(1))
@@ -210,14 +276,13 @@ def check_workflows(schema: dict) -> list[dict]:
             except yaml_subset.YamlSubsetError as e:
                 errors.append({"field": "<frontmatter>", "message": str(e), "rule": "parse"})
         else:
-            # No frontmatter is valid — legacy format, never claimed to have
-            # any. But it is not "validated clean" either: there was nothing
-            # to check. Mark it skipped so the summary does not count a no-op
-            # as a pass (the agent/pack references these files make are covered
-            # separately by tests/unit/test_link_integrity.py).
-            skipped = True
+            # schema_version 1 requires frontmatter to be present — a
+            # workflow with none is now an error, not an informational skip.
+            # (Pre-v1, no workflow had ever claimed to carry frontmatter, so
+            # this was a valid no-op; all 9 real workflows carry it now.)
+            errors.append({"field": "<frontmatter>", "message": "no YAML frontmatter block found — schema_version 1 requires it", "rule": "structure"})
 
-        results.append({"file": rel, "errors": errors, "warnings": warnings, "skipped": skipped})
+        results.append({"file": rel, "errors": errors, "warnings": warnings})
     return results
 
 
@@ -241,14 +306,11 @@ def main(argv=None) -> int:
 
     all_results: list[dict] = []
     if "packs" in targets:
-        schema = json.loads((AKOS_HOME / "schemas/knowledge-pack.schema.json").read_text())
-        all_results += check_packs(schema)
+        all_results += check_packs(load_schema(_TARGET_TO_KIND["packs"]))
     if "agents" in targets:
-        schema = json.loads((AKOS_HOME / "schemas/agent.schema.json").read_text())
-        all_results += check_agents(schema)
+        all_results += check_agents(load_schema(_TARGET_TO_KIND["agents"]))
     if "workflows" in targets:
-        schema = json.loads((AKOS_HOME / "schemas/workflow.schema.json").read_text())
-        all_results += check_workflows(schema)
+        all_results += check_workflows(load_schema(_TARGET_TO_KIND["workflows"]))
 
     total_errors = sum(len(r["errors"]) for r in all_results)
     total_warnings = sum(len(r["warnings"]) for r in all_results)
@@ -262,12 +324,10 @@ def main(argv=None) -> int:
                 print(f"{c_red}✗{c_reset} {r['file']}: {e['field']} — {e['message']}")
             for w in r["warnings"]:
                 print(f"{c_yellow}!{c_reset} {r['file']}: {w['field']} — {w['message']}")
-        skipped = sum(1 for r in all_results if r.get("skipped"))
-        clean = sum(1 for r in all_results if not r["errors"] and not r["warnings"] and not r.get("skipped"))
-        skipped_note = f"  {c_yellow}· {skipped} skipped (no frontmatter){c_reset}" if skipped else ""
+        clean = sum(1 for r in all_results if not r["errors"] and not r["warnings"])
         print(
             f"\n{c_bold}Summary{c_reset}  {c_green}✓ {clean} clean{c_reset}  "
-            f"{c_yellow}! {total_warnings} warnings{c_reset}  {c_red}✗ {total_errors} errors{c_reset}{skipped_note}  "
+            f"{c_yellow}! {total_warnings} warnings{c_reset}  {c_red}✗ {total_errors} errors{c_reset}  "
             f"({len(all_results)} files checked)"
         )
 

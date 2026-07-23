@@ -1,4 +1,5 @@
 ---
+schema_version: 1
 name: akos-release-reviewer
 description: AKOS lens 12 — release readiness. Can this ship, and can it un-ship? Migrations, rollback, monitoring, deployment safety, git and CI hygiene. Use for the AKOS release review.
 tools: Read, Grep, Glob

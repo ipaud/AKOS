@@ -31,3 +31,4 @@ review_after: 2027-04-15
 maintainer: core
 license: MIT
 deprecated: false
+schema_version: 1

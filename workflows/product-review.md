@@ -1,3 +1,14 @@
+---
+schema_version: 1
+id: product-review
+description: "Focused product-clarity pass — surfaces (doesn't block) product decisions."
+agents: [product-reviewer]
+packs: [product/continuous-discovery-habits, product/escaping-the-build-trap, product/inspired, product/lean-startup]
+profiles: [Prototype, Startup MVP, Production]
+status: stable
+maintainer: core
+---
+
 # Workflow: Product Review
 
 Focused product-clarity pass — surfaces (doesn't block) product decisions.

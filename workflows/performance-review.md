@@ -1,3 +1,14 @@
+---
+schema_version: 1
+id: performance-review
+description: Focused performance pass.
+agents: [performance-reviewer]
+packs: [performance/browser-rendering, performance/core-web-vitals, performance/network-performance, performance/web-dev]
+profiles: [Prototype, Production, Game Dev, Internal Tool]
+status: stable
+maintainer: core
+---
+
 # Workflow: Performance Review
 
 Focused performance pass.

@@ -1,4 +1,5 @@
 ---
+schema_version: 1
 name: akos-database-reviewer
 description: AKOS database lens. Schema, queries, migrations, and Supabase RLS. Guards data integrity (safety floor), query performance, migration safety. Use for the AKOS database review, routed from the architecture or security lens.
 tools: Read, Grep, Glob

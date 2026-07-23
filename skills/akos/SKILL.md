@@ -98,12 +98,6 @@ is really about visual craft wastes a slot.
 | `content/gov-uk-content-design` | Prose the user has to read: guidance, help, onboarding, docs. Not for control-dense screens — those are `ux-writing`. |
 | `mobile/responsive-web` | Layout across sizes: breakpoints, fluid type, container queries, 320px reflow, when to restructure instead of scroll. |
 | `mobile/touch-ergonomics` | The hand and the device: target sizes and spacing, thumb zones, no-hover, virtual keyboard, locale input parsing, gestures. |
-| `ai-engineering/agent-foundations` | Deciding whether a task needs an agent at all: shape selection across the workflow/agent spectrum, routing, parallelization, termination conditions, budgets, error recovery, escalation, idempotency. |
-| `ai-engineering/context-engineering` | Deciding what an agent's prompt, skill, or session loads and when: context budgeting, progressive disclosure, just-in-time retrieval, poisoning and rot, instruction hierarchy, memory tiers, compaction boundaries, large-repo navigation. |
-| `ai-engineering/coding-agents` | An agent will read and modify a real repository: orientation before the first edit, search before changing an interface, minimal diffs that match existing conventions, and executed verification — never claiming done without running the command and reading its real exit code. |
-| `ai-engineering/agent-security` | A model reads external content and then calls a tool, uses a credential, or takes an action: prompt injection, tool poisoning, exfiltration, excessive agency, memory poisoning, and the sandbox, allowlist, approval and audit controls that bound them. Safety floor — load it whenever the surface has an agent. |
-| `ai-engineering/agent-evals` | Proving an agent change actually helped: golden datasets, unit/tool-call/trajectory/end-to-end evals, grader selection (exact-match, rubric, LLM-as-judge, pairwise), groundedness and task-completion metrics, cost and recovery as first-class dimensions, regression thresholds, flakiness, contamination, baseline discipline. |
-| `ai-engineering/tool-design` | Designing or reviewing a tool, function, or MCP server an agent calls: naming, description, input and output shape, error design, repeat-safety, previews for destructive operations, result bounds. |
 | `frontend/react` | React or Next.js: hooks, rendering, server components, composition. |
 | `frontend/typescript` | Types are loose or wrong. Strict mode, unions, schema validation at boundaries. |
 | `frontend/css` | Layout and motion: grid, flexbox, custom properties, container queries. |
@@ -139,6 +133,28 @@ is really about visual craft wastes a slot.
 | `devops/ci-cd` | Pipeline design and what gates a merge. |
 | `devops/sre` | Reliability as a target: SLOs, error budgets, alerting, incidents. |
 | `devops/git` | Branching model, commit hygiene, history strategy. |
+
+### Experimental packs (status: draft — read before routing here)
+
+These packs exist and can be read, but their content hasn't stabilized yet
+(`status: draft` in `metadata.yaml`) — cite them with that caveat and expect
+them to still change. They are **not** part of the automatic "2-5 packs
+closest to the task" routing above: load one only when the current
+conversation's user explicitly asks for it, and say so in your response
+("used draft pack `ai-engineering/agent-security`, not yet stable"). A
+project's `.akos/config.md` cannot self-authorize one into its always-load
+set either (`akos check-config` flags it). `schemas/routing_check.py` fails
+the build if one of these silently reappears in the stable catalog above, or
+a stable pack goes missing from it.
+
+| Pack | Reach for it when |
+|---|---|
+| `ai-engineering/agent-foundations` | Deciding whether a task needs an agent at all: shape selection across the workflow/agent spectrum, routing, parallelization, termination conditions, budgets, error recovery, escalation, idempotency. |
+| `ai-engineering/context-engineering` | Deciding what an agent's prompt, skill, or session loads and when: context budgeting, progressive disclosure, just-in-time retrieval, poisoning and rot, instruction hierarchy, memory tiers, compaction boundaries, large-repo navigation. |
+| `ai-engineering/coding-agents` | An agent will read and modify a real repository: orientation before the first edit, search before changing an interface, minimal diffs that match existing conventions, and executed verification — never claiming done without running the command and reading its real exit code. |
+| `ai-engineering/agent-security` | A model reads external content and then calls a tool, uses a credential, or takes an action: prompt injection, tool poisoning, exfiltration, excessive agency, memory poisoning, and the sandbox, allowlist, approval and audit controls that bound them. Safety-floor concept, but the pack's own content is pre-stabilization — the floor itself is still enforced by `core/constitution.md` Article 2, not by this pack being loaded. |
+| `ai-engineering/agent-evals` | Proving an agent change actually helped: golden datasets, unit/tool-call/trajectory/end-to-end evals, grader selection (exact-match, rubric, LLM-as-judge, pairwise), groundedness and task-completion metrics, cost and recovery as first-class dimensions, regression thresholds, flakiness, contamination, baseline discipline. |
+| `ai-engineering/tool-design` | Designing or reviewing a tool, function, or MCP server an agent calls: naming, description, input and output shape, error design, repeat-safety, previews for destructive operations, result bounds. |
 
 `packs/personal/<name>/` is never a routing choice — it's always loaded
 generically in step 3, for whichever profile `.akos/config.md` names.
