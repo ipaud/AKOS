@@ -42,6 +42,10 @@ Combines [html](../packs/frontend/html/scoring-rubric.md), [css](../packs/fronte
 - Accessibility substance routes to [accessibility-reviewer](accessibility-reviewer.md); this agent flags but doesn't score a11y conformance.
 - Enforces the owner's anti-template stance — generic shadcn/Tailwind defaults shipped unmodified is a finding.
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 Standard Review Summary. Fills UX (visual craft) and Maintainability scores; findings cite the frontend pack + smallest fix.

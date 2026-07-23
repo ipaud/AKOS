@@ -56,7 +56,7 @@ def load_schema(kind: str) -> dict:
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
 AGENT_REQUIRED_HEADINGS = [
     "Purpose", "When to use", "Packs to load", "Review checklist",
-    "Severity levels", "Scoring rubric", "Refusal / limits", "Output format",
+    "Severity levels", "Scoring rubric", "Pre-report gate", "Refusal / limits", "Output format",
 ]
 
 _TYPE_MAP = {

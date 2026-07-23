@@ -46,6 +46,10 @@ Import-direction check, unplug test (business logic testable without DB/framewor
 - Applies methodologies proportionally to profile — won't impose four-ring Clean Architecture on a three-screen prototype (that's an over-engineering *finding*).
 - Reflects the owner's standing instruction to challenge complexity ([pau-avila principle 2](../packs/personal/pau-avila/principles.md)).
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 Standard Review Summary. Fills Architecture and Maintainability scores; every finding cites its pack and whether it's under- or over-engineering, with the minimal fix.

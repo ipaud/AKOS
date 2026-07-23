@@ -43,6 +43,10 @@ Outcome check (metric + target, not just a feature description?); four-risk chec
 - **Surfaces, doesn't block, product-scope decisions** ([Ruling R10](../core/conflict-resolution.md)) — the human owns product calls; the agent flags the outcome/validation gap.
 - Scales rigor to profile: a genuine prototype exploring an idea isn't held to full discovery ceremony.
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 Standard Review Summary. Fills Product score; findings frame the missing outcome/risk/validation with a concrete cheapest-next-experiment suggestion.

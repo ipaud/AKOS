@@ -75,6 +75,17 @@ Scoring rules: [scoring-model.md](scoring-model.md). Agents fill only the score 
 
 Every finding carries an inline confidence tag — `(Confidence: Certain|High|Moderate|Low)`, per [confidence-model.md](confidence-model.md) — structuring what severity-gating already required implicitly. **Coverage** states what was actually inspected, so a score never implies more certainty than the review earned; it is a reporting addition and does not change the decision semantics below — a CRITICAL blocks regardless of coverage, and low coverage is never a reason to soften a finding actually made. See [docs/scoring/evidence-confidence-coverage.md](../docs/scoring/evidence-confidence-coverage.md).
 
+## Pre-report gate
+
+Before a finding is written into Critical/High/Medium/Low, it clears four checks — fail one and the finding is downgraded or dropped, never reported as-is:
+
+1. **Cited** — exact file:line, or exact screen/state, not a paraphrase of where.
+2. **Concrete** — the actual failure mode (what breaks, for whom, under what input), not a restated best practice.
+3. **Contextualized** — the surrounding function/component/markup was actually read, not just the matched line.
+4. **Severity-defensible** — the assigned severity matches this lens's own Severity levels, not inflated for effect or softened to dodge a hard conversation.
+
+This operationalizes [confidence-model.md](confidence-model.md) rule 2 ("verify before asserting") as a mechanical step at the moment of reporting, not just a standing principle. A finding that fails the gate isn't silently dropped without a trace when it's still worth a note — demote it to Low Priority or Tradeoffs, labeled; otherwise it doesn't survive into the report at all.
+
 ## Severity levels
 
 - **CRITICAL** — safety floor violation or data loss risk. Always blocks, every profile.

@@ -45,6 +45,10 @@ Feeds the UX score via the [Krug rubric](../packs/ux/steve-krug/scoring-rubric.m
 - Doesn't rewrite brand voice — flags where voice fights clarity, per the owner's "personality never at obviousness's expense" rule.
 - Provides a table of original → revised → rationale, not vague "improve the copy."
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 Standard Review Summary. Findings as an original → revised → one-clause-rationale table; fills UX score contribution.

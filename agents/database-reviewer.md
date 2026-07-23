@@ -42,6 +42,10 @@ Combines [postgres](../packs/backend/postgres/scoring-rubric.md) and [supabase](
 - Data integrity is safety-floor — won't sign off on a schema that risks silent data loss/corruption.
 - RLS gaps carry security-floor weight on any deployed project ([supabase philosophy](../packs/backend/supabase/philosophy.md)).
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 Standard Review Summary. Fills Security and Maintainability scores; migration findings note the safe alternative pattern.

@@ -150,8 +150,8 @@ as a lead to verify, not a confirmed finding. The rest are Level A.
 ## 4. Run each lens
 
 Read the agent file. It defines, in order: purpose · when to use · **packs to
-load** · review checklist · severity levels · scoring rubric · refusal limits ·
-output format.
+load** · review checklist · severity levels · scoring rubric · pre-report gate ·
+refusal limits · output format.
 
 Start from the deterministic findings routed to this lens in step 3: confirm
 each against the artifact, then continue with the checklist for everything
@@ -182,6 +182,13 @@ Lenses 2, 3, and 8 never drop below weight 1 in any profile.
 
 Gate severity on confidence per `core/confidence-model.md`: CRITICAL and HIGH
 require Certain or High confidence. A hunch is at most MEDIUM.
+
+Before merging a lens's findings into the unified report, apply its
+**Pre-report gate** section: cited location, concrete failure mode, context
+actually read, severity defensible. A finding that doesn't clear it is
+downgraded or dropped when you merge — this applies whether the lens
+subagent already checked itself or you're synthesizing a targeted-run report
+directly.
 
 Every finding names the element, the concrete problem, the pack it came from,
 and the smallest fix. "Consider improving UX" is not a finding (Article 10).

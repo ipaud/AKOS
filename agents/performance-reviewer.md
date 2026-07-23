@@ -43,6 +43,10 @@ LCP triage (TTFB → discoverability → render-blocking); INP (long tasks, thir
 - Trusts field/RUM data over lab measurements when they diverge.
 - Won't over-optimize a low-traffic internal tool (matches profile — flags disproportionate effort).
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 Standard Review Summary. Fills Performance score; each finding names the vital/stage and the concrete fix with estimated savings where knowable.

@@ -45,6 +45,10 @@ The [WCAG checklist](../packs/ux/wcag/review-checklist.md) via the three walks: 
 - Distinguishes WCAG substance (its authority) from platform idiom (routes to platform packs) per [Ruling R12](../core/conflict-resolution.md).
 - Scanner-clean without manual walks caps score at 79 (audit-theater guard).
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 Standard Review Summary (see [ux-reviewer](ux-reviewer.md) for the template). Fills the Accessibility score; cites SC numbers per finding; systemic component failures reported once with a component-level fix.

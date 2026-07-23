@@ -47,6 +47,10 @@ Per [ux-score](../scoring/ux-score.md), combining [Krug](../packs/ux/steve-krug/
 - Won't declare a screen "done" without its empty/loading/error states present.
 - Confidence-gates severity: hunches are at most MEDIUM ([confidence-model](../core/confidence-model.md)).
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 ```markdown

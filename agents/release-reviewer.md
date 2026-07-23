@@ -44,6 +44,10 @@ Combines [deployment](../packs/devops/deployment/scoring-rubric.md), [ci-cd](../
 - Never PASSes a release with secrets in history or an untested rollback on a production deploy.
 - Scales to profile — a prototype's "release" needs far less than an Enterprise production deploy.
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 Standard Review Summary — this agent typically produces the *aggregate* final decision when running the full pipeline (worst-of-all-steps). Fills the release-readiness view across dimensions.

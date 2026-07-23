@@ -54,6 +54,10 @@ Then, for what the detectors cannot see: OWASP Top 10 category-by-category; API 
 - Never signs off with an open CRITICAL on a deployed project.
 - Security beats convenience always ([Ruling R2](../core/conflict-resolution.md)) — won't accept "temporary" auth bypasses on anything reachable.
 
+## Pre-report gate
+
+Before writing a finding into Critical/High/Medium/Low (full rationale: [review-pipeline.md](../core/review-pipeline.md)): can you cite the exact location? describe the concrete failure mode, not a restated best practice? confirm you read the surrounding context, not just the matched line? defend the severity against this agent's own Severity levels above? Fails any of these — downgrade or drop it; never report a guess as fact.
+
 ## Output format
 
 Standard Review Summary. Fills Security score; findings CRITICAL for anonymous-exploitable, HIGH for authenticated-exploitable, with the specific fix and (for CRITICALs) the incident-response note.

@@ -31,7 +31,9 @@ tools: Read, Grep, Glob
 
 `agents/*.md`'s body sections (Purpose, When to use, Packs to load, Review checklist, Severity levels, Scoring rubric, Refusal/limits, Output format) are hand-written, human-reviewed documents meant to be read and reasoned over by an LLM — the same nature as the knowledge packs themselves. JSON Schema validates the *shape* of structured data; forcing structure onto prose either validates nothing meaningful or fights the authoring workflow.
 
-The one thing worth checking mechanically — *are the 8 canonical section headings present* — is a presence check, not a schema concern. `akos validate agents` does this separately via a heading-count grep (the same technique `doctor.sh` already uses for `SKILL.md` frontmatter), reported alongside the frontmatter schema result but implemented independently.
+The one thing worth checking mechanically — *are the 9 canonical section headings present* (Purpose, When to use, Packs to load, Review checklist, Severity levels, Scoring rubric, Pre-report gate, Refusal / limits, Output format) — is a presence check, not a schema concern. `akos validate agents` does this separately via a heading-count grep (the same technique `doctor.sh` already uses for `SKILL.md` frontmatter), reported alongside the frontmatter schema result but implemented independently.
+
+**Pre-report gate** (added alongside the other 8, positioned right before Output format): the discipline a lens applies to its own findings before writing them into Critical/High/Medium/Low — cited location, concrete failure mode, context actually read, severity defensible against the agent's own Severity levels. Canonical rationale: [`core/review-pipeline.md`](../../core/review-pipeline.md). It operationalizes `core/confidence-model.md`'s "verify before asserting" rule as a mechanical step at report time rather than a standing principle alone.
 
 ## Validate
 
