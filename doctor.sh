@@ -376,8 +376,8 @@ done
 
 # --- Symlinks ---
 printf '\n%sSymlinks%s\n' "$c_bold" "$c_reset"
-if [ -e "$HOME/DEV/AKOS" ]; then ok "~/DEV/AKOS resolves"; else warn "~/DEV/AKOS not found (run ./install.sh)"; fi
-if [ -L "$HOME/bin/akos" ]; then ok "~/bin/akos symlink present"; else warn "~/bin/akos symlink absent (run ./install.sh)"; fi
+if [ -e "$HOME/DEV/AKOS" ]; then ok "$HOME/DEV/AKOS resolves"; else warn "$HOME/DEV/AKOS not found (run ./install.sh)"; fi
+if [ -L "$HOME/bin/akos" ]; then ok "$HOME/bin/akos symlink present"; else warn "$HOME/bin/akos symlink absent (run ./install.sh)"; fi
 for dir in "$HOME/.claude/skills:Claude Code" "$HOME/.agents/skills:Codex CLI"; do
   d="${dir%%:*}"; label="${dir##*:}"
   for skill in akos akos-review; do

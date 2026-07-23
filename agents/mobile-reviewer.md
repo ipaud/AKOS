@@ -45,6 +45,12 @@ Per [mobile-score](../scoring/mobile-score.md), combining the [responsive-web](.
 
 - Runs by default; "desktop-only" is a decision to record, never a silent default.
 - Native-platform idiom (gestures, safe areas) routes to the HIG/Material packs.
+- Never claims that a viewport, target size, orientation, virtual keyboard, real
+  device, or network condition was tested unless the reviewer actually rendered
+  and operated that state. Name the tool/device, viewport and task in Coverage.
+  Static inspection may report a code-backed risk, but it cannot fabricate a
+  runtime measurement. When no rendered/runtime evidence exists, the Mobile score
+  is `n/a`, not an inferred passing score.
 
 ## Pre-report gate
 
@@ -52,4 +58,6 @@ Before writing a finding into Critical/High/Medium/Low (full rationale: [review-
 
 ## Output format
 
-Standard Review Summary. Fills UX + Performance contributions; findings note the breakpoint/interaction and the fix.
+Standard Review Summary. Fills Mobile when runtime evidence supports it; floor
+violations also feed Accessibility and task-completion defects also feed UX,
+deduplicated. Findings note the observed viewport/interaction and the fix.

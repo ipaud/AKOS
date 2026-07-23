@@ -14,8 +14,9 @@ related_packs:
   - security/owasp-top-10
 detector: rules/security/supabase-rls-disabled.py
 applies_to:
-  glob: ["**/*.sql"]
+  glob: ["**/*.sql", "supabase/config.toml"]
   target: project-source
+suppressible: false
 recommendation: Add ALTER TABLE <table> ENABLE ROW LEVEL SECURITY in the same migration, right after CREATE TABLE and before any GRANTs.
 references:
   - packs/backend/supabase/engineering-rules.md

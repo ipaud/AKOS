@@ -22,23 +22,49 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
+from io_utils import read_text_file  # noqa: E402
 from _secret_utils import JWT_RE, decode_jwt_claims, mask_js_comments, classification_path  # noqa: E402
 
-SERVER_PATH_MARKERS = ("api", "server", "functions", "middleware")
-SERVICE_ROLE_RE = re.compile(r"service_role", re.IGNORECASE)
+SERVER_SOURCE_SUFFIXES = (".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs")
+SERVICE_ROLE_RE = re.compile(r"service[_-]?role", re.IGNORECASE)
+
+
+def _has_adjacent_parts(parts: tuple[str, ...], left: str, right: str) -> bool:
+    return any(
+        parts[index:index + 2] == (left, right)
+        for index in range(len(parts) - 1)
+    )
 
 
 def is_server_convention_path(path: Path) -> bool:
     """Callers with a scan root must pass a path already relativized via
-    classification_path — an ancestor named `api` above the project root
-    made this return True for every file in the checkout, silencing the
-    rule entirely."""
-    parts_lower = {p.lower() for p in path.parts}
-    if parts_lower & set(SERVER_PATH_MARKERS):
+    classification_path. Only conventions that establish an actual server
+    boundary are excluded: a generic ``src/api`` or ``src/functions`` folder
+    can still be browser code, while an API ``route.*`` handler is server
+    code regardless of whether the framework nests it under ``app``."""
+    parts_lower = tuple(part.casefold() for part in path.parts)
+    name_lower = path.name.casefold()
+
+    if "server" in parts_lower:
         return True
-    name_lower = path.name.lower()
-    return ".server." in name_lower or name_lower == "middleware.ts" or name_lower == "middleware.js"
+    if ".server." in name_lower:
+        return True
+    if name_lower in {
+        f"{stem}{suffix}"
+        for stem in ("server", "middleware")
+        for suffix in SERVER_SOURCE_SUFFIXES
+    }:
+        return True
+    if _has_adjacent_parts(parts_lower, "pages", "api"):
+        return True
+    if (
+        "api" in parts_lower
+        and name_lower in {f"route{suffix}" for suffix in SERVER_SOURCE_SUFFIXES}
+    ):
+        return True
+    return _has_adjacent_parts(parts_lower, "supabase", "functions")
 
 
 def run(files: list[Path], scan_root: Path | None = None) -> list[dict]:
@@ -46,10 +72,7 @@ def run(files: list[Path], scan_root: Path | None = None) -> list[dict]:
     for path in files:
         if is_server_convention_path(Path(classification_path(path, scan_root))):
             continue
-        try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
+        text = read_text_file(path)
         # A comment warning against putting a service_role key here is not a
         # service_role key being put here. Offsets are preserved, so line
         # numbers below stay correct.

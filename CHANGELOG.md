@@ -3,6 +3,96 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.12.0] — 2026-07-23
+
+Testing and CI reliability release. Versions 1.10.0 and 1.11.0 were internal
+mainline milestones and were never tagged or published; 1.12.0 is the next
+planned release version. No retroactive tags are created by this change.
+
+### Added
+
+- **Strict executable-rule contract.** Rule registries now validate required
+  fields, types, enums, detector paths, non-empty globs, unknown fields and the
+  optional `suppressible` flag. Security-floor rules are explicitly
+  non-suppressible.
+- **Bounded, fail-closed scanning.** Configurable file, per-file and total-byte
+  budgets cover pruned traversal and auxiliary inputs. Unreadable inputs,
+  malformed detector output and incomplete detector execution are structured
+  operational errors, never false clean scans.
+- **Expanded credential coverage.** Detection and history redaction share
+  patterns for GitHub fine-grained PATs and common private-key blocks, plus a
+  non-blocking high-entropy fallback with hash/SRI exclusions.
+- **Mobile as an explicit score.** Review summaries and overall scoring include
+  Mobile with profile weights `1/2/3/2/1/1`, and the full frontend route now
+  executes UX, Accessibility, Mobile, Copywriting and Frontend quality.
+- **Measured branch coverage.** `coverage.py` 7.15.2 is pinned as a development-
+  only dependency, measures the Python unit, benchmark, subprocess, and
+  integration paths, and fails CI below 80%. AKOS keeps no runtime Python
+  package dependency.
+- **Supported-runtime functional matrix.** CI now exercises the declared
+  Python 3.10 floor on Ubuntu and current Python on macOS, while Ubuntu-only
+  lint, validation, benchmark, and coverage gates remain in a separate quality
+  job. Both jobs have bounded 12-minute timeouts.
+- **Executable CI contracts.** Unit checks lock the job split, immutable
+  `setup-python` pin, platform/runtime matrix, coverage threshold, and self-scan
+  semantics. The self-scan helper accepts complete scans at exit 0 or 2,
+  rejects operational exit 1, cross-checks the JSON status and errors, and
+  permits blocking findings only for exact reviewed `rule_id` + fixture-case
+  pairs. Secret findings have no self-scan exception.
+
+### Fixed
+
+- **Supabase analysis follows final ordered state.** SQL detectors preserve
+  schema-qualified identities and fold CREATE/DROP, RLS enable/disable,
+  table/schema grants and revokes, plus policy create/alter/drop in lexical
+  migration order. `supabase/config.toml` supplies exposed API schemas.
+- **CLI contracts match their documentation.** `eval` requires `--case`,
+  `rules run --target` selects project, pack or all surfaces, usage errors
+  return 1, and absent config emits `[]` in JSON mode.
+- **Review evidence is honest about tooling.** Mobile measurements require
+  browser/device evidence; otherwise the result is provisional and Coverage
+  names what was not verified. Accessibility ignores commented markup and
+  rejects empty ARIA names, while the amount-parser example rejects trailing
+  junk and ambiguous grouping.
+- **CI no longer aborts on expected self-scan findings.** AKOS's deliberately
+  vulnerable fixtures produce blocking findings and exit 2 by contract. The
+  prior `bash -e` step stopped there, before parsing the JSON and before every
+  later test gate; the new helper preserves the 0/1/2 contract explicitly.
+- **The CLI E2E test is isolated and parallel-safe.** It now runs from a
+  temporary AKOS checkout, writes all reports into its owned temp directory,
+  uses unique pack/profile names, and removes only that temp root. It cannot
+  delete a pre-existing profile or pack from the working repository.
+
+## [1.11.1] — 2026-07-23
+
+Mandatory filesystem-integrity hotfix. This is the first release candidate
+intended for tagging after v1.9.0; the 1.10.0 and 1.11.0 entries below describe
+internal mainline milestones and are intentionally not retroactively tagged.
+No tag or remote release is created by this source change.
+
+### Fixed
+
+- **Review history is fail-closed at every filesystem boundary.** Project and
+  review roots are resolved once; symlinked path components, review entries,
+  internal files, and `.gitignore` are rejected. `clean` validates the complete
+  review set before deleting anything and accepts only real directories
+  containing exactly the three regular review artifacts.
+- **Project installation is prevalidated and transactional.** The project must
+  already exist as a real directory, all four managed destinations and their
+  parents reject symlinks, malformed CLI invocations return usage code 1, and
+  prepared writes restore every original if any replacement fails.
+- **Profile selection uses the same filesystem trust boundary.** `profile use`
+  now updates `.akos/config.md` through an fd-relative, no-follow transaction
+  and rejects a linked `.akos` parent instead of writing outside the project.
+- **Uninstall preserves foreign launchers.** `~/bin/akos` is removed only when
+  it belongs to this checkout or another recognizable AKOS installation.
+- **Integration tests no longer share repository or `/tmp` state.** E2E runs
+  use an owned `mktemp` tree containing a full checkout copy and remain safe
+  under concurrent execution.
+- **The CI self-scan distinguishes findings from incomplete execution.** Exit
+  0 and 2 are validated against the JSON result; exit 1, malformed output,
+  reported errors, or code/status drift fail the gate immediately.
+
 ## [1.11.0] — 2026-07-23
 
 P1 integrity hardening. Six places where a real gap remained after v1.10.0's

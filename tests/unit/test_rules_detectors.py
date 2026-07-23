@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "helpers"))
 import paths  # noqa: F401,E402
@@ -42,6 +43,42 @@ class TempDirCase(unittest.TestCase):
 
     def tearDown(self):
         self._tmp.cleanup()
+
+
+class TestDetectorReadFailuresAreNotSuppressed(TempDirCase):
+    """Every input read failure must reach the runner as phase=read.
+
+    The runner verifies candidate readability before detector execution, but
+    the file can become unreadable between that check and the detector read.
+    A detector-level ``except OSError: continue`` would turn that race into a
+    false clean scan.
+    """
+
+    DETECTORS = (
+        "rules/accessibility/a11y-input-no-label.py",
+        "rules/devops/destructive-migration-no-guard.py",
+        "rules/devops/migration-no-down-file.py",
+        "rules/security/secret-in-source.py",
+        "rules/security/service-role-in-client.py",
+        "rules/security/supabase-policy-too-permissive.py",
+        "rules/security/supabase-rls-disabled.py",
+    )
+
+    def test_oserror_from_any_detector_input_propagates(self):
+        target = write(self.tmp, "input.sql", "CREATE TABLE t (id int);\n")
+        original_read_text = Path.read_text
+
+        def fail_target_read(path, *args, **kwargs):
+            if path == target:
+                raise PermissionError("simulated post-preflight read failure")
+            return original_read_text(path, *args, **kwargs)
+
+        for detector in self.DETECTORS:
+            with self.subTest(detector=detector):
+                module = load_detector(detector)
+                with mock.patch.object(Path, "read_text", fail_target_read):
+                    with self.assertRaises(PermissionError):
+                        module.run([target])
 
 
 class TestSupabaseRlsDisabled(TempDirCase):
@@ -87,6 +124,60 @@ class TestA11yInputNoLabel(TempDirCase):
         f = write(self.tmp, "Form.tsx", '<input aria-label="Search" type="search" />\n')
         findings = self.mod.run([f])
         self.assertEqual(findings, [])
+
+    def test_empty_aria_names_do_not_satisfy_the_rule(self):
+        for attribute in (
+            'aria-label=""',
+            'aria-label="   "',
+            'aria-labelledby=""',
+            'aria-labelledby="   "',
+            'aria-label={""}',
+            "aria-labelledby={''}",
+        ):
+            with self.subTest(attribute=attribute):
+                f = write(self.tmp, "Form.tsx", f"<input {attribute} type=\"text\" />\n")
+                findings = self.mod.run([f])
+                self.assertEqual(
+                    len(findings), 1,
+                    f"{attribute} declares an empty accessible name and must be flagged")
+
+    def test_inputs_inside_source_comments_are_ignored(self):
+        commented_inputs = (
+            '// <input type="text" />\n',
+            '/* <input type="text" /> */\n',
+            '{/* <input type="text" /> */}\n',
+            '<!-- <input type="text" /> -->\n',
+        )
+        for index, content in enumerate(commented_inputs):
+            with self.subTest(content=content):
+                f = write(self.tmp, f"Comment{index}.tsx", content)
+                self.assertEqual(
+                    self.mod.run([f]), [],
+                    "commented-out markup is not a rendered input")
+
+    def test_label_inside_a_comment_does_not_name_a_real_input(self):
+        f = write(
+            self.tmp,
+            "Form.tsx",
+            '/* <label htmlFor="e">Email</label> */\n'
+            '<input id="e" type="email" />\n',
+        )
+        findings = self.mod.run([f])
+        self.assertEqual(
+            len(findings), 1,
+            "a commented-out label must not suppress a real unlabeled input")
+        self.assertEqual(findings[0]["evidence"][0]["line_start"], 2)
+
+    def test_url_text_in_html_does_not_mask_a_later_input(self):
+        f = write(
+            self.tmp,
+            "Page.html",
+            '<p>Documentation: https://example.com</p><input type="text">\n',
+        )
+        findings = self.mod.run([f])
+        self.assertEqual(
+            len(findings), 1,
+            "HTML text containing // is not a JavaScript line comment")
 
     def test_hidden_input_type_is_skipped(self):
         f = write(self.tmp, "Form.tsx", '<input type="hidden" value="x" />\n')
@@ -180,21 +271,125 @@ class TestSecretInSource(TempDirCase):
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0]["severity_override"], "CRITICAL")
 
+    def test_registry_scans_env_variants_shell_and_common_source_languages(self):
+        import runner
+        import yaml_subset
+
+        registry = yaml_subset.load(
+            paths.AKOS_HOME / "rules/security/secret-in-source.yaml"
+        )
+        expected_source_files = {
+            ".env.local",
+            ".env.production",
+            "config.sh",
+            "config.bash",
+            "config.zsh",
+            "config.fish",
+            "config.ps1",
+            "config.mjs",
+            "config.cjs",
+            "config.go",
+            "Config.java",
+            "config.rb",
+            "config.php",
+            "config.rs",
+            "Config.kt",
+            "Config.kts",
+            "Config.swift",
+            "Config.cs",
+            "config.c",
+            "config.h",
+            "config.cc",
+            "config.cpp",
+            "config.hpp",
+            "Config.vue",
+            "Config.svelte",
+            "config.toml",
+            "main.tf",
+            "secrets.tfvars",
+            "config.properties",
+            "config.ini",
+            "config.conf",
+        }
+        for filename in expected_source_files | {"asset.png"}:
+            write(self.tmp, f"src/{filename}", "placeholder\n")
+
+        collected = {
+            path.name
+            for path in runner.collect_files(
+                self.tmp, registry["applies_to"]["glob"]
+            )
+        }
+        self.assertTrue(expected_source_files <= collected)
+        self.assertNotIn(
+            "asset.png", collected,
+            "the secret rule must remain restricted to text/source formats",
+        )
+
 
 class TestServiceRoleInClient(TempDirCase):
     def setUp(self):
         super().setUp()
         self.mod = load_detector("rules/security/service-role-in-client.py")
 
-    def test_server_path_excluded(self):
-        f = write(self.tmp, "src/api/route.ts", "const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n")
-        findings = self.mod.run([f])
-        self.assertEqual(findings, [])
+    def test_unambiguous_server_convention_paths_are_excluded(self):
+        server_paths = (
+            "pages/api/admin.ts",
+            "app/api/admin/route.ts",
+            "supabase/functions/admin/index.ts",
+            "src/server/admin.ts",
+            "src/admin.server.ts",
+            "src/middleware.ts",
+        )
+        for relative_path in server_paths:
+            with self.subTest(path=relative_path):
+                f = write(
+                    self.tmp,
+                    relative_path,
+                    "const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n",
+                )
+                self.assertEqual(self.mod.run([f], scan_root=self.tmp), [])
+
+    def test_src_api_utility_is_not_assumed_to_be_server_side(self):
+        f = write(
+            self.tmp,
+            "src/api/supabase.ts",
+            "const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n",
+        )
+        findings = self.mod.run([f], scan_root=self.tmp)
+        self.assertEqual(
+            len(findings), 1,
+            "src/api is commonly a browser API-client layer, not a server boundary",
+        )
+
+    def test_only_route_files_under_app_api_are_assumed_server_side(self):
+        f = write(
+            self.tmp,
+            "app/api/supabase.ts",
+            "const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n",
+        )
+        self.assertEqual(len(self.mod.run([f], scan_root=self.tmp)), 1)
+
+    def test_generic_functions_folder_is_not_assumed_server_side(self):
+        f = write(
+            self.tmp,
+            "src/functions/client.ts",
+            "const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n",
+        )
+        self.assertEqual(len(self.mod.run([f], scan_root=self.tmp)), 1)
 
     def test_client_path_flagged(self):
         f = write(self.tmp, "src/client.ts", "const key = process.env.SUPABASE_SERVICE_ROLE_KEY;\n")
         findings = self.mod.run([f])
         self.assertEqual(len(findings), 1)
+
+    def test_camel_case_service_role_identifier_is_flagged(self):
+        f = write(
+            self.tmp,
+            "src/client.ts",
+            "const serviceRoleKey = getAdminKey();\n",
+        )
+        self.assertEqual(len(self.mod.run([f], scan_root=self.tmp)), 1)
 
     def test_ancestor_api_dir_above_scan_root_does_not_silence(self):
         # The real bug: an ancestor named `api` above the project root made

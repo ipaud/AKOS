@@ -14,7 +14,20 @@ Aggregates the pack rubrics for whatever surface is under review:
 - [ux/apple-hig](../packs/ux/apple-hig/scoring-rubric.md) / [ux/material-design](../packs/ux/material-design/scoring-rubric.md) — platform ergonomics when the target is native
 - [performance/network-performance](../packs/performance/network-performance/scoring-rubric.md) — behaviour on a slow or intermittent connection
 
-Score each that applies and average; deduplicate overlapping findings — one defect, one deduction, cited by the pack that explains it deepest.
+Score each that applies and average; deduplicate overlapping findings — one
+defect, one deduction, cited by the pack that explains it deepest. This produces
+the Mobile dimension used by [overall-score](overall-score.md), with profile
+weights Prototype/MVP/Production/Enterprise/Game Dev/Internal =
+`1/2/3/2/1/1`.
+
+## Evidence required
+
+Do not turn static inspection into a fabricated mobile measurement. A numeric
+Mobile score requires rendered/runtime evidence that names the tool or device,
+viewport, orientation where relevant, and the task completed. If no rendered
+surface or equivalent recorded artifact was inspected, report Mobile as `n/a`.
+Code-backed risks may still be findings, with confidence capped to what the
+artifact proves.
 
 ## Severity anchors
 
@@ -46,4 +59,8 @@ CRITICAL is reserved for a task a phone user cannot complete, or completes wrong
 
 ## Feeding the overall score
 
-Mobile findings that are safety-floor violations (reflow, target size) also feed [accessibility-score](accessibility-score.md); findings about task completion also feed [ux-score](ux-score.md). Deduplicate across the three — a finding counts once in the overall weighting per [overall-score.md](overall-score.md).
+The assessed Mobile score feeds [overall-score](overall-score.md) directly.
+Mobile findings that are safety-floor violations (reflow, target size) also feed
+[accessibility-score](accessibility-score.md); findings about task completion
+also feed [ux-score](ux-score.md). Deduplicate the underlying finding across the
+three dimensions rather than hiding Mobile inside either neighbour.

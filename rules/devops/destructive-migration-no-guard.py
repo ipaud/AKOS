@@ -13,7 +13,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent / "security"))
+from io_utils import read_text_file  # noqa: E402
 from _sql_utils import mask_sql_comments  # noqa: E402
 
 DESTRUCTIVE_RE = re.compile(
@@ -92,10 +94,7 @@ def has_adjacent_guard(lines: list[str], line_no: int) -> bool:
 def run(files: list[Path]) -> list[dict]:
     findings = []
     for path in files:
-        try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
+        text = read_text_file(path)
         lines = text.split("\n")
         # Search the masked copy: a comment documenting a planned `drop column`
         # is a plan, not a statement. Its siblings mask; this one did not.

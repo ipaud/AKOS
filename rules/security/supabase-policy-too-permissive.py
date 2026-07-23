@@ -1,18 +1,8 @@
 """Detector for SUPABASE_POLICY_TOO_PERMISSIVE.
 
-Default severity is HIGH, not CRITICAL, deliberately: an always-true policy
-is sometimes correct (a public lookup/reference table — plans, countries).
-The suppression comment (`-- akos:allow SUPABASE_POLICY_TOO_PERMISSIVE`) is
-the intended escape hatch for those legitimate cases, rather than an
-exception list baked into the detector.
-
-Migration-order aware. A policy created in one migration and dropped in a
-later one no longer exists, and reporting it is a false positive — which is
-exactly what happened on the first real repository this ran against: two of
-six findings named policies a later migration had already dropped, in a
-project carrying 26 `DROP POLICY` statements. `SUPABASE_RLS_DISABLED`
-already scanned all files together for the equivalent reason; this one did
-not, and that asymmetry was the defect.
+Policy definitions are folded in lexical migration and statement order.
+CREATE, ALTER, RENAME, DROP, and table removal all affect final state; a
+trailing statement without a semicolon is processed as well.
 """
 
 from __future__ import annotations
@@ -20,68 +10,387 @@ from __future__ import annotations
 import re
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
-from _sql_utils import mask_sql_comments, line_of_offset  # noqa: E402
+from io_utils import read_text_file  # noqa: E402
+from _sql_utils import (  # noqa: E402
+    TABLE_DROP_RE,
+    _dollar_tag_at,
+    iter_sql_statements,
+    line_of_offset,
+    normalize_table_name,
+    relation_names,
+)
 
-ALWAYS_TRUE_RE = re.compile(r"(USING|WITH\s+CHECK)\s*\(\s*true\s*\)", re.IGNORECASE)
 
-# Policy names may be double-quoted or bare; tables may be schema-qualified.
-_NAME = r'(?:"([^"]+)"|([A-Za-z_][\w$]*))'
-_TABLE = r'([A-Za-z_][\w$]*(?:\.[A-Za-z_][\w$]*)?)'
-CREATE_POLICY_RE = re.compile(rf"CREATE\s+POLICY\s+{_NAME}\s+ON\s+{_TABLE}", re.IGNORECASE)
+_IDENT = r'(?:"(?:[^"]|"")+"|[A-Za-z_][\w$]*)'
+_TABLE = rf"({_IDENT}(?:\s*\.\s*{_IDENT})?)"
+_POLICY = rf"({_IDENT})"
+
+CREATE_POLICY_RE = re.compile(
+    rf"^\s*CREATE\s+POLICY\s+{_POLICY}\s+ON\s+{_TABLE}(?=\s|;|$)",
+    re.IGNORECASE,
+)
+ALTER_POLICY_RE = re.compile(
+    rf"^\s*ALTER\s+POLICY\s+{_POLICY}\s+ON\s+{_TABLE}(?=\s|;|$)",
+    re.IGNORECASE,
+)
 DROP_POLICY_RE = re.compile(
-    rf"DROP\s+POLICY\s+(?:IF\s+EXISTS\s+)?{_NAME}\s+ON\s+{_TABLE}", re.IGNORECASE)
+    rf"^\s*DROP\s+POLICY\s+(?:IF\s+EXISTS\s+)?{_POLICY}\s+ON\s+"
+    rf"{_TABLE}(?=\s|;|$)",
+    re.IGNORECASE,
+)
+RENAME_POLICY_RE = re.compile(
+    rf"^\s*ALTER\s+POLICY\s+{_POLICY}\s+ON\s+{_TABLE}"
+    rf"\s+RENAME\s+TO\s+{_POLICY}(?=\s|;|$)",
+    re.IGNORECASE,
+)
+
+USING_RE = re.compile(r"\bUSING\s*\(", re.IGNORECASE)
+WITH_CHECK_RE = re.compile(r"\bWITH\s+CHECK\s*\(", re.IGNORECASE)
+TAUTOLOGY_RE = re.compile(r"(?:true|1\s*=\s*1)", re.IGNORECASE)
+FALSE_RE = re.compile(r"(?:false|0\s*=\s*1|1\s*=\s*0)", re.IGNORECASE)
+
+ALWAYS_FALSE = -1
+UNKNOWN = 0
+ALWAYS_TRUE = 1
 
 
-def _identity(m: re.Match) -> tuple[str, str]:
-    """(policy name, table) — the pair Postgres treats as unique."""
-    name = m.group(1) if m.group(1) is not None else m.group(2)
-    return name, m.group(3).lower()
+class PolicyState(NamedTuple):
+    using_finding: dict | None = None
+    check_finding: dict | None = None
+
+    @property
+    def finding(self) -> dict | None:
+        return self.using_finding or self.check_finding
+
+
+def _policy_name(raw_name: str) -> str:
+    raw_name = raw_name.strip()
+    if raw_name.startswith('"') and raw_name.endswith('"'):
+        value = raw_name[1:-1].replace('""', '"')
+        if re.fullmatch(r"[a-z_][a-z0-9_$]*", value):
+            return value
+        return '"' + value.replace('"', '""') + '"'
+    return raw_name.lower()
+
+
+def _identity(match: re.Match) -> tuple[str, str]:
+    return _policy_name(match.group(1)), normalize_table_name(match.group(2))
+
+
+def _closing_parenthesis(text: str, opening_offset: int) -> int | None:
+    depth = 0
+    in_single = False
+    in_double = False
+    dollar_tag: str | None = None
+    i = opening_offset
+    while i < len(text):
+        if dollar_tag is not None:
+            if text.startswith(dollar_tag, i):
+                i += len(dollar_tag)
+                dollar_tag = None
+            else:
+                i += 1
+            continue
+        char = text[i]
+        if in_single:
+            if char == "'" and i + 1 < len(text) and text[i + 1] == "'":
+                i += 2
+                continue
+            if char == "'":
+                in_single = False
+        elif in_double:
+            if char == '"' and i + 1 < len(text) and text[i + 1] == '"':
+                i += 2
+                continue
+            if char == '"':
+                in_double = False
+        else:
+            tag = _dollar_tag_at(text, i)
+            if tag is not None:
+                dollar_tag = tag
+                i += len(tag)
+                continue
+            if char == "'":
+                in_single = True
+            elif char == '"':
+                in_double = True
+            elif char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0:
+                    return i
+        i += 1
+    return None
+
+
+def _without_redundant_parentheses(expression: str) -> str:
+    value = expression.strip()
+    while value.startswith("("):
+        closing = _closing_parenthesis(value, 0)
+        if closing != len(value) - 1:
+            break
+        value = value[1:-1].strip()
+    return value
+
+
+def _is_word_at(text: str, offset: int, word: str) -> bool:
+    end = offset + len(word)
+    if text[offset:end].lower() != word.lower():
+        return False
+    before = text[offset - 1] if offset else ""
+    after = text[end] if end < len(text) else ""
+    return not (
+        (before and (before.isalnum() or before in "_$"))
+        or (after and (after.isalnum() or after in "_$"))
+    )
+
+
+def _split_top_level(expression: str, operator: str) -> tuple[str, ...]:
+    parts: list[str] = []
+    start = 0
+    depth = 0
+    in_single = False
+    in_double = False
+    dollar_tag: str | None = None
+    i = 0
+    while i < len(expression):
+        if dollar_tag is not None:
+            if expression.startswith(dollar_tag, i):
+                i += len(dollar_tag)
+                dollar_tag = None
+            else:
+                i += 1
+            continue
+        char = expression[i]
+        if in_single:
+            if char == "'" and i + 1 < len(expression) and expression[i + 1] == "'":
+                i += 2
+                continue
+            if char == "'":
+                in_single = False
+        elif in_double:
+            if char == '"' and i + 1 < len(expression) and expression[i + 1] == '"':
+                i += 2
+                continue
+            if char == '"':
+                in_double = False
+        else:
+            tag = _dollar_tag_at(expression, i)
+            if tag is not None:
+                dollar_tag = tag
+                i += len(tag)
+                continue
+            if char == "'":
+                in_single = True
+            elif char == '"':
+                in_double = True
+            elif char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+            elif depth == 0 and _is_word_at(expression, i, operator):
+                parts.append(expression[start:i])
+                i += len(operator)
+                start = i
+                continue
+        i += 1
+    if not parts:
+        return (expression,)
+    return (*parts, expression[start:])
+
+
+def _boolean_value(expression: str, recursion_depth: int = 0) -> int:
+    if recursion_depth > 64:
+        return UNKNOWN
+    value = _without_redundant_parentheses(expression)
+
+    disjuncts = _split_top_level(value, "OR")
+    if len(disjuncts) > 1:
+        if any(not part.strip() for part in disjuncts):
+            return UNKNOWN
+        values = tuple(
+            _boolean_value(part, recursion_depth + 1)
+            for part in disjuncts
+        )
+        if ALWAYS_TRUE in values:
+            return ALWAYS_TRUE
+        return (
+            ALWAYS_FALSE
+            if all(item == ALWAYS_FALSE for item in values)
+            else UNKNOWN
+        )
+
+    conjuncts = _split_top_level(value, "AND")
+    if len(conjuncts) > 1:
+        if any(not part.strip() for part in conjuncts):
+            return UNKNOWN
+        values = tuple(
+            _boolean_value(part, recursion_depth + 1)
+            for part in conjuncts
+        )
+        if ALWAYS_FALSE in values:
+            return ALWAYS_FALSE
+        return (
+            ALWAYS_TRUE
+            if all(item == ALWAYS_TRUE for item in values)
+            else UNKNOWN
+        )
+
+    negated = re.match(r"(?is)^NOT\b(.*)$", value)
+    if negated:
+        inner = _boolean_value(negated.group(1), recursion_depth + 1)
+        return -inner
+    if TAUTOLOGY_RE.fullmatch(value):
+        return ALWAYS_TRUE
+    if FALSE_RE.fullmatch(value):
+        return ALWAYS_FALSE
+    return UNKNOWN
+
+
+def _tautology_span(
+    statement: str,
+    clause_pattern: re.Pattern,
+) -> tuple[int, int] | None:
+    clause = clause_pattern.search(statement)
+    if clause is None:
+        return None
+    opening_offset = clause.end() - 1
+    closing_offset = _closing_parenthesis(statement, opening_offset)
+    if closing_offset is None:
+        return None
+    expression = statement[opening_offset + 1:closing_offset]
+    if _boolean_value(expression) != ALWAYS_TRUE:
+        return None
+    return clause.start(), closing_offset + 1
+
+
+def _tautology_finding(
+    path: Path,
+    source_text: str,
+    statement_offset: int,
+    statement: str,
+    clause_pattern: re.Pattern,
+) -> dict | None:
+    span = _tautology_span(statement, clause_pattern)
+    if span is None:
+        return None
+    start, end = span
+    absolute_offset = statement_offset + start
+    return {
+        "evidence": [{
+            "path": str(path),
+            "line_start": line_of_offset(source_text, absolute_offset),
+            "line_end": line_of_offset(source_text, absolute_offset),
+            "snippet": statement[start:end],
+        }],
+    }
 
 
 def run(files: list[Path]) -> list[dict]:
-    # Migrations are timestamp-prefixed, so lexical order is apply order.
-    # Walk every statement in that order and keep only the policies still
-    # live at the end: a drop removes one, a later create brings it back.
-    live: dict[tuple[str, str], dict] = {}
+    policies: dict[tuple[str, str], PolicyState] = {}
 
     for path in sorted(files):
-        try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
-        masked = mask_sql_comments(text)
+        text = read_text_file(path)
 
-        stmt_start = 0
-        for m in re.finditer(r";", masked):
-            stmt = masked[stmt_start : m.end()]
-
-            drop_m = DROP_POLICY_RE.search(stmt)
-            if drop_m:
-                live.pop(_identity(drop_m), None)
-                stmt_start = m.end()
+        for statement_offset, statement in iter_sql_statements(text):
+            drop_table = TABLE_DROP_RE.search(statement)
+            if drop_table:
+                dropped_tables = set(relation_names(drop_table.group(1)))
+                policies = {
+                    key: state
+                    for key, state in policies.items()
+                    if key[1] not in dropped_tables
+                }
                 continue
 
-            create_m = CREATE_POLICY_RE.search(stmt)
-            if create_m:
-                key = _identity(create_m)
-                clause_m = ALWAYS_TRUE_RE.search(stmt)
-                if clause_m:
-                    abs_offset = stmt_start + clause_m.start()
-                    live[key] = {
-                        "evidence": [{
-                            "path": str(path),
-                            "line_start": line_of_offset(text, abs_offset),
-                            "line_end": line_of_offset(text, abs_offset),
-                            "snippet": clause_m.group(0),
-                        }],
+            drop_policy = DROP_POLICY_RE.search(statement)
+            if drop_policy:
+                key = _identity(drop_policy)
+                policies = {
+                    existing: state
+                    for existing, state in policies.items()
+                    if existing != key
+                }
+                continue
+
+            rename = RENAME_POLICY_RE.search(statement)
+            if rename:
+                old_key = _identity(rename)
+                new_key = (_policy_name(rename.group(3)), old_key[1])
+                current = policies.get(old_key)
+                if current is not None:
+                    policies = {
+                        **{
+                            key: state
+                            for key, state in policies.items()
+                            if key != old_key
+                        },
+                        new_key: current,
                     }
-                else:
-                    # Re-created without the always-true clause: whatever the
-                    # earlier permissive version said no longer applies.
-                    live.pop(key, None)
+                continue
 
-            stmt_start = m.end()
+            create = CREATE_POLICY_RE.search(statement)
+            if create:
+                policies = {
+                    **policies,
+                    _identity(create): PolicyState(
+                        using_finding=_tautology_finding(
+                            path,
+                            text,
+                            statement_offset,
+                            statement,
+                            USING_RE,
+                        ),
+                        check_finding=_tautology_finding(
+                            path,
+                            text,
+                            statement_offset,
+                            statement,
+                            WITH_CHECK_RE,
+                        ),
+                    ),
+                }
+                continue
 
-    return list(live.values())
+            alter = ALTER_POLICY_RE.search(statement)
+            if alter:
+                key = _identity(alter)
+                current = policies.get(key, PolicyState())
+                policies = {
+                    **policies,
+                    key: current._replace(
+                        using_finding=(
+                            _tautology_finding(
+                                path,
+                                text,
+                                statement_offset,
+                                statement,
+                                USING_RE,
+                            )
+                            if USING_RE.search(statement)
+                            else current.using_finding
+                        ),
+                        check_finding=(
+                            _tautology_finding(
+                                path,
+                                text,
+                                statement_offset,
+                                statement,
+                                WITH_CHECK_RE,
+                            )
+                            if WITH_CHECK_RE.search(statement)
+                            else current.check_finding
+                        ),
+                    ),
+                }
+
+    return [
+        finding
+        for state in policies.values()
+        if (finding := state.finding) is not None
+    ]

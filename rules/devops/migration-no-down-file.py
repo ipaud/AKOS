@@ -13,7 +13,11 @@ flag *.up.sql / bare migration files lacking a counterpart.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from io_utils import read_text_file  # noqa: E402
 
 DOWN_MARKER_RE = re.compile(r"--\s*Down\b", re.IGNORECASE)
 
@@ -38,12 +42,7 @@ def expected_down_names(path: Path) -> list[str]:
 
 
 def run(files: list[Path]) -> list[dict]:
-    file_texts = {}
-    for path in files:
-        try:
-            file_texts[path] = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            file_texts[path] = ""
+    file_texts = {path: read_text_file(path) for path in files}
 
     down_files = [p for p in files if is_down_file(p, file_texts[p])]
     if not down_files:

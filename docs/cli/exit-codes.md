@@ -35,6 +35,28 @@ What "found something" means per command:
 - `akos routing-check` — `2` if a `status: stable` pack is missing from (or a `status: draft` pack appears in) the Stable routing catalog in `skills/akos/SKILL.md`, a draft pack is missing from the Experimental section, or a `status: stable` agent/workflow depends on a draft pack; `1` if `skills/akos/SKILL.md` itself can't be found; `0` when routing is clean.
 - `akos eval --report PATH` — `2` if the graded report fails an eval case; `1` on usage/setup error (missing `--report`/`--case`, unreadable file); `0` when it passes.
 
+## Stable JSON contracts (v1.12)
+
+JSON is a public per-command interface. These shapes are intentionally
+different and are not normalized in v1.12:
+
+| Command | Stable top-level JSON shape |
+|---|---|
+| `validate --format json` | array of `{file, errors, warnings}` |
+| `rules run --format json` | object `{status, summary, findings, errors}` |
+| `benchmark run --format json` | array of benchmark result objects |
+| `freshness --format json` | array of pack freshness row objects |
+| `check-config --format json` | array of config findings; exactly `[]` when config is absent |
+| `routing-check --format json` | object `{errors}` |
+| `eval --format json` | array containing the selected case result |
+| `history show` | one merged metadata/report object |
+| `history compare` | object `{a, b, decision_change, score_deltas}` |
+
+Adding optional fields is compatible. Renaming/removing fields, changing a
+top-level array into an object (or vice versa), or using a different shape for
+the same command is a breaking change and requires a new documented contract
+version. Human-readable output remains informational and is not parsed by CI.
+
 ## `update.sh`'s own contract (not a `bin/akos` subcommand, but load-bearing)
 
 `0` only if: the concurrency lock was acquired, the personal-layer backup was created **and** immediately verified against the live source, the git pull either succeeded or failed for an already-warned reason (or the directory isn't a git repo — see below), the personal layer was verified unchanged or successfully restored, **and** the final `doctor.sh` run (which `update.sh` now actually invokes, not just suggests) exits `0`. `1` on: a lock already held, a failed or unverifiable backup, an unrecoverable restore failure, a failed `git pull`, a non-git checkout (nothing was updated automatically — this is not treated as a silent success), or a failing final `doctor.sh`. "Update complete and verified" and "personal layer preserved"/"restored" are only ever printed after the corresponding check has actually run — never assumed.

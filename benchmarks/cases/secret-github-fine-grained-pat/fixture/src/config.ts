@@ -1,0 +1,1 @@
+const token = "{{AKOS_TEST_GITHUB_FINE_GRAINED_PAT}}";

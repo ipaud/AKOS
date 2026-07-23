@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "helpers"))
 import paths  # noqa: F401,E402
@@ -281,6 +282,12 @@ class TestReportIsRedactedAtWriteTime(unittest.TestCase):
         self.assertNotIn(AWS_KEY, stored)
         self.assertIn("REDACTED", stored)
 
+    def test_unquoted_generic_secret_assignment_does_not_reach_disk(self):
+        token = "Ax7_qP9m" + "Z2vK8sT4" + "nR6wY3cD"
+        stored = self._record_and_read(f"MY_API_KEY={token}\n")
+        self.assertNotIn(token, stored)
+        self.assertIn("[REDACTED:high_entropy_assignment]", stored)
+
     def test_the_finding_itself_survives_redaction(self):
         """Redaction that destroys the finding is not a fix — the reviewer
         still needs to know which file and line to go fix."""
@@ -357,6 +364,42 @@ class TestRecordEnsuresGitignore(unittest.TestCase):
         self.assertIn("node_modules/", lines)
         self.assertIn("dist/", lines)
         self.assertIn(".akos/reviews/", lines)
+
+    def test_reasserts_ignore_rule_after_a_later_exact_negation(self):
+        (self.project / ".gitignore").write_text(
+            ".akos/reviews/\n!.akos/reviews/\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(self._record(), 0)
+
+        relevant = [
+            line.strip()
+            for line in self._lines()
+            if line.strip() in {".akos/reviews/", "!.akos/reviews/"}
+        ]
+        self.assertEqual(relevant[-1], ".akos/reviews/")
+
+    def test_gitignore_change_is_rolled_back_when_publish_fails(self):
+        gitignore = self.project / ".gitignore"
+        gitignore.write_text("node_modules/\n", encoding="utf-8")
+        original = gitignore.read_bytes()
+        real_rename = history.os.rename
+
+        def fail_review_publish(source, destination, *args, **kwargs):
+            if "full" in str(destination):
+                raise OSError("simulated publish failure")
+            return real_rename(source, destination, *args, **kwargs)
+
+        with mock.patch.object(
+            history.os,
+            "rename",
+            side_effect=fail_review_publish,
+        ):
+            rc = self._record()
+
+        self.assertEqual(rc, 1)
+        self.assertEqual(gitignore.read_bytes(), original)
 
     def test_non_git_directory_is_left_alone(self):
         """Nothing to ignore into, and writing a .gitignore into a plain
@@ -611,3 +654,270 @@ class TestHistoryReadersHandleStagingAndCorruption(unittest.TestCase):
         rc, _ = self._capture(history.cmd_clean, args)
         self.assertEqual(rc, 0)
         self.assertTrue(staging.is_dir(), "clean must never sweep a staging directory")
+
+
+class TestHistoryFilesystemHardening(unittest.TestCase):
+    """Regression coverage for the history store's filesystem trust boundary."""
+
+    def setUp(self):
+        self._project_tmp = tempfile.TemporaryDirectory()
+        self._outside_tmp = tempfile.TemporaryDirectory()
+        self.project = Path(self._project_tmp.name)
+        self.outside = Path(self._outside_tmp.name)
+        self.report = self.project / "report.md"
+        self.report.write_text("# Review\n", encoding="utf-8")
+
+    def tearDown(self):
+        self._project_tmp.cleanup()
+        self._outside_tmp.cleanup()
+
+    def _record_args(self):
+        class Args:
+            pass
+
+        args = Args()
+        args.dir = str(self.project)
+        args.type = "security"
+        args.decision = "PASS"
+        args.profile = "Production"
+        args.report = str(self.report)
+        args.scores_json = '{"security": 90}'
+        args.packs_json = None
+        args.timestamp = "20260101T000000Z"
+        return args
+
+    def _clean_args(self, *, keep=0, confirm=1, dry_run=False):
+        class Args:
+            pass
+
+        args = Args()
+        args.dir = str(self.project)
+        args.keep = keep
+        args.confirm_delete = confirm
+        args.dry_run = dry_run
+        return args
+
+    def _make_review(self, review_id: str, parent: Path | None = None) -> Path:
+        review = (parent or (self.project / ".akos/reviews")) / review_id
+        review.mkdir(parents=True)
+        metadata = {
+            "review_id": review_id,
+            "decision": "PASS",
+            "profile": "Production",
+        }
+        (review / "report.md").write_text("# Review\n", encoding="utf-8")
+        (review / "metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
+        (review / "report.json").write_text(
+            json.dumps({"decision": "PASS", "scores": {"security": 90}}),
+            encoding="utf-8",
+        )
+        return review
+
+    def _invoke_clean(self, args):
+        try:
+            return history.cmd_clean(args)
+        except Exception as exc:  # the hardened contract is a clean rc=1, never an exception
+            return exc
+
+    def test_record_rejects_symlinked_reviews_root_before_publish(self):
+        sentinel = self.outside / "sentinel.txt"
+        sentinel.write_text("keep", encoding="utf-8")
+        (self.project / ".akos").mkdir()
+        (self.project / ".akos/reviews").symlink_to(self.outside, target_is_directory=True)
+
+        rc = history.cmd_record(self._record_args())
+
+        self.assertEqual(rc, 1)
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "keep")
+        self.assertEqual(
+            sorted(path.name for path in self.outside.iterdir()),
+            ["sentinel.txt"],
+            "record must not stage or publish through a symlinked reviews root",
+        )
+
+    def test_clean_rejects_symlinked_reviews_root_without_touching_target(self):
+        review = self._make_review("20250101T000000Z-security-safe", self.outside)
+        sentinel = review / "sentinel.txt"
+        sentinel.write_text("keep", encoding="utf-8")
+        (self.project / ".akos").mkdir()
+        (self.project / ".akos/reviews").symlink_to(self.outside, target_is_directory=True)
+
+        rc = self._invoke_clean(self._clean_args())
+
+        self.assertEqual(rc, 1)
+        self.assertTrue(review.is_dir())
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "keep")
+
+    def test_clean_rejects_symlinked_review_entry_and_preserves_outside_sentinel(self):
+        outside_review = self._make_review("outside-review", self.outside)
+        sentinel = outside_review / "sentinel.txt"
+        sentinel.write_text("keep", encoding="utf-8")
+        reviews = self.project / ".akos/reviews"
+        reviews.mkdir(parents=True)
+        entry = reviews / "20250101T000000Z-security-linked"
+        entry.symlink_to(outside_review, target_is_directory=True)
+
+        rc = self._invoke_clean(self._clean_args())
+
+        self.assertEqual(rc, 1)
+        self.assertTrue(entry.is_symlink())
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "keep")
+
+    def test_clean_rejects_each_symlinked_required_file(self):
+        review = self._make_review("20250101T000000Z-security-file-link")
+        originals = {
+            name: (review / name).read_bytes()
+            for name in history.REQUIRED_FILES
+        }
+        for name in history.REQUIRED_FILES:
+            with self.subTest(name=name):
+                sentinel = self.outside / name
+                sentinel.write_bytes(b"keep")
+                internal = review / name
+                internal.unlink()
+                internal.symlink_to(sentinel)
+
+                rc = self._invoke_clean(self._clean_args())
+
+                self.assertEqual(rc, 1)
+                self.assertTrue(review.is_dir())
+                self.assertTrue(internal.is_symlink())
+                self.assertEqual(sentinel.read_bytes(), b"keep")
+                internal.unlink()
+                internal.write_bytes(originals[name])
+
+    def test_record_rejects_symlinked_akos_directory(self):
+        sentinel = self.outside / "sentinel.txt"
+        sentinel.write_text("keep", encoding="utf-8")
+        (self.project / ".akos").symlink_to(self.outside, target_is_directory=True)
+
+        rc = history.cmd_record(self._record_args())
+
+        self.assertEqual(rc, 1)
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "keep")
+        self.assertEqual(sorted(path.name for path in self.outside.iterdir()), ["sentinel.txt"])
+
+    def test_list_reports_symlinked_required_file_as_corrupt(self):
+        sentinel = self.outside / "metadata.json"
+        sentinel.write_text(
+            json.dumps({"decision": "PASS", "profile": "outside"}),
+            encoding="utf-8",
+        )
+        review = self._make_review("20250101T000000Z-security-file-link")
+        (review / "metadata.json").unlink()
+        (review / "metadata.json").symlink_to(sentinel)
+
+        import io
+        from contextlib import redirect_stdout
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            rc = history.cmd_list(self._record_args())
+
+        self.assertEqual(rc, 0)
+        self.assertIn("corrupt", output.getvalue().lower())
+        self.assertIn("symlink", output.getvalue().lower())
+
+    def test_clean_rejects_unexpected_contents_without_partial_deletion(self):
+        first = self._make_review("20250101T000000Z-security-first")
+        malformed = self._make_review("20250102T000000Z-security-malformed")
+        (malformed / "unexpected").mkdir()
+        (malformed / "unexpected/sentinel.txt").write_text("keep", encoding="utf-8")
+
+        rc = self._invoke_clean(self._clean_args(confirm=2))
+
+        self.assertEqual(rc, 1)
+        self.assertTrue(first.is_dir(), "clean must preflight every candidate before deleting any")
+        self.assertTrue(malformed.is_dir())
+        self.assertEqual(
+            (malformed / "unexpected/sentinel.txt").read_text(encoding="utf-8"),
+            "keep",
+        )
+
+    def test_clean_preflights_corrupt_entries_that_would_be_kept(self):
+        removable = self._make_review("20250101T000000Z-security-removable")
+        kept_but_corrupt = self._make_review("20250102T000000Z-security-kept")
+        (kept_but_corrupt / "unexpected.txt").write_text("keep", encoding="utf-8")
+
+        rc = self._invoke_clean(self._clean_args(keep=1, confirm=1))
+
+        self.assertEqual(rc, 1)
+        self.assertTrue(
+            removable.is_dir(),
+            "any corrupt published entry must abort the entire clean before deletion",
+        )
+        self.assertTrue(kept_but_corrupt.is_dir())
+
+    def test_record_rejects_symlinked_gitignore_before_publish(self):
+        subprocess.run(["git", "init", "-q"], cwd=self.project, check=True)
+        sentinel = self.outside / "gitignore"
+        sentinel.write_text("outside-content\n", encoding="utf-8")
+        (self.project / ".gitignore").symlink_to(sentinel)
+
+        rc = history.cmd_record(self._record_args())
+
+        self.assertEqual(rc, 1)
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "outside-content\n")
+        reviews = self.project / ".akos/reviews"
+        self.assertFalse(reviews.exists() and any(reviews.iterdir()))
+
+    def test_clean_parent_swap_cannot_unlink_an_outside_review(self):
+        review_id = "20250101T000000Z-security-safe"
+        self._make_review(review_id)
+        outside_akos = self.outside / "akos"
+        outside_review = self._make_review(review_id, outside_akos / "reviews")
+        outside_snapshot = {
+            name: (outside_review / name).read_bytes()
+            for name in history.REQUIRED_FILES
+        }
+        original_akos = self.project / ".akos-original"
+        real_unlink = history.os.unlink
+        swapped = False
+
+        def swap_parent_before_unlink(path, *args, **kwargs):
+            nonlocal swapped
+            if not swapped:
+                swapped = True
+                (self.project / ".akos").rename(original_akos)
+                (self.project / ".akos").symlink_to(
+                    outside_akos,
+                    target_is_directory=True,
+                )
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(
+            history.os,
+            "unlink",
+            side_effect=swap_parent_before_unlink,
+        ):
+            rc = self._invoke_clean(self._clean_args())
+
+        self.assertIn(rc, (0, 1))
+        self.assertTrue(outside_review.is_dir())
+        self.assertEqual(
+            {
+                name: (outside_review / name).read_bytes()
+                for name in history.REQUIRED_FILES
+            },
+            outside_snapshot,
+        )
+
+
+class TestHistoryCliContract(unittest.TestCase):
+    def test_usage_errors_exit_one(self):
+        for argv in (["list", "--unknown"], ["record"]):
+            with self.subTest(argv=argv), self.assertRaises(SystemExit) as raised:
+                history.main(argv)
+            self.assertEqual(raised.exception.code, 1)
+
+    def test_clean_rejects_negative_keep_as_usage_error(self):
+        with tempfile.TemporaryDirectory() as project:
+            with self.assertRaises(SystemExit) as raised:
+                history.main([
+                    "clean",
+                    "--dir",
+                    project,
+                    "--keep=-1",
+                    "--dry-run",
+                ])
+        self.assertEqual(raised.exception.code, 1)

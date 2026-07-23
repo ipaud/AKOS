@@ -2,8 +2,9 @@
 
 Vendor-unique prefixes (AWS, GitHub, Slack, Stripe) match anywhere — near-zero
 collision risk by construction, so those are Certain-confidence hits. The
-generic KEY="..." catch-all additionally requires high entropy and a denylist
-check to keep the false-positive rate down. A decodable JWT with a
+generic KEY=value catch-all accepts quoted literals and conservative unquoted
+token shapes, then requires high entropy and a denylist check to keep the
+false-positive rate down. A decodable JWT with a
 "service_role" claim escalates to CRITICAL — that specific case is what
 SERVICE_ROLE_IN_CLIENT also checks for, scoped to client-side paths.
 
@@ -24,14 +25,15 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
+from io_utils import read_text_file  # noqa: E402
 from _secret_utils import (  # noqa: E402
     VENDOR_PATTERNS, GENERIC_ASSIGNMENT_RE, JWT_RE,
-    shannon_entropy, looks_like_placeholder, decode_jwt_claims,
-    gitignored_paths,
+    generic_assignment_value, is_generic_secret_assignment_value,
+    decode_jwt_claims,
+    gitignored_paths, iter_standalone_secret_matches, spans_overlap,
 )
-
-MIN_ENTROPY = 3.0
 
 
 def run(files: list[Path], scan_root: Path | None = None) -> list[dict]:
@@ -45,13 +47,12 @@ def run(files: list[Path], scan_root: Path | None = None) -> list[dict]:
         if str(path.resolve()) in ignored:
             continue
         path_str = str(path)
-        try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
+        text = read_text_file(path)
 
+        stronger_spans: list[tuple[int, int]] = []
         for vendor, pattern in VENDOR_PATTERNS.items():
             for m in pattern.finditer(text):
+                stronger_spans.append(m.span())
                 line = text.count("\n", 0, m.start()) + 1
                 # A Stripe *test* key is not a live credential — MEDIUM, and it
                 # does not gate. Every other vendor prefix is a live secret:
@@ -78,6 +79,7 @@ def run(files: list[Path], scan_root: Path | None = None) -> list[dict]:
             # Only service_role (which bypasses RLS entirely) is a secret.
             if role != "service_role":
                 continue
+            stronger_spans.append(m.span())
             line = text.count("\n", 0, m.start()) + 1
             findings.append({
                 "evidence": [{"path": path_str, "line_start": line, "line_end": line,
@@ -88,9 +90,14 @@ def run(files: list[Path], scan_root: Path | None = None) -> list[dict]:
             })
 
         for m in GENERIC_ASSIGNMENT_RE.finditer(text):
-            value = m.group(1)
-            if looks_like_placeholder(value) or shannon_entropy(value) < MIN_ENTROPY:
+            value, value_span, unquoted = generic_assignment_value(m)
+            if any(spans_overlap(value_span, span) for span in stronger_spans):
                 continue
+            if not is_generic_secret_assignment_value(
+                value, unquoted=unquoted
+            ):
+                continue
+            stronger_spans.append(value_span)
             line = text.count("\n", 0, m.start()) + 1
             # A high-entropy secret that cleared the placeholder and entropy
             # gates is high-confidence — block on it, in any path.
@@ -98,5 +105,19 @@ def run(files: list[Path], scan_root: Path | None = None) -> list[dict]:
                 "evidence": [{"path": path_str, "line_start": line, "line_end": line,
                               "snippet": "high-entropy value assigned to a key/secret/token/password-like name"}],
                 "blocking": True,
+            })
+
+        for m in iter_standalone_secret_matches(text, stronger_spans):
+            line = text.count("\n", 0, m.start("value")) + 1
+            findings.append({
+                "evidence": [{
+                    "path": str(path),
+                    "line_start": line,
+                    "line_end": line,
+                    "snippet": "standalone high-entropy quoted literal",
+                }],
+                "confidence_override": "Moderate",
+                "severity_override": "MEDIUM",
+                "blocking": False,
             })
     return findings

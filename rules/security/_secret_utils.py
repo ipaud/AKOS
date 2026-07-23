@@ -12,11 +12,39 @@ from pathlib import Path, PurePosixPath
 
 DENYLIST_SUBSTRINGS = [
     "changeme", "placeholder", "your-api-key", "your_api_key", "example",
-    "dummy", "xxxxxxxx", "insert-key-here", "replace-me", "<key>", "sk_test_000",
+    "dummy", "akos_test", "xxxxxxxx", "insert-key-here", "replace-me",
+    "<key>", "sk_test_000",
 ]
 
+OPENSSH_PRIVATE_KEY_BEGIN = "-----BEGIN " + "OPENSSH PRIVATE KEY-----"
+OPENSSH_PRIVATE_KEY_END = "-----END " + "OPENSSH PRIVATE KEY-----"
+
+PRIVATE_KEY_FAMILIES = {
+    "rsa_private_key": "RSA " + "PRIVATE KEY",
+    "ec_private_key": "EC " + "PRIVATE KEY",
+    "pkcs8_private_key": "PRIVATE " + "KEY",
+}
+
+
+def _private_key_pattern(family: str) -> re.Pattern:
+    begin = "-----BEGIN " + family + "-----"
+    end = "-----END " + family + "-----"
+    return re.compile(re.escape(begin) + r".*?" + re.escape(end), re.DOTALL)
+
+
 VENDOR_PATTERNS = {
+    "openssh_private_key": re.compile(
+        re.escape(OPENSSH_PRIVATE_KEY_BEGIN)
+        + r".*?"
+        + re.escape(OPENSSH_PRIVATE_KEY_END),
+        re.DOTALL,
+    ),
+    **{
+        label: _private_key_pattern(family)
+        for label, family in PRIVATE_KEY_FAMILIES.items()
+    },
     "aws_access_key": re.compile(r"AKIA[0-9A-Z]{16}"),
+    "github_fine_grained_pat": re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
     "github_token": re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}"),
     "slack_token": re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"),
     "stripe_live_key": re.compile(r"sk_live_[A-Za-z0-9]{16,}"),
@@ -28,16 +56,62 @@ VENDOR_PATTERNS = {
 # A leading \b cannot express that: `_` is a word character, so \b never fires
 # between `STRIPE_` and `API_KEY`, and every prefixed name sailed past this
 # pattern while the benchmark stayed green. The optional [A-Za-z0-9_.-]* prefix
-# closes that; the [:=] + quoted-value requirement is what keeps precision.
+# closes that. Quoted values retain the broad source-language name matching.
+# Unquoted values are deliberately limited to environment-style UPPER_SNAKE
+# secret names and token characters: otherwise ordinary references such as
+# ``const token = options.apiToken`` look indistinguishable from literals.
+# Placeholder and entropy gates below provide a second precision boundary.
 GENERIC_ASSIGNMENT_RE = re.compile(
-    r"""(?ix)
-    [A-Za-z0-9_.-]*(?:api[_-]?key|secret|token|password|service_role[_-]?key)\b
-    \s*[:=]\s*
-    ['"]([^'"]{16,})['"]
+    r"""(?x)
+    (?:
+        (?:
+            (?P<key_quote>['"])
+            (?i:
+                [A-Za-z0-9_.-]*
+                (?:api[_-]?key|secret|token|password|service_role[_-]?key)\b
+            )
+            (?P=key_quote)
+          |
+            (?i:
+                [A-Za-z0-9_.-]*
+                (?:api[_-]?key|secret|token|password|service_role[_-]?key)\b
+            )
+        )
+        \s*[:=]\s*
+        (?P<quote>['"])
+        (?P<quoted_value>[^'"\r\n]{16,})
+        (?P=quote)
+      |
+        (?m:^[ \t]*(?:(?:export|ENV)[ \t]+)?)
+        (?<![A-Za-z0-9_])
+        (?:(?:[A-Z][A-Z0-9]*_)+)?
+        (?:API_KEY|SECRET|TOKEN|PASSWORD|SERVICE_ROLE_KEY)\b
+        \s*[:=]\s*
+        (?P<unquoted_value>[A-Za-z0-9_+/=.-]{12,})
+        (?=$|[\s,;#}\])>])
+    )
     """
 )
+GENERIC_ASSIGNMENT_MIN_ENTROPY = 3.0
 
 JWT_RE = re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}\b")
+STANDALONE_QUOTED_RE = re.compile(
+    r"""(?x)
+    (?P<quote>['"])
+    (?P<value>[A-Za-z0-9_+/=.-]{32,})
+    (?P=quote)
+    """
+)
+HEX_DIGEST_RE = re.compile(r"^[0-9a-fA-F]{32,}$")
+SUBRESOURCE_INTEGRITY_RE = re.compile(
+    r"^sha(?:1|256|384|512)-[A-Za-z0-9+/]+={0,2}$",
+    re.IGNORECASE,
+)
+UUID_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-"
+    r"[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+)
+STANDALONE_MIN_ENTROPY = 4.0
 
 FIXTURE_DIR_SEGMENTS = {"test", "tests", "spec", "specs", "fixtures", "fixture", "__mocks__", "mocks"}
 FIXTURE_FILENAME_MARKERS = (".example", ".sample", ".template")
@@ -56,6 +130,83 @@ def shannon_entropy(s: str) -> float:
 def looks_like_placeholder(value: str) -> bool:
     low = value.lower()
     return any(d in low for d in DENYLIST_SUBSTRINGS)
+
+
+def generic_assignment_value(
+    match: re.Match,
+) -> tuple[str, tuple[int, int], bool]:
+    """Return value, exact span, and whether the unquoted syntax arm matched."""
+    group_name = (
+        "quoted_value"
+        if match.group("quoted_value") is not None
+        else "unquoted_value"
+    )
+    return (
+        match.group(group_name),
+        match.span(group_name),
+        group_name == "unquoted_value",
+    )
+
+
+def is_generic_secret_assignment_value(
+    value: str, *, unquoted: bool = False,
+) -> bool:
+    """Shared detector/history eligibility gate for generic assignments."""
+    if (
+        looks_like_placeholder(value)
+        or shannon_entropy(value) < GENERIC_ASSIGNMENT_MIN_ENTROPY
+    ):
+        return False
+    if unquoted and "." in value:
+        return (
+            any(char.islower() for char in value)
+            and any(char.isupper() for char in value)
+            and any(char.isdigit() for char in value)
+        )
+    return True
+
+
+def spans_overlap(left: tuple[int, int], right: tuple[int, int]) -> bool:
+    return left[0] < right[1] and right[0] < left[1]
+
+
+def is_standalone_secret_candidate(value: str) -> bool:
+    """Conservative entropy fallback for an opaque quoted literal.
+
+    It intentionally excludes common non-secrets such as checksums and UUIDs
+    and requires mixed character classes. Matches are advisory/non-blocking in
+    the detector, but write-time redaction still removes them because copying a
+    possible credential into review history has a much higher downside than
+    asking the operator to inspect the original source.
+    """
+    if looks_like_placeholder(value):
+        return False
+    if JWT_RE.fullmatch(value):
+        return False
+    if (
+        HEX_DIGEST_RE.fullmatch(value)
+        or SUBRESOURCE_INTEGRITY_RE.fullmatch(value)
+        or UUID_RE.fullmatch(value)
+    ):
+        return False
+    if shannon_entropy(value) < STANDALONE_MIN_ENTROPY:
+        return False
+    return (
+        any(ch.islower() for ch in value)
+        and any(ch.isupper() for ch in value)
+        and any(ch.isdigit() for ch in value)
+    )
+
+
+def iter_standalone_secret_matches(text: str, excluded_spans=()):
+    """Yield quoted entropy candidates not already explained by stronger rules."""
+    excluded = tuple(excluded_spans)
+    for match in STANDALONE_QUOTED_RE.finditer(text):
+        value_span = match.span("value")
+        if any(spans_overlap(value_span, span) for span in excluded):
+            continue
+        if is_standalone_secret_candidate(match.group("value")):
+            yield match
 
 
 def classification_path(path, scan_root=None) -> str:
@@ -135,9 +286,7 @@ def redact_secrets(text: str) -> tuple[str, list[str]]:
         return f"[REDACTED:{label}]"
 
     for name, pattern in VENDOR_PATTERNS.items():
-        text, n = pattern.subn(lambda m, nm=name: _mark(nm), text)
-        if n == 0 and name in labels:
-            labels.remove(name)
+        text = pattern.sub(lambda m, nm=name: _mark(nm), text)
 
     # A JWT is only a secret when it carries service_role; anon and
     # authenticated keys are designed to be public and RLS constrains them.
@@ -151,12 +300,20 @@ def redact_secrets(text: str) -> tuple[str, list[str]]:
     text = JWT_RE.sub(_jwt, text)
 
     def _assignment(m):
-        value = m.group(1)
-        if looks_like_placeholder(value) or shannon_entropy(value) < 3.0:
+        value, _, unquoted = generic_assignment_value(m)
+        if not is_generic_secret_assignment_value(value, unquoted=unquoted):
             return m.group(0)
         return m.group(0).replace(value, _mark("high_entropy_assignment"))
 
     text = GENERIC_ASSIGNMENT_RE.sub(_assignment, text)
+
+    def _standalone(match):
+        value = match.group("value")
+        if not is_standalone_secret_candidate(value):
+            return match.group(0)
+        return match.group(0).replace(value, _mark("standalone_high_entropy"))
+
+    text = STANDALONE_QUOTED_RE.sub(_standalone, text)
     return text, labels
 
 

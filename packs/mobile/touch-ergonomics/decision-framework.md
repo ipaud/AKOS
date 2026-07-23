@@ -68,19 +68,54 @@ function separatorsFor(locale) {
   };
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /** Returns a finite number, or null. Never a fallback zero. */
 export function parseAmount(raw, locale = navigator.language) {
+  let amount = String(raw).trim();
+  if (!amount) return null;
+
+  // A currency symbol is accepted at either edge, never in the middle.
+  amount = amount
+    .replace(/^\p{Sc}\s*/u, '')
+    .replace(/\s*\p{Sc}$/u, '');
+  if (!amount || /\p{Sc}/u.test(amount)) return null;
+
   const { group, decimal } = separatorsFor(locale);
-  const cleaned = String(raw)
-    .trim()
-    .replace(/[\s\u00A0\u202F]/g, '') // spaces / nbsp used as grouping
-    .split(group).join('')                 // locale grouping separator
-    .split(decimal).join('.')              // locale decimal -> canonical
-    .replace(/[^\d.\-]/g, '');             // currency symbols, stray characters
-  if (!/^-?\d*\.?\d+$/.test(cleaned)) return null;
-  const n = Number(cleaned);
+  const groupToken = escapeRegExp(group);
+  const decimalToken = escapeRegExp(decimal);
+  const integer = group
+    ? `(?:\\d+|\\d{1,3}(?:${groupToken}\\d{3})+)`
+    : '\\d+';
+  const localeShape = new RegExp(
+    `^-?${integer}(?:${decimalToken}\\d+)?$`,
+  );
+
+  let canonical;
+  if (localeShape.test(amount)) {
+    canonical = group ? amount.split(group).join('') : amount;
+    canonical = decimal === '.' ? canonical : canonical.replace(decimal, '.');
+  } else {
+    // A bare amount may use the other common decimal separator exactly once.
+    // Grouped or malformed strings never reach Number().
+    const alternate = decimal === ',' ? '.' : ',';
+    const parts = amount.split(alternate);
+    if (
+      parts.length !== 2
+      || !/^-?\d+$/.test(parts[0])
+      || !/^\d+$/.test(parts[1])
+    ) return null;
+    canonical = `${parts[0]}.${parts[1]}`;
+  }
+
+  const n = Number(canonical);
   return Number.isFinite(n) ? n : null;
 }
+
+console.assert(parseAmount('12oops', 'en-US') === null);
+console.assert(parseAmount('1,2,3', 'en-US') === null);
 ```
 
 Decision rules around it:

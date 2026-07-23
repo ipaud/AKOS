@@ -237,8 +237,11 @@ def main(argv=None) -> int:
     akos_home = Path(__file__).resolve().parent.parent
     config_path = Path(args.dir).resolve() / ".akos" / "config.md"
     if not config_path.is_file():
-        print(f"no .akos/config.md in {Path(args.dir).resolve()} "
-              f"(run 'akos install-project' to create one)")
+        if args.format == "json":
+            print("[]")
+        else:
+            print(f"no .akos/config.md in {Path(args.dir).resolve()} "
+                  f"(run 'akos install-project' to create one)")
         return 0
 
     findings = check_config(config_path, akos_home)

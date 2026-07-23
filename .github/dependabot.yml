@@ -1,10 +1,14 @@
 version: 2
 updates:
-  # AKOS ships no application package manifest (no package.json / requirements
-  # / pyproject) by design — the only third-party dependency surface is the
-  # GitHub Actions used in .github/workflows/. Keep those current; they are
-  # SHA-pinned, so this is how the pins get bumped.
+  # Actions are SHA-pinned; Dependabot is the controlled path for pin updates.
   - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # AKOS has no runtime Python package dependency. requirements-dev.txt pins
+  # coverage.py for CI and local measurement only.
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"

@@ -5,19 +5,57 @@
 #
 set -euo pipefail
 
-AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+resolve_akos_home() {
+  local src="${BASH_SOURCE[0]}"
+  while [ -h "$src" ]; do
+    local dir
+    dir="$(cd -P "$(dirname "$src")" >/dev/null 2>&1 && pwd)"
+    src="$(readlink "$src")"
+    [[ "$src" != /* ]] && src="$dir/$src"
+  done
+  local script_dir
+  script_dir="$(cd "$(dirname "$src")" >/dev/null 2>&1 && pwd)"
+  if [ -L "$script_dir" ]; then
+    local target
+    target="$(readlink "$script_dir")"
+    if [[ "$target" = /* ]]; then
+      printf '%s\n' "$target"
+    else
+      cd "$(dirname "$script_dir")/$target" >/dev/null 2>&1 && pwd
+    fi
+  else
+    printf '%s\n' "$script_dir"
+  fi
+}
+AKOS_HOME="$(resolve_akos_home)"
 c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_red=$'\033[31m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
 ok()   { printf '%s✓%s %s\n' "$c_green" "$c_reset" "$*"; }
 warn() { printf '%s!%s %s\n' "$c_yellow" "$c_reset" "$*"; }
 fail() { printf '%s✗%s %s\n' "$c_red" "$c_reset" "$*"; }
 
+usage() {
+  printf 'Usage: ./uninstall.sh\n'
+}
+
+if [ "$#" -gt 0 ]; then
+  case "${1:-}" in
+    -h|--help) [ "$#" -eq 1 ] || { usage >&2; exit 1; }; usage; exit 0 ;;
+    *) usage >&2; exit 1 ;;
+  esac
+fi
+
 printf '%sUninstalling AKOS%s\n\n' "$c_bold" "$c_reset"
 
-# 1. Remove the ~/bin/akos symlink (only if it's a symlink).
+# 1. Remove ~/bin/akos only when its target proves this checkout owns it.
 if [ -L "$HOME/bin/akos" ]; then
-  rm -f "$HOME/bin/akos" && ok "removed ~/bin/akos symlink"
+  target="$(readlink "$HOME/bin/akos")"
+  if [ "$target" = "$AKOS_HOME/bin/akos" ]; then
+    rm -f "$HOME/bin/akos" && ok "removed $HOME/bin/akos symlink"
+  else
+    warn "$HOME/bin/akos is a foreign symlink (→ $target) — leaving it"
+  fi
 else
-  warn "~/bin/akos is not a symlink (or absent) — leaving it"
+  warn "$HOME/bin/akos is not a symlink (or absent) — leaving it"
 fi
 
 # 1b. Remove the skill symlinks from Claude Code and Codex CLI.
@@ -44,13 +82,18 @@ for src in "$AKOS_HOME"/agents/*.md; do
 done
 if [ "$agents_removed" -gt 0 ]; then ok "removed $agents_removed reviewer subagent symlinks"; fi
 
-# 2. Remove the ~/DEV symlink ONLY if it's a symlink we could have created.
-if [ -L "$HOME/DEV" ]; then
-  target="$(readlink "$HOME/DEV")"
-  warn "~/DEV is a symlink → $target"
-  warn "Leaving it in place (it may be used by other projects). Remove manually if desired:  rm ~/DEV"
-elif [ -e "$HOME/DEV" ]; then
-  warn "~/DEV is a real directory — leaving it untouched"
+# 2. Remove the canonical leaf only when it points to this checkout. A legacy
+#    or user-owned ~/DEV parent is never removed.
+canonical="$HOME/DEV/AKOS"
+if [ -L "$canonical" ]; then
+  target="$(readlink "$canonical")"
+  if [ "$target" = "$AKOS_HOME" ]; then
+    rm -f "$canonical" && ok "removed owned $HOME/DEV/AKOS symlink"
+  else
+    warn "$HOME/DEV/AKOS is a foreign symlink (→ $target) — leaving it"
+  fi
+elif [ -e "$canonical" ]; then
+  warn "$HOME/DEV/AKOS is not an owned symlink — leaving it untouched"
 fi
 
 ok "Symlinks handled. Knowledge packs at $AKOS_HOME are UNTOUCHED."

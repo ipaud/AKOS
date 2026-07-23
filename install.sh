@@ -1,17 +1,51 @@
 #!/usr/bin/env bash
 #
 # install.sh — Install AKOS globally on this Mac.
-# Idempotent. Verifies structure, chmods scripts, creates the ~/DEV symlink
-# (if the repo lives elsewhere) and the ~/bin/akos symlink. Never destroys content.
+# Idempotent. Verifies structure, chmods scripts, creates the ~/DEV/AKOS leaf
+# and ~/bin/akos symlinks. Never destroys content.
 #
 set -euo pipefail
 
-AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+resolve_akos_home() {
+  local src="${BASH_SOURCE[0]}"
+  while [ -h "$src" ]; do
+    local dir
+    dir="$(cd -P "$(dirname "$src")" >/dev/null 2>&1 && pwd)"
+    src="$(readlink "$src")"
+    [[ "$src" != /* ]] && src="$dir/$src"
+  done
+  local script_dir
+  script_dir="$(cd "$(dirname "$src")" >/dev/null 2>&1 && pwd)"
+  if [ -L "$script_dir" ]; then
+    local target
+    target="$(readlink "$script_dir")"
+    if [[ "$target" = /* ]]; then
+      printf '%s\n' "$target"
+    else
+      cd "$(dirname "$script_dir")/$target" >/dev/null 2>&1 && pwd
+    fi
+  else
+    printf '%s\n' "$script_dir"
+  fi
+}
+AKOS_HOME="$(resolve_akos_home)"
 # shellcheck source=bin/akos-common.sh
 source "$AKOS_HOME/bin/akos-common.sh"
-c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
+c_green=$'\033[32m'; c_yellow=$'\033[33m'; c_red=$'\033[31m'; c_bold=$'\033[1m'; c_reset=$'\033[0m'
 ok()   { printf '%s✓%s %s\n' "$c_green" "$c_reset" "$*"; }
 warn() { printf '%s!%s %s\n' "$c_yellow" "$c_reset" "$*"; }
+fail() { printf '%s✗%s %s\n' "$c_red" "$c_reset" "$*" >&2; }
+
+usage() {
+  printf 'Usage: ./install.sh\n'
+}
+
+if [ "$#" -gt 0 ]; then
+  case "${1:-}" in
+    -h|--help) [ "$#" -eq 1 ] || { usage >&2; exit 1; }; usage; exit 0 ;;
+    *) usage >&2; exit 1 ;;
+  esac
+fi
 
 printf '%sInstalling AKOS%s from %s\n\n' "$c_bold" "$c_reset" "$AKOS_HOME"
 
@@ -22,24 +56,40 @@ printf '%sInstalling AKOS%s from %s\n\n' "$c_bold" "$c_reset" "$AKOS_HOME"
 # but ships a system unable to run its own validation.
 require_python || exit 1
 
-# 1. chmod scripts.
+# 1. Own one canonical leaf. Never replace a foreign object at ~/DEV/AKOS:
+#    the rest of AKOS and its skills treat that path as authoritative.
+canonical_parent="$HOME/DEV"
+canonical="$canonical_parent/AKOS"
+if [ -L "$canonical" ]; then
+  canonical_target="$(readlink "$canonical")"
+  if [ "$canonical_target" = "$AKOS_HOME" ]; then
+    ok "$HOME/DEV/AKOS already linked to this checkout"
+  else
+    fail "foreign collision at $HOME/DEV/AKOS (→ $canonical_target) — refusing to install"
+    exit 1
+  fi
+elif [ -e "$canonical" ]; then
+  canonical_physical="$(cd -P "$canonical" 2>/dev/null && pwd || true)"
+  if [ "$canonical_physical" = "$AKOS_HOME" ]; then
+    ok "$HOME/DEV/AKOS already resolves to this checkout"
+  else
+    fail "foreign collision at $HOME/DEV/AKOS — refusing to replace existing content"
+    exit 1
+  fi
+else
+  if [ -e "$canonical_parent" ] && [ ! -d "$canonical_parent" ]; then
+    fail "$HOME/DEV exists but is not a directory — refusing to install"
+    exit 1
+  fi
+  mkdir -p "$canonical_parent"
+  ln -s "$AKOS_HOME" "$canonical"
+  ok "symlinked $HOME/DEV/AKOS → $AKOS_HOME"
+fi
+
+# 2. chmod scripts.
 for s in install.sh update.sh doctor.sh uninstall.sh merge-pr.sh bin/akos; do
   if [ -f "$AKOS_HOME/$s" ]; then chmod +x "$AKOS_HOME/$s"; ok "chmod +x $s"; fi
 done
-
-# 2. Ensure ~/DEV/AKOS resolves. If the repo isn't already under ~/DEV,
-#    create a ~/DEV symlink to its parent so the canonical path works.
-canonical="$HOME/DEV/AKOS"
-if [ -e "$canonical" ] || [ -L "$canonical" ]; then
-  ok "~/DEV/AKOS already resolves"
-else
-  parent="$(dirname "$AKOS_HOME")"          # e.g. ~/Desktop/DEV
-  if [ ! -e "$HOME/DEV" ]; then
-    ln -s "$parent" "$HOME/DEV" && ok "symlinked ~/DEV → $parent"
-  else
-    warn "~/DEV exists but ~/DEV/AKOS does not; leaving it untouched (repo at $AKOS_HOME)"
-  fi
-fi
 
 # A foreign symlink counts as AKOS-managed — and so is safe to refresh toward
 # this install — only when it points at the SAME sub-path inside a DIFFERENT,
@@ -87,7 +137,7 @@ link_managed() {
 
 # 3. Create ~/bin and the akos CLI symlink.
 mkdir -p "$HOME/bin"
-link_managed "$AKOS_HOME/bin/akos" "$HOME/bin/akos" "~/bin/akos"
+link_managed "$AKOS_HOME/bin/akos" "$HOME/bin/akos" "$HOME/bin/akos"
 
 # 3b. Link skills into Claude Code (~/.claude/skills) and Codex CLI
 #     (~/.agents/skills). Symlinks, not copies — edits to packs go live in both
@@ -125,8 +175,8 @@ fi
 
 # 4. PATH hint.
 case ":$PATH:" in
-  *":$HOME/bin:"*) ok "~/bin is on PATH" ;;
-  *) warn "~/bin is not on PATH. Add:  export PATH=\"\$HOME/bin:\$PATH\"  to your shell profile." ;;
+  *":$HOME/bin:"*) ok "$HOME/bin is on PATH" ;;
+  *) warn "$HOME/bin is not on PATH. Add:  export PATH=\"\$HOME/bin:\$PATH\"  to your shell profile." ;;
 esac
 
 # 5. Structure verification (non-fatal report). Output is discarded — no

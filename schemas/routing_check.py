@@ -26,13 +26,14 @@ Exit codes (this command's own 0/1/2 convention, per docs/cli/exit-codes.md):
 
 from __future__ import annotations
 
-import argparse
 import json
 import re
 import sys
 from pathlib import Path
 
 AKOS_HOME = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(AKOS_HOME / "schemas"))
+from cli_args import UsageArgumentParser  # noqa: E402
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
 import yaml_subset  # noqa: E402
 
@@ -145,7 +146,7 @@ def check_stable_routing(akos_home: Path | None = None) -> list[str]:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = UsageArgumentParser(description=__doc__)
     ap.add_argument("--format", choices=["text", "json"], default="text")
     args = ap.parse_args(argv)
 

@@ -15,7 +15,8 @@ detector: rules/security/supabase-policy-too-permissive.py
 applies_to:
   glob: ["**/*.sql"]
   target: project-source
-recommendation: Scope the policy to the requester — USING (auth.uid() = user_id) or an equivalent ownership check. If this genuinely is a public lookup table, mark it with a "-- akos:allow SUPABASE_POLICY_TOO_PERMISSIVE" comment stating why.
+suppressible: false
+recommendation: Scope the policy to the requester — USING (auth.uid() = user_id) or an equivalent ownership check. If public access is intentional, replace the always-true policy with an explicitly reviewed, least-privilege access design; an akos:allow comment cannot bypass this security-floor rule.
 references:
   - packs/backend/supabase/engineering-rules.md
 version: 1

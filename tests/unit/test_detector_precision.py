@@ -12,6 +12,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "helpers"))
 import paths  # noqa: F401,E402
@@ -47,6 +48,45 @@ class FixtureCase(unittest.TestCase):
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(body, encoding="utf-8")
         return p
+
+
+class TestSqlDetectorLexing(FixtureCase):
+    def setUp(self):
+        super().setUp()
+        self.sql = load("rules/security/_sql_utils.py")
+
+    def test_statement_splitter_ignores_semicolons_inside_sql_literals(self):
+        source = (
+            "select ';--not a comment'; /* real; comment */\n"
+            "select $$body; -- still body$$;\n"
+            "select 1"
+        )
+        statements = list(self.sql.iter_sql_statements(source))
+        self.assertEqual(len(statements), 3)
+        self.assertIn("--not a comment", statements[0][1])
+        self.assertIn("-- still body", statements[1][1])
+        self.assertEqual(statements[2][1].strip(), "select 1")
+
+    def test_standard_string_backslash_does_not_escape_closing_quote(self):
+        source = (
+            "select 'C:\\';\n"
+            "create table public.notes (id uuid primary key);"
+        )
+        statements = list(self.sql.iter_sql_statements(source))
+        self.assertEqual(len(statements), 2)
+        self.assertIn("create table public.notes", statements[1][1])
+
+    def test_escape_string_backslash_still_escapes_a_quote(self):
+        source = r"select E'it\'s; data'; select 1;"
+        statements = list(self.sql.iter_sql_statements(source))
+        self.assertEqual(len(statements), 2)
+        self.assertIn(r"E'it\'s; data'", statements[0][1])
+
+    def test_unicode_escape_string_keeps_an_internal_semicolon(self):
+        source = r"select U&'d\0061t\0061; value'; select 1;"
+        statements = list(self.sql.iter_sql_statements(source))
+        self.assertEqual(len(statements), 2)
+        self.assertIn(r"U&'d\0061t\0061; value'", statements[0][1])
 
 
 class TestPolicyDetectorIsMigrationOrderAware(FixtureCase):
@@ -282,6 +322,57 @@ class TestRlsDetectorUnderstandsDynamicSql(FixtureCase):
         self.assertEqual(len(findings), 1)
         self.assertIn("forgotten", findings[0]["evidence"][0]["snippet"])
 
+    def test_an_unrelated_array_is_not_attributed_to_the_rls_loop(self):
+        unrelated_array = (
+            "do $$\ndeclare t text;\nbegin\n"
+            "  perform archive_tables(array['forgotten']);\n"
+            "  foreach t in array array['clients'] loop\n"
+            "    execute format("
+            "'alter table %I enable row level security;', t);\n"
+            "  end loop;\nend $$;\n"
+        )
+        f = self.write(
+            "001.sql",
+            "create table clients (id uuid primary key);\n"
+            "create table forgotten (id uuid primary key);\n"
+            + unrelated_array,
+        )
+        findings = self.rule.run([f])
+        self.assertEqual(len(findings), 1)
+        self.assertIn("forgotten", findings[0]["evidence"][0]["snippet"])
+
+    def test_format_variable_must_occupy_the_table_identifier(self):
+        misleading_loop = (
+            "do $$\ndeclare t text;\nbegin\n"
+            "  foreach t in array array['clients','contacts'] loop\n"
+            "    execute format("
+            "'alter table audit_log enable row level security /* %I */;', t);\n"
+            "  end loop;\nend $$;\n"
+        )
+        f = self.write(
+            "001.sql",
+            "create table clients (id uuid primary key);\n"
+            "create table contacts (id uuid primary key);\n"
+            + misleading_loop,
+        )
+        findings = self.rule.run([f])
+        self.assertEqual(len(findings), 2)
+
+    def test_single_identifier_placeholder_rejects_qualified_array_values(self):
+        qualified_loop = (
+            "do $$\ndeclare t text;\nbegin\n"
+            "  foreach t in array array['public.clients'] loop\n"
+            "    execute format("
+            "'alter table %I enable row level security;', t);\n"
+            "  end loop;\nend $$;\n"
+        )
+        f = self.write(
+            "001.sql",
+            "create table public.clients (id uuid primary key);\n"
+            + qualified_loop,
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
+
     def test_no_dynamic_loop_means_normal_behaviour(self):
         f = self.write("001.sql", "create table public.notes (id uuid primary key);\n")
         self.assertEqual(len(self.rule.run([f])), 1)
@@ -370,6 +461,391 @@ class TestRlsDetectorUnderstandsRevokeAll(FixtureCase):
         findings = self.rule.run([f])
         self.assertEqual(len(findings), 1)
         self.assertIn("exposed", findings[0]["evidence"][0]["snippet"])
+
+
+class TestRlsDetectorTracksFinalDatabaseState(FixtureCase):
+    """The final state wins: later DDL can undo an earlier safe state."""
+
+    def setUp(self):
+        super().setUp()
+        self.rule = load("rules/security/supabase-rls-disabled.py")
+
+    def test_rls_disabled_after_enable_is_reported(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n"
+            "alter table public.notes enable row level security;\n"
+            "alter table public.notes disable row level security;\n",
+        )
+        findings = self.rule.run([f], self.dir)
+        self.assertEqual(len(findings), 1)
+        self.assertIn("public.notes", findings[0]["evidence"][0]["snippet"])
+
+    def test_create_evidence_line_ignores_leading_statement_whitespace(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create schema private;\n\n"
+            "create table public.notes (id uuid primary key);\n",
+        )
+        finding = self.rule.run([f], self.dir)[0]
+        self.assertEqual(finding["evidence"][0]["line_start"], 3)
+
+    def test_drop_and_recreate_resets_rls_state(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n"
+            "alter table public.notes enable row level security;\n"
+            "drop table public.notes;\n"
+            "create table public.notes (id uuid primary key);\n",
+        )
+        self.assertEqual(len(self.rule.run([f], self.dir)), 1)
+
+    def test_grant_after_revoke_reopens_the_table(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n"
+            "revoke all on table public.notes from public, anon, authenticated;\n"
+            "grant select on table public.notes to authenticated;\n",
+        )
+        self.assertEqual(len(self.rule.run([f], self.dir)), 1)
+
+    def test_revoke_of_the_only_later_grant_locks_the_table_again(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n"
+            "revoke all on table public.notes from public, anon, authenticated;\n"
+            "grant select on table public.notes to authenticated;\n"
+            "revoke select on table public.notes from authenticated;\n",
+        )
+        self.assertEqual(self.rule.run([f], self.dir), [])
+
+    def test_schema_wide_grant_reopens_an_existing_revoked_table(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n"
+            "revoke all on table public.notes from public, anon, authenticated;\n"
+            "grant select on all tables in schema public to authenticated;\n",
+        )
+        self.assertEqual(len(self.rule.run([f], self.dir)), 1)
+
+    def test_schema_wide_revoke_can_remove_a_schema_wide_grant(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n"
+            "revoke all on table public.notes from public, anon, authenticated;\n"
+            "grant select on all tables in schema public to authenticated;\n"
+            "revoke select on all tables in schema public from authenticated;\n",
+        )
+        self.assertEqual(self.rule.run([f], self.dir), [])
+
+    def test_non_data_grant_does_not_reopen_the_api_table(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n"
+            "revoke all on table public.notes from public, anon, authenticated;\n"
+            "grant trigger, references on all tables in schema public "
+            "to authenticated;\n",
+        )
+        self.assertEqual(self.rule.run([f], self.dir), [])
+
+    def test_alter_table_only_enables_rls(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n"
+            "alter table if exists only public.notes enable row level security;\n",
+        )
+        self.assertEqual(self.rule.run([f], self.dir), [])
+
+    def test_drop_table_list_removes_every_dropped_table(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n"
+            "create table public.drafts (id uuid primary key);\n"
+            "drop table public.notes, public.drafts;\n",
+        )
+        self.assertEqual(self.rule.run([f], self.dir), [])
+
+    def test_rls_on_same_named_private_table_does_not_cover_public_table(self):
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create schema private;\n"
+            "create table public.notes (id uuid primary key);\n"
+            "create table private.notes (id uuid primary key);\n"
+            "alter table private.notes enable row level security;\n",
+        )
+        findings = self.rule.run([f], self.dir)
+        self.assertEqual(len(findings), 1)
+        self.assertIn("public.notes", findings[0]["evidence"][0]["snippet"])
+
+    def test_custom_exposed_schema_is_loaded_from_supabase_config(self):
+        self.write(
+            "supabase/config.toml",
+            '[api]\nschemas = ["public", "tenant_api"]\n',
+        )
+        f = self.write(
+            "supabase/migrations/001.sql",
+            "create table tenant_api.notes (id uuid primary key);\n",
+        )
+        findings = self.rule.run([f], self.dir)
+        self.assertEqual(len(findings), 1)
+        self.assertIn("tenant_api.notes", findings[0]["evidence"][0]["snippet"])
+
+    def test_unreadable_supabase_config_fails_closed(self):
+        config = self.write(
+            "supabase/config.toml",
+            '[api]\nschemas = ["public"]\n',
+        )
+        migration = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n",
+        )
+        original_read_text = Path.read_text
+
+        def fail_config_read(path, *args, **kwargs):
+            if path == config:
+                raise PermissionError("simulated unreadable Supabase config")
+            return original_read_text(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "read_text", fail_config_read):
+            with self.assertRaises(PermissionError):
+                self.rule.run([migration], self.dir)
+
+    def test_symlinked_supabase_config_is_rejected(self):
+        outside = self.dir / "outside-config.toml"
+        outside.write_text('[api]\nschemas = ["private_host_schema"]\n')
+        config = self.dir / "supabase" / "config.toml"
+        config.parent.mkdir()
+        config.symlink_to(outside)
+        migration = self.write(
+            "supabase/migrations/001.sql",
+            "create table public.notes (id uuid primary key);\n",
+        )
+
+        with self.assertRaises(OSError):
+            self.rule.run([migration], self.dir)
+
+    def test_quoted_custom_schema_keeps_its_exact_identity(self):
+        self.write(
+            "supabase/config.toml",
+            '[api]\nschemas = ["tenant-api"]\n',
+        )
+        f = self.write(
+            "supabase/migrations/001.sql",
+            'create table "tenant-api".notes (id uuid primary key);\n',
+        )
+        findings = self.rule.run([f], self.dir)
+        self.assertEqual(len(findings), 1)
+        self.assertIn('"tenant-api".notes', findings[0]["evidence"][0]["snippet"])
+
+
+class TestPolicyDetectorTracksAlterPolicy(FixtureCase):
+    """CREATE/ALTER/DROP are folded into the policy's final definition."""
+
+    def setUp(self):
+        super().setUp()
+        self.rule = load("rules/security/supabase-policy-too-permissive.py")
+
+    def test_alter_policy_can_make_a_safe_policy_permissive(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using (owner_id = auth.uid());\n"
+            "alter policy p on public.notes using (true);\n",
+        )
+        findings = self.rule.run([f])
+        self.assertEqual(len(findings), 1)
+        self.assertIn("using (true)", findings[0]["evidence"][0]["snippet"].lower())
+
+    def test_create_policy_detects_numeric_tautology(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select using (1 = 1);\n",
+        )
+        findings = self.rule.run([f])
+        self.assertEqual(len(findings), 1)
+        self.assertIn("1 = 1", findings[0]["evidence"][0]["snippet"])
+
+    def test_with_check_detects_numeric_tautology(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for insert with check (1=1);\n",
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+    def test_redundant_parentheses_do_not_hide_tautologies(self):
+        using = self.write(
+            "001.sql",
+            "create policy p on public.notes for select using (((1 = 1)));\n",
+        )
+        check = self.write(
+            "002.sql",
+            "create policy q on public.notes for insert "
+            "with check ((((true))));\n",
+        )
+        self.assertEqual(len(self.rule.run([using, check])), 2)
+
+    def test_true_or_predicate_is_always_permissive(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using (true OR auth.uid() = user_id);\n",
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+    def test_predicate_or_numeric_tautology_is_always_permissive(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for insert "
+            "with check ((owner_id = auth.uid()) OR ((1 = 1)));\n",
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+    def test_alter_policy_tracks_compound_tautology_final_state(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using (owner_id = auth.uid());\n"
+            "alter policy p on public.notes "
+            "using (owner_id = auth.uid() or true);\n",
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+    def test_alter_policy_can_tighten_compound_tautology(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using (true or owner_id = auth.uid());\n"
+            "alter policy p on public.notes "
+            "using (owner_id = auth.uid());\n",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_non_constant_boolean_combinations_are_not_reported(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using (false OR owner_id = auth.uid());\n"
+            "create policy q on public.notes for select "
+            "using (true AND owner_id = auth.uid());\n",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_boolean_words_inside_strings_are_not_operators(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using (message = 'true OR )' OR false);\n",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_boolean_words_inside_dollar_strings_are_not_operators(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using (message = $$x OR true)$$);\n"
+            "create policy q on public.notes for select "
+            "using (message = $tag$x OR true)$tag$);\n",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_incomplete_boolean_expression_fails_safe(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select using (true OR);\n",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_alter_policy_can_make_a_safe_policy_numeric_tautology(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using (owner_id = auth.uid());\n"
+            "alter policy p on public.notes using (1=1);\n",
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+    def test_alter_policy_can_tighten_a_numeric_tautology(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select using (1=1);\n"
+            "alter policy p on public.notes using (owner_id = auth.uid());\n",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_non_tautological_numeric_comparison_is_not_reported(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select using (attempts = 1);\n",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_parentheses_inside_quoted_values_are_not_clause_boundaries(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using (label = 'not ) ''true''');\n"
+            'create policy q on public.notes for select '
+            'using ("field)""quoted" = 1);\n',
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_non_redundant_parentheses_are_not_stripped(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select "
+            "using ((attempts = 1) and active);\n",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_unclosed_policy_expression_fails_safe(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select using (true",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_alter_policy_can_tighten_a_permissive_policy(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select using (true);\n"
+            "alter policy p on public.notes using (owner_id = auth.uid());\n",
+        )
+        self.assertEqual(self.rule.run([f]), [])
+
+    def test_altering_one_clause_preserves_other_live_true_clause(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for all "
+            "using (true) with check (true);\n"
+            "alter policy p on public.notes "
+            "with check (owner_id = auth.uid());\n",
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+    def test_final_statement_without_semicolon_is_processed(self):
+        f = self.write(
+            "001.sql",
+            "create policy p on public.notes for select using (true)",
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+    def test_quoted_policy_and_table_names_are_tracked(self):
+        f = self.write(
+            "001.sql",
+            'create policy "Public read" on public."Release Notes" '
+            "for select using (true);\n"
+            'create policy "Public read" on public."Internal Notes" '
+            "for select using (owner_id = auth.uid());\n",
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
+
+    def test_standard_string_backslash_does_not_hide_a_later_policy(self):
+        f = self.write(
+            "001.sql",
+            "select 'C:\\';\n"
+            "create policy p on public.notes for select using (true);\n",
+        )
+        self.assertEqual(len(self.rule.run([f])), 1)
 
 
 class TestRunnerDoesNotDowngradeByPath(FixtureCase):

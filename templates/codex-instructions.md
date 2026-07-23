@@ -23,9 +23,13 @@ Verify with `akos list-skills` or `./doctor.sh`.
 
 ```bash
 codex plugin marketplace add ipaud/AKOS
+codex plugin add akos@akos
 ```
 
-This installs a copy into `~/.codex/plugins/cache/`. Use it to try AKOS or to share it; use the symlinks above for your own working copy, since a plugin cache does not track edits to your packs.
+Start a new Codex session after installation so the bundled skills load. This
+installs a copy into `~/.codex/plugins/cache/`. Use it to try AKOS or to share
+it; use the symlinks above for your own working copy, since a plugin cache does
+not track edits to your packs.
 
 ## Project marker
 

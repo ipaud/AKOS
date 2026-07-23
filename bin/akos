@@ -60,7 +60,7 @@ Usage: akos <command> [args]
 Commands:
   help                 Show this help
   doctor               Run the AKOS health check
-  install-project      Add AKOS integration files to the current project
+  install-project [dir] Add AKOS integration files to an existing project
   link-project         Alias for install-project (current directory)
   list-packs [opts]    List stable knowledge packs (--all for every status, --status draft|deprecated|stable)
   list-agents          List all review agents
@@ -222,7 +222,35 @@ cmd_routing_check() {
 }
 
 cmd_install_project() {
-  local dir="${1:-$PWD}"
+  local invoked_as="$1"
+  shift
+  local command_usage="Usage: akos $invoked_as"
+  if [ "$invoked_as" = "install-project" ]; then
+    command_usage="$command_usage [project-dir]"
+  fi
+
+  if [ "$#" -eq 1 ] && { [ "$1" = "-h" ] || [ "$1" = "--help" ]; }; then
+    info "$command_usage"
+    return 0
+  fi
+  if { [ "$invoked_as" = "install-project" ] && [ "$#" -gt 1 ]; } \
+      || { [ "$invoked_as" = "link-project" ] && [ "$#" -gt 0 ]; }; then
+    err "$command_usage"
+    return 1
+  fi
+  if [ "$#" -eq 1 ] && [[ "$1" == -* ]]; then
+    err "Unknown $invoked_as option: $1"
+    err "$command_usage"
+    return 1
+  fi
+
+  local requested_dir="${1:-$PWD}"
+  local dir
+  if ! dir="$(cd -P -- "$requested_dir" 2>/dev/null && pwd)" || [ ! -d "$dir" ]; then
+    err "Expected an existing project directory: $requested_dir"
+    err "$command_usage"
+    return 1
+  fi
   info "Installing AKOS integration into: $dir"
 
   local claude_body agents_body cursor_body config_body
@@ -276,38 +304,17 @@ personal_profile: pau-avila
 BODY
 )
 
-  # Preflight all 4 targets BEFORE writing any of them. Without this, a
-  # malformed 3rd or 4th target used to leave the 1st and 2nd already
-  # updated and the rest not — a partially-applied install with no signal
-  # that anything went wrong beyond that one file's silent no-op. Output is
-  # captured and only shown on failure — the common case (all 4 clean) stays
-  # quiet, exactly as install-project always has been.
-  local preflight_out
-  if ! preflight_out="$("$AKOS_PYTHON" "$AKOS_HOME/bin/marked_sections.py" validate-all \
-      "$dir/CLAUDE.md" "$dir/AGENTS.md" "$dir/.cursor/rules/akos.mdc" "$dir/.akos/config.md" 2>&1)"; then
-    err "One or more AKOS-managed files have an ambiguous marker structure — nothing was written:"
-    printf '%s\n' "$preflight_out" >&2
+  # The Python writer resolves the explicit root once, rejects every symlink
+  # below it (including .gitignore and parent directories), renders all four
+  # managed sections before mutation, and rolls back completed writes if a
+  # later atomic replace fails.
+  if ! "$AKOS_PYTHON" "$AKOS_HOME/bin/marked_sections.py" install-project "$dir" \
+      --claude-body "$claude_body" \
+      --agents-body "$agents_body" \
+      --cursor-body "$cursor_body" \
+      --config-body "$config_body"; then
+    err "AKOS integration was not installed; no partial managed-file update was kept."
     return 1
-  fi
-
-  write_marked_section "$dir/CLAUDE.md" "$claude_body"
-  write_marked_section "$dir/AGENTS.md" "$agents_body"
-  write_marked_section "$dir/.cursor/rules/akos.mdc" "$cursor_body"
-  write_marked_section "$dir/.akos/config.md" "$config_body"
-
-  # Review reports quote the defects they find — including, on a security
-  # lens, the credential itself. `akos history record` redacts known secret
-  # shapes at write time, but redaction is pattern-based and will miss
-  # things, so the stored reports should not be pushed by default. Append
-  # only if absent, and never rewrite an existing .gitignore.
-  local gitignore="$dir/.gitignore"
-  if [ ! -f "$gitignore" ] || ! grep -qxF ".akos/reviews/" "$gitignore"; then
-    {
-      [ -f "$gitignore" ] && [ -s "$gitignore" ] && printf '\n'
-      printf '# AKOS review reports — may quote secrets found during a review\n'
-      printf '.akos/reviews/\n'
-    } >> "$gitignore"
-    ok "Added .akos/reviews/ to .gitignore (review reports can quote what they find)."
   fi
 
   ok "AKOS integration installed. Edit .akos/config.md to set the profile and style direction."
@@ -458,22 +465,15 @@ cmd_profile_use() {
   if [ ! -f "$config" ]; then
     err "$config not found — run 'akos install-project' in $dir first"; return 1
   fi
-  # Extracted via the same shared parser install-project's writer uses —
-  # previously an independent awk state machine that silently returned an
-  # empty string both when the section was truly absent AND when it was
-  # malformed (multiple/mismatched markers), making the two indistinguishable
-  # to the caller. marked_sections.py's own stderr names which one it is.
-  local body
-  if ! body="$("$AKOS_PYTHON" "$AKOS_HOME/bin/marked_sections.py" extract "$config")"; then
+  # Read, transform, and replace through the same root-anchored transaction as
+  # install-project. The Python side rejects `.akos`, config.md, or any future
+  # child parent that is a symlink, and keeps the marker validation and atomic
+  # rollback in one operation rather than a path-based extract/write pair.
+  if ! "$AKOS_PYTHON" "$AKOS_HOME/bin/marked_sections.py" \
+      set-personal-profile "$dir" "$name"; then
     err "$config has no usable AKOS-managed section — run 'akos install-project' first, or fix the marker structure named above."
     return 1
   fi
-  if printf '%s\n' "$body" | grep -q '^personal_profile:'; then
-    body="$(printf '%s\n' "$body" | sed "s/^personal_profile:.*/personal_profile: $name/")"
-  else
-    body="$(printf '%s\n\n## Personal profile\npersonal_profile: %s\n' "$body" "$name")"
-  fi
-  write_marked_section "$config" "$body"
   ok "personal_profile set to '$name' in $config"
 }
 
@@ -554,8 +554,8 @@ main() {
   esac
   require_python || exit 1
   case "$cmd" in
-    install-project)    cmd_install_project "$@" ;;
-    link-project)       cmd_install_project "$@" ;;
+    install-project)    cmd_install_project install-project "$@" ;;
+    link-project)       cmd_install_project link-project "$@" ;;
     list-packs)         cmd_list_packs "$@" ;;
     list-agents)        cmd_list_agents ;;
     list-skills)        cmd_list_skills ;;

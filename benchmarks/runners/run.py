@@ -19,7 +19,6 @@ Exit codes: 0 all cases pass, 1 setup error, 2 at least one case failed.
 
 from __future__ import annotations
 
-import argparse
 import contextlib
 import shutil
 import subprocess
@@ -33,6 +32,7 @@ sys.path.insert(0, str(AKOS_HOME / "rules"))
 sys.path.insert(0, str(AKOS_HOME / "benchmarks"))
 import yaml_subset  # noqa: E402
 import runner as rules_runner  # noqa: E402  (rules/runner.py)
+from cli_args import UsageArgumentParser  # noqa: E402
 
 BENCH_HOME = AKOS_HOME / "benchmarks"
 LINE_TOLERANCE = 3
@@ -44,9 +44,18 @@ LINE_TOLERANCE = 3
 # to leave the repo self-scan clean (P0-4).
 SECRET_PLACEHOLDERS = {
     "{{AKOS_TEST_AWS_ACCESS_KEY}}": "AKIA" + "ABCDEFGHIJKLMNOP",
+    "{{AKOS_TEST_GITHUB_FINE_GRAINED_PAT}}":
+        "github_" + "pat_11AA22BB33CC" + "44DD55EE66FF77GG88HH",
+    "{{AKOS_TEST_OPENSSH_PRIVATE_KEY}}":
+        "-----BEGIN " + "OPENSSH PRIVATE KEY-----\n"
+        "b3BlbnNzaC1rZXktdjEAAAAA" + "FAKEBUTSHAPEDKEY"
+        + "MATERIAL123456789\n"
+        "-----END " + "OPENSSH PRIVATE KEY-----",
     # Decodes to {"role": "service_role"} — header.payload.sig, no real signature.
     "{{AKOS_TEST_SERVICE_ROLE_JWT}}":
-        "eyJhbGciOiAiSFMyNTYifQ" + "." + "eyJyb2xlIjogInNlcnZpY2Vfcm9sZSJ9" + "." + "sig1234567890",
+        "eyJhbGciOiAiSFMyNTYifQ" + "."
+        + "eyJyb2xlIjogInNlcnZpY2Vf" + "cm9sZSJ9"
+        + "." + "sig1234567890",
 }
 
 
@@ -278,7 +287,7 @@ def cmd_run(manifest: dict, case_filter, domain_filter, provider_name: str, fmt:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = UsageArgumentParser(description=__doc__)
     ap.add_argument("action", nargs="?", default="run", choices=["run", "list"])
     ap.add_argument("--case", action="append", help="Only this case id (repeatable)")
     ap.add_argument("--domain", action="append", help="Only cases in this domain (repeatable)")

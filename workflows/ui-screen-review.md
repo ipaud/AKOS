@@ -4,7 +4,7 @@ id: ui-screen-review
 description: Reviewing a single user-facing screen or flow.
 agents: [ux-reviewer, accessibility-reviewer, mobile-reviewer, copy-reviewer, frontend-reviewer]
 packs: []
-profiles: [Prototype, Production]
+profiles: [Prototype, Startup MVP, Production]
 status: stable
 maintainer: core
 ---
@@ -28,8 +28,13 @@ Combine per-agent findings into one [unified Review Summary](../core/review-pipe
 ## Profile adjustments
 
 - **Prototype:** run 1-4 at reduced depth; a11y floor and four states still enforced; frontend visual-craft optional.
+- **Startup MVP:** run all five at the profile weights; mobile/responsive,
+  accessible names and four states are required, while architecture-grade
+  ceremony stays out of this screen-level workflow.
 - **Production:** all five at full depth.
 
 ## Exit criteria
 
-Unified summary with severity-ranked findings, scores (UX, Accessibility), and a PASS / PASS WITH FIXES / BLOCKED decision. No screen passes without its empty/loading/error states.
+Unified summary with severity-ranked findings, scores (UX, Accessibility,
+Mobile when runtime evidence supports it), and a PASS / PASS WITH FIXES /
+BLOCKED decision. No screen passes without its empty/loading/error states.

@@ -26,7 +26,6 @@ commands keep their unchanged 0/1 behavior):
 
 from __future__ import annotations
 
-import argparse
 import json
 import re
 import sys
@@ -36,6 +35,7 @@ from pathlib import Path
 AKOS_HOME = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
 import yaml_subset  # noqa: E402
+from cli_args import UsageArgumentParser  # noqa: E402
 
 VALID_TARGETS = {"packs", "agents", "workflows", "all"}
 
@@ -290,7 +290,7 @@ def check_workflows(schema: dict) -> list[dict]:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(prog="validate.py", description=__doc__)
+    ap = UsageArgumentParser(prog="validate.py", description=__doc__)
     ap.add_argument("targets", nargs="*", help="packs, agents, workflows, or all (default: all)")
     ap.add_argument("--format", choices=["text", "json"], default="text")
     ap.add_argument("--strict", action="store_true", help="treat warnings as failures too")

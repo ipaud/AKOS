@@ -30,6 +30,11 @@ EXPECTED_SECTIONS = [
     "Recommended Next Iteration", "Final Decision",
 ]
 
+EXPECTED_SCORES = [
+    "UX", "Accessibility", "Mobile", "Architecture", "Security",
+    "Performance", "Product", "Maintainability", "Overall",
+]
+
 
 def sections_in_review_block(path: Path) -> list[str]:
     """Section headers inside the first fenced block that starts with the
@@ -50,6 +55,26 @@ def sections_in_review_block(path: Path) -> list[str]:
     return []
 
 
+def scores_in_review_block(path: Path) -> list[str]:
+    """Dimension labels inside the Review Summary's Scores section."""
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    for block in re.findall(r"```[a-z]*\n(.*?)```", text, re.DOTALL):
+        if "# Review Summary" not in block:
+            continue
+        condensed = re.search(r"^## Scores \(([^)]+)\)", block, re.MULTILINE)
+        if condensed:
+            return [part.strip() for part in condensed.group(1).split("/")]
+        scores = re.search(r"^## Scores\s*$(.*?)(?=^## |\Z)",
+                           block, re.MULTILINE | re.DOTALL)
+        if not scores:
+            return []
+        return [
+            match.group(1).strip()
+            for match in re.finditer(r"^-\s+([^:]+):", scores.group(1), re.MULTILINE)
+        ]
+    return []
+
+
 class TestReviewSummaryTemplate(unittest.TestCase):
     def test_each_copy_has_exactly_the_canonical_sections_in_order(self):
         for rel in COPIES:
@@ -64,6 +89,14 @@ class TestReviewSummaryTemplate(unittest.TestCase):
         first = section_sets[COPIES[0]]
         for rel, got in section_sets.items():
             self.assertEqual(got, first, f"{rel} disagrees with {COPIES[0]}")
+
+    def test_each_copy_has_the_canonical_score_dimensions(self):
+        for rel in COPIES:
+            with self.subTest(copy=rel):
+                self.assertEqual(
+                    scores_in_review_block(AKOS_HOME / rel),
+                    EXPECTED_SCORES,
+                    f"{rel} Scores dimensions drifted from the canonical set")
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ Produce ONE aggregate Review Summary in the standard format:
 ## Tradeoffs
 ## Relevant Knowledge Packs Used
 ## Coverage
-## Scores (UX / Accessibility / Architecture / Security / Performance / Product / Maintainability / Overall)
+## Scores (UX / Accessibility / Mobile / Architecture / Security / Performance / Product / Maintainability / Overall)
 ## Recommended Next Iteration
 ## Final Decision — PASS / PASS WITH FIXES / BLOCKED
 ```

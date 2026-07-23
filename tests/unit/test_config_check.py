@@ -9,9 +9,12 @@ actually runs the checker; that part is prose in SKILL.md, which is why the
 skill labels it a mitigation rather than a control.
 """
 
+import io
+import json
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "helpers"))
@@ -91,6 +94,17 @@ class TestConfigCheck(unittest.TestCase):
 
     def test_missing_config_is_not_an_error(self):
         self.assertEqual(config_check.main(["--dir", str(self.project)]), 0)
+
+    def test_missing_config_json_is_an_empty_list(self):
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(
+                config_check.main(
+                    ["--dir", str(self.project), "--format", "json"]
+                ),
+                0,
+            )
+        self.assertEqual(json.loads(output.getvalue()), [])
 
     def test_exit_code_is_2_on_findings(self):
         self._write("## Packs to always load\n\n- ./evil\n")

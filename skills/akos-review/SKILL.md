@@ -90,6 +90,10 @@ being one:
 
 - **Targeted run** — the user named a lens ("run the AKOS UX review"). Run that
   one alone, inline. Spawning a subagent for a single lens costs more than it saves.
+- **Full frontend/UI run** — the user asks for a "full frontend review" or "UI
+  screen review". Run `workflows/ui-screen-review.md`: UX → Accessibility →
+  Mobile/responsive → Copywriting → Frontend quality. Do not collapse this to
+  the single Frontend quality lens.
 - **Full run** — execute the lenses in order. Later lenses assume earlier
   findings are addressed or accepted.
 
@@ -215,6 +219,7 @@ Same format for every lens, every run:
 ## Scores
 - UX:
 - Accessibility:
+- Mobile:
 - Architecture:
 - Security:
 - Performance:

@@ -15,7 +15,13 @@ active profile.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent / "security"))
+from io_utils import read_text_file  # noqa: E402
+from _secret_utils import mask_js_comments  # noqa: E402
 
 # Case-SENSITIVE on the tag name, deliberately. JSX capitalises components to
 # distinguish them from HTML elements, so `<Input>` is a React component whose
@@ -27,10 +33,58 @@ INPUT_OPEN_RE = re.compile(r"<input\b")
 SKIP_TYPES = {"hidden", "submit", "button", "reset", "image"}
 TYPE_RE = re.compile(r'type\s*=\s*["\']?(\w+)', re.IGNORECASE)
 ID_RE = re.compile(r'\bid\s*=\s*["\']([^"\']+)["\']', re.IGNORECASE)
-ARIA_LABEL_RE = re.compile(r"\baria-label(?:ledby)?\s*=", re.IGNORECASE)
+ARIA_NAME_RE = re.compile(
+    r"""\baria-label(?:ledby)?\s*=\s*
+        (?:
+            "([^"]*)"
+          | '([^']*)'
+          | \{([^{}]*)\}
+          | ([^\s>]+)
+        )
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
 LABEL_FOR_TEMPLATE = r'<label\b[^>]*\b(?:for|htmlFor)\s*=\s*["\']{id}["\']'
+HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 
 SEARCH_WINDOW = 400  # chars of surrounding context to check for a wrapping <label>
+
+
+def mask_source_comments(text: str, *, include_js: bool = True) -> str:
+    """Mask JS/JSX and HTML comments without changing offsets or line numbers."""
+    masked = mask_js_comments(text) if include_js else text
+
+    def blank(match: re.Match) -> str:
+        return "".join("\n" if ch == "\n" else " " for ch in match.group(0))
+
+    return HTML_COMMENT_RE.sub(blank, masked)
+
+
+def has_nonempty_aria_name(tag: str) -> bool:
+    """Treat only a non-empty literal or a non-trivial expression as a name.
+
+    A dynamic JSX expression cannot be resolved by this Level-B text detector,
+    so it remains a sufficient signal. Explicit empty string literals are
+    checkable and must not silence the rule.
+    """
+    for match in ARIA_NAME_RE.finditer(tag):
+        double_quoted, single_quoted, expression, unquoted = match.groups()
+        if double_quoted is not None:
+            if double_quoted.strip():
+                return True
+            continue
+        if single_quoted is not None:
+            if single_quoted.strip():
+                return True
+            continue
+        if expression is not None:
+            value = expression.strip()
+            if not value or re.fullmatch(r"""(?:"\s*"|'\s*'|`\s*`)""", value):
+                continue
+            return True
+        if unquoted and unquoted.strip():
+            return True
+    return False
 
 
 def input_tag_span(text: str, start: int) -> tuple[int, int] | None:
@@ -86,10 +140,8 @@ def has_wrapping_label(text: str, tag_start: int, tag_end: int) -> bool:
 def run(files: list[Path]) -> list[dict]:
     findings = []
     for path in files:
-        try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
+        text = read_text_file(path)
+        text = mask_source_comments(text, include_js=path.suffix.lower() != ".html")
 
         for m in INPUT_OPEN_RE.finditer(text):
             end = input_tag_span(text, m.start())
@@ -99,7 +151,7 @@ def run(files: list[Path]) -> list[dict]:
             type_m = TYPE_RE.search(tag)
             if type_m and type_m.group(1).lower() in SKIP_TYPES:
                 continue
-            if ARIA_LABEL_RE.search(tag):
+            if has_nonempty_aria_name(tag):
                 continue
 
             id_m = ID_RE.search(tag)

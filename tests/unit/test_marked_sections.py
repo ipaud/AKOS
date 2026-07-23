@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "helpers"))
 import paths  # noqa: F401,E402
@@ -243,6 +244,296 @@ class TestCLICheckAndExtract(unittest.TestCase):
         missing = self.dir / "not-yet-created.md"
         proc = self._run("validate-all", str(ok1), str(missing))
         self.assertEqual(proc.returncode, 0)
+
+
+class TestProjectInstallTransaction(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.base = Path(self._tmp.name)
+        self.project = self.base / "project"
+        self.project.mkdir()
+        self.bodies = {
+            "CLAUDE.md": "claude body",
+            "AGENTS.md": "agents body",
+            ".cursor/rules/akos.mdc": "cursor body",
+            ".akos/config.md": "config body",
+        }
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_project_root_must_already_exist(self):
+        missing = self.base / "missing"
+        with self.assertRaises(ms.ProjectPathError):
+            ms.install_project_files(missing, self.bodies)
+        self.assertFalse(missing.exists())
+
+    def test_explicit_root_symlink_is_resolved(self):
+        alias = self.base / "alias"
+        alias.symlink_to(self.project, target_is_directory=True)
+
+        ms.install_project_files(alias, self.bodies)
+
+        self.assertIn("claude body", (self.project / "CLAUDE.md").read_text())
+        self.assertIn(".akos/reviews/", (self.project / ".gitignore").read_text())
+
+    def test_symlinked_child_directory_is_rejected_before_any_write(self):
+        outside = self.base / "outside"
+        outside.mkdir()
+        (self.project / ".akos").symlink_to(outside, target_is_directory=True)
+
+        with self.assertRaises(ms.ProjectPathError):
+            ms.install_project_files(self.project, self.bodies)
+
+        self.assertFalse((self.project / "CLAUDE.md").exists())
+        self.assertEqual(list(outside.iterdir()), [])
+
+    def test_symlinked_gitignore_leaf_is_rejected_before_any_write(self):
+        outside = self.base / "outside.gitignore"
+        outside.write_text("outside\n")
+        (self.project / ".gitignore").symlink_to(outside)
+
+        with self.assertRaises(ms.ProjectPathError):
+            ms.install_project_files(self.project, self.bodies)
+
+        self.assertFalse((self.project / "CLAUDE.md").exists())
+        self.assertEqual(outside.read_text(), "outside\n")
+
+    def test_each_managed_leaf_symlink_is_rejected_before_any_write(self):
+        for index, relative in enumerate(ms.PROJECT_MARKED_PATHS):
+            with self.subTest(relative=relative):
+                project = self.base / f"leaf-project-{index}"
+                project.mkdir()
+                outside = self.base / f"outside-{index}.txt"
+                outside.write_text("outside\n")
+                target = project / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.symlink_to(outside)
+
+                with self.assertRaises(ms.ProjectPathError):
+                    ms.install_project_files(project, self.bodies)
+
+                self.assertTrue(target.is_symlink())
+                self.assertEqual(outside.read_text(), "outside\n")
+                self.assertFalse((project / ".gitignore").exists())
+                for other_relative in ms.PROJECT_MARKED_PATHS:
+                    other = project / other_relative
+                    if other != target:
+                        self.assertFalse(
+                            other.exists(),
+                            f"{other_relative} was written before rejecting {relative}",
+                        )
+
+    def test_reasserts_gitignore_after_a_later_exact_negation(self):
+        gitignore = self.project / ".gitignore"
+        gitignore.write_text(
+            ".akos/reviews/\n!.akos/reviews/\n",
+            encoding="utf-8",
+        )
+
+        result = ms.install_project_files(self.project, self.bodies)
+
+        relevant = [
+            line.strip()
+            for line in gitignore.read_text(encoding="utf-8").splitlines()
+            if line.strip() in {".akos/reviews/", "!.akos/reviews/"}
+        ]
+        self.assertTrue(result.gitignore_added)
+        self.assertEqual(relevant[-1], ".akos/reviews/")
+
+    def test_parent_swap_before_replace_never_writes_through_symlink(self):
+        akos = self.project / ".akos"
+        akos.mkdir()
+        (akos / "config.md").write_text("original config\n", encoding="utf-8")
+        outside = self.base / "outside-akos"
+        outside.mkdir()
+        outside_config = outside / "config.md"
+        outside_config.write_text("outside config\n", encoding="utf-8")
+        moved_akos = self.project / ".akos-original"
+        real_replace = ms.os.replace
+        calls = 0
+
+        def swap_before_config_replace(source, destination, *args, **kwargs):
+            nonlocal calls
+            calls += 1
+            if calls == 4:
+                akos.rename(moved_akos)
+                akos.symlink_to(outside, target_is_directory=True)
+                if kwargs.get("src_dir_fd") is None:
+                    # A path-based replace resolves its source again after the
+                    # swap. Model an attacker moving the already-written temp
+                    # leaf into the symlink target under the same observable
+                    # name; fd-relative replace must remain anchored instead.
+                    (moved_akos / Path(source).name).rename(
+                        outside / Path(source).name
+                    )
+            return real_replace(source, destination, *args, **kwargs)
+
+        with mock.patch.object(
+            ms.os,
+            "replace",
+            side_effect=swap_before_config_replace,
+        ):
+            with self.assertRaises(ms.ProjectWriteError):
+                ms.install_project_files(self.project, self.bodies)
+
+        self.assertEqual(outside_config.read_text(encoding="utf-8"), "outside config\n")
+        self.assertEqual(
+            (moved_akos / "config.md").read_text(encoding="utf-8"),
+            "original config\n",
+        )
+
+    def test_parent_swap_during_failure_cannot_redirect_rollback(self):
+        cursor_file = self.project / ".cursor/rules/akos.mdc"
+        cursor_file.parent.mkdir(parents=True)
+        cursor_file.write_text("original cursor\n", encoding="utf-8")
+        outside = self.base / "outside-cursor"
+        outside_rules = outside / "rules"
+        outside_rules.mkdir(parents=True)
+        outside_file = outside_rules / "akos.mdc"
+        outside_file.write_text("outside cursor\n", encoding="utf-8")
+        moved_cursor = self.project / ".cursor-original"
+        real_replace = ms.os.replace
+        calls = 0
+
+        def swap_then_fail(source, destination, *args, **kwargs):
+            nonlocal calls
+            calls += 1
+            result = real_replace(source, destination, *args, **kwargs)
+            if calls == 3:
+                (self.project / ".cursor").rename(moved_cursor)
+                (self.project / ".cursor").symlink_to(
+                    outside,
+                    target_is_directory=True,
+                )
+            if calls == 4:
+                raise OSError("simulated write failure after parent swap")
+            return result
+
+        with mock.patch.object(ms.os, "replace", side_effect=swap_then_fail):
+            with self.assertRaises(ms.ProjectWriteError):
+                ms.install_project_files(self.project, self.bodies)
+
+        self.assertEqual(outside_file.read_text(encoding="utf-8"), "outside cursor\n")
+        self.assertEqual(
+            (moved_cursor / "rules/akos.mdc").read_text(encoding="utf-8"),
+            "original cursor\n",
+        )
+
+    def test_write_failure_rolls_back_every_prepared_target(self):
+        claude = self.project / "CLAUDE.md"
+        claude.write_text("original\n")
+        claude.chmod(0o600)
+        real_atomic_write = ms._atomic_write_at
+        calls = 0
+
+        def fail_fourth_write(parent_fd, leaf_name, content, mode):
+            nonlocal calls
+            calls += 1
+            if calls == 4:
+                raise OSError("simulated fourth-write failure")
+            return real_atomic_write(parent_fd, leaf_name, content, mode)
+
+        with mock.patch.object(ms, "_atomic_write_at", side_effect=fail_fourth_write):
+            with self.assertRaises(ms.ProjectWriteError):
+                ms.install_project_files(self.project, self.bodies)
+
+        self.assertEqual(claude.read_text(), "original\n")
+        self.assertEqual(stat.S_IMODE(claude.stat().st_mode), 0o600)
+        self.assertFalse((self.project / "AGENTS.md").exists())
+        self.assertFalse((self.project / ".cursor").exists())
+        self.assertFalse((self.project / ".akos").exists())
+        self.assertFalse((self.project / ".gitignore").exists())
+
+    def test_symlink_appearing_mid_transaction_rolls_back_completed_writes(self):
+        claude = self.project / "CLAUDE.md"
+        agents = self.project / "AGENTS.md"
+        claude.write_text("original claude\n")
+        agents.write_text("original agents\n")
+        outside = self.base / "outside-directory"
+        outside.mkdir()
+        real_atomic_write = ms._atomic_write_at
+        writes = 0
+
+        def introduce_symlink_before_config(parent_fd, leaf_name, content, mode):
+            nonlocal writes
+            writes += 1
+            if writes == 4:
+                akos_dir = self.project / ".akos"
+                if akos_dir.exists():
+                    akos_dir.rmdir()
+                akos_dir.symlink_to(outside, target_is_directory=True)
+            return real_atomic_write(parent_fd, leaf_name, content, mode)
+
+        with mock.patch.object(
+            ms,
+            "_atomic_write_at",
+            side_effect=introduce_symlink_before_config,
+        ):
+            with self.assertRaises(ms.ProjectWriteError):
+                ms.install_project_files(self.project, self.bodies)
+
+        self.assertEqual(claude.read_text(), "original claude\n")
+        self.assertEqual(agents.read_text(), "original agents\n")
+        self.assertFalse((self.project / ".cursor").exists())
+        self.assertTrue((self.project / ".akos").is_symlink())
+        self.assertEqual(list(outside.iterdir()), [])
+
+
+class TestProjectProfileUpdate(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.base = Path(self._tmp.name)
+        self.project = self.base / "project"
+        self.project.mkdir()
+        self.config = self.project / ".akos/config.md"
+        self.config.parent.mkdir()
+        self.original = (
+            "before\n"
+            "<!-- AKOS:START -->\n"
+            "# AKOS Project Config\n"
+            "personal_profile: old-profile\n"
+            "keep: this value\n"
+            "<!-- AKOS:END -->\n"
+            "after\n"
+        )
+        self.config.write_text(self.original, encoding="utf-8")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_updates_profile_through_anchored_project_transaction(self):
+        result = ms.set_project_personal_profile(self.project, "pau-avila")
+
+        updated = self.config.read_text(encoding="utf-8")
+        self.assertEqual(result, self.config.resolve())
+        self.assertIn("personal_profile: pau-avila", updated)
+        self.assertIn("keep: this value", updated)
+        self.assertTrue(updated.startswith("before\n"))
+        self.assertTrue(updated.endswith("after\n"))
+
+    def test_rejects_symlinked_akos_parent_without_touching_outside(self):
+        outside = self.base / "outside-akos"
+        self.config.parent.rename(outside)
+        (self.project / ".akos").symlink_to(outside, target_is_directory=True)
+        snapshot = (outside / "config.md").read_bytes()
+
+        with self.assertRaises(ms.ProjectPathError):
+            ms.set_project_personal_profile(self.project, "pau-avila")
+
+        self.assertEqual((outside / "config.md").read_bytes(), snapshot)
+
+    def test_rejects_symlinked_config_leaf_without_touching_outside(self):
+        outside = self.base / "outside-config.md"
+        outside.write_text(self.original, encoding="utf-8")
+        self.config.unlink()
+        self.config.symlink_to(outside)
+        snapshot = outside.read_bytes()
+
+        with self.assertRaises(ms.ProjectPathError):
+            ms.set_project_personal_profile(self.project, "pau-avila")
+
+        self.assertEqual(outside.read_bytes(), snapshot)
 
 
 class TestSabotageFirstMatchLogicMustFail(unittest.TestCase):

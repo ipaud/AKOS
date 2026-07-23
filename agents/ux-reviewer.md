@@ -71,6 +71,7 @@ Before writing a finding into Critical/High/Medium/Low (full rationale: [review-
 ## Scores
 - UX:
 - Accessibility:
+- Mobile:
 - Architecture:
 - Security:
 - Performance:

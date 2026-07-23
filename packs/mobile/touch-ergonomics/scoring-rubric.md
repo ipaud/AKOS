@@ -1,6 +1,13 @@
 # Scoring Rubric — Touch Ergonomics Pack
 
-Primary input to the mobile/responsive lens (pipeline step 4, [review-pipeline.md](../../../core/review-pipeline.md)), which feeds the UX and Accessibility dimensions in [scoring/ux-score.md](../../../scoring/ux-score.md) and [scoring/accessibility-score.md](../../../scoring/accessibility-score.md). Scored alongside [responsive-web](../responsive-web/scoring-rubric.md). Score = 100 − deductions, floor 0. Bands per [core/scoring-model.md](../../../core/scoring-model.md).
+Primary input to the Mobile dimension (pipeline step 4,
+[review-pipeline.md](../../../core/review-pipeline.md)), scored alongside
+[responsive-web](../responsive-web/scoring-rubric.md) and fed directly into
+[overall-score](../../../scoring/overall-score.md). Safety-floor findings also
+feed [accessibility-score](../../../scoring/accessibility-score.md), and
+task-completion findings also feed [ux-score](../../../scoring/ux-score.md);
+deduplicate the underlying defect. Score = 100 − deductions, floor 0. Bands per
+[core/scoring-model.md](../../../core/scoring-model.md).
 
 Two classes of finding are scored as correctness defects rather than ergonomics: a mis-resolved hit area that activates the wrong control, and a numeric input that commits a value the user did not enter. Both change data; both are graded like a wrong calculation.
 

@@ -1,8 +1,18 @@
 # AKOS — AI Knowledge Operating System
 
-AKOS turns senior-level expertise — UX, product, architecture, security, accessibility, performance, testing, devops — into operational Markdown knowledge that any AI coding agent can load and act on. It lives once on your Mac at `~/DEV/AKOS` and plugs into every project.
+AKOS helps a solo developer using Claude Code or Codex turn a plausible code
+change into an evidence-backed build or review: the agent loads the right
+standards, checks the repository, ranks concrete findings and says whether the
+work can ship. AKOS lives once on your machine and plugs into every project.
 
 AKOS is **not** a prompt collection, a notes folder, or a pile of book summaries. It is a reusable knowledge system: distilled principles, heuristics, engineering rules, checklists, decision frameworks, anti-patterns, review pipelines, and scoring rubrics — written in original wording, never copied from source material.
+
+## Who it is for
+
+The primary user is a solo developer who already works in Claude Code or Codex
+and wants one repeatable job done: run a trustworthy repository or frontend
+review without rebuilding the checklist in every session. Teams and other
+agents can use the same Markdown, but they are not the activation baseline.
 
 ## Why it exists
 
@@ -42,6 +52,21 @@ Reviews adapt to context via profiles: **Prototype**, **Startup MVP**, **Product
 
 **Python 3.10 or newer.** The CLI, schema validation, rules, benchmarks, history, config checking, and the update-safety verifier all depend on it. `install.sh`, `update.sh`, and every operational `akos` subcommand refuse to run — before touching anything — if a valid interpreter can't be resolved; `akos help` and `akos doctor` are the two exceptions (`doctor` is the command that reports Python's absence as a finding). Check yours with `python3 --version`.
 
+## Get your first review
+
+1. Install AKOS globally or as a plugin using one of the paths below.
+2. In the project to review, run `akos install-project` when using the global
+   clone. A plugin can load its bundled skills directly.
+3. Ask Claude Code or Codex: “Run the full AKOS frontend review on this flow”
+   for the five UI lenses, or “Run the full AKOS review” for all twelve.
+4. Read the single Review Summary: fix CRITICAL/HIGH items first, then rerun to
+   compare the result.
+
+The onboarding target is a first completed review in a median of 10 minutes,
+with at least 4 of 5 solo developers succeeding. The baseline is not yet
+measured; the [activation baseline](docs/product/activation-baseline.md) defines
+the telemetry-free study instead of presenting the target as achieved.
+
 ## Install globally
 
 Clone it anywhere — `install.sh` symlinks the canonical `~/DEV/AKOS` path for you:
@@ -54,11 +79,13 @@ cd ~/DEV/AKOS
 ./doctor.sh       # health check
 ```
 
-(If you clone elsewhere, `install.sh` creates a `~/DEV` symlink so the canonical path still resolves.)
+(If you clone elsewhere, `install.sh` keeps `~/DEV` as a real directory and
+creates only the leaf symlink `~/DEV/AKOS` to the checkout.)
 
-Add `~/bin` to your PATH if it isn't already:
+Add `~/bin` to the current shell, then persist it for future terminals:
 
 ```bash
+export PATH="$HOME/bin:$PATH"
 echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc
 ```
 
@@ -108,17 +135,24 @@ Instead of cloning, AKOS can be installed as a plugin in either tool:
 
 # Codex CLI
 codex plugin marketplace add ipaud/AKOS
+codex plugin add akos@akos
 ```
 
-A plugin install is a **copy** in a cache directory. That is right for trying AKOS or sharing it; for your own working copy prefer the clone + `install.sh` symlinks above, so edits to your packs take effect immediately.
+Start a new Codex session after installation so its bundled skills are
+available. A plugin install is a **copy** in a cache directory. That is right
+for trying AKOS or sharing it; for your own working copy prefer the clone +
+`install.sh` symlinks above, so edits to your packs take effect immediately.
 
 ## Run a review
 
 Ask your agent, in any project with AKOS installed:
 
-> Run the AKOS UX review on the checkout screen.
+> Run the full AKOS frontend review on the checkout screen.
 
-That fires `akos-review`, which resolves the lens, loads `agents/ux-reviewer.md` and its packs, and reports. Say "run the full AKOS review" for all twelve lenses.
+That fires `akos-review` and runs the five-lens UI workflow: UX,
+Accessibility, Mobile/responsive, Copywriting and Frontend quality. Ask for a
+targeted “AKOS UX review” to run the UX lens alone. Say “run the full AKOS
+review” for all twelve lenses. With no explicit profile, AKOS uses Startup MVP.
 
 On tools without skills, use the prompts in `prompts/` (`run-full-review.md`, `run-ux-review.md`, `run-security-review.md`, `run-architecture-review.md`). Every review agent produces the same report format with severity levels, scores, and a PASS / PASS WITH FIXES / BLOCKED decision.
 
@@ -209,7 +243,7 @@ Guarantees these commands are built to hold, each backed by a test:
 `.akos/config.md` is read as untrusted project data — it can supply hints and
 raise scrutiny, never lower the safety floor.
 
-Full docs: [`docs/architecture/`](docs/architecture/) (a dated v1.3.0 baseline + target system), [`docs/contracts/`](docs/contracts/) (pack/agent/workflow schemas), [`docs/rules/`](docs/rules/authoring-rules.md), [`docs/benchmarks/`](docs/benchmarks/overview.md), [`docs/scoring/`](docs/scoring/evidence-confidence-coverage.md), [`docs/profiles/`](docs/profiles/personal-profiles.md), [`docs/reviews/`](docs/reviews/history-and-comparison.md), [`docs/maintenance/`](docs/maintenance/freshness.md), [`docs/cli/`](docs/cli/exit-codes.md), [`docs/migration/`](docs/migration/v1.1-to-next.md). Tests: [`tests/README.md`](tests/README.md). CI: `.github/workflows/`.
+Full docs: [`docs/architecture/`](docs/architecture/) (a dated v1.3.0 baseline + target system), [`docs/contracts/`](docs/contracts/) (pack/agent/workflow schemas), [`docs/rules/`](docs/rules/authoring-rules.md), [`docs/benchmarks/`](docs/benchmarks/overview.md), [`docs/scoring/`](docs/scoring/evidence-confidence-coverage.md), [`docs/product/`](docs/product/activation-baseline.md) (primary job + activation study), [`docs/profiles/`](docs/profiles/personal-profiles.md), [`docs/reviews/`](docs/reviews/history-and-comparison.md), [`docs/maintenance/`](docs/maintenance/freshness.md), [`docs/cli/`](docs/cli/exit-codes.md), [`docs/migration/`](docs/migration/v1.1-to-next.md). Tests: [`tests/README.md`](tests/README.md). CI: `.github/workflows/`.
 
 ## Repository layout
 
@@ -227,8 +261,8 @@ schemas/      Versioned JSON Schema contracts (v1/) + registry.json + the valida
 rules/        executable checks (Level A/B) — the rules registry + runner
 benchmarks/   reproducible regression cases for rules/
 tests/        unit (Python unittest) + integration (bash) test suites
-docs/         architecture, contracts, rules, benchmarks, scoring, profiles,
-              reviews, maintenance, cli, and migration documentation
+docs/         architecture, contracts, rules, benchmarks, scoring, product,
+              profiles, reviews, maintenance, cli, and migration documentation
 bin/akos      CLI
 ```
 

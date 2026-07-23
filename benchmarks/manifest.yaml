@@ -10,6 +10,10 @@ cases:
     path: cases/supabase-policy-permissive-suppressed
   - id: secret-vendor-key
     path: cases/secret-vendor-key
+  - id: secret-github-fine-grained-pat
+    path: cases/secret-github-fine-grained-pat
+  - id: secret-openssh-private-key
+    path: cases/secret-openssh-private-key
   - id: secret-service-role-jwt
     path: cases/secret-service-role-jwt
   - id: secret-anon-jwt-not-flagged

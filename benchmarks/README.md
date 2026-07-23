@@ -26,7 +26,7 @@ Exit codes: `0` all cases pass, `1` setup error, `2` at least one case failed. N
 
 ## What's covered
 
-28 cases across the 8 rules in `rules/`: for every Level A/B rule, at least one true-positive case and at least one true-negative (the realistic near-miss that shouldn't fire — a suppressed policy, an anon JWT, a guarded destructive statement, a project that never adopted the up/down migration convention). Two Level C cases exercise the mock-provider plumbing end to end.
+30 cases across the 8 rules in `rules/`: for every Level A/B rule, at least one true-positive case and at least one true-negative (the realistic near-miss that shouldn't fire — a suppressed policy, an anon JWT, a guarded destructive statement, a project that never adopted a migration convention). Two Level C cases exercise the mock-provider plumbing end to end. Credential-shape cases keep placeholders in version control and materialize them only inside the harness's temporary copy.
 
 `PACK_EXPIRED` (the one rule that scans AKOS's own `packs/` rather than a target project) is intentionally **not** a benchmark case here — it's exercised by a unit test in `tests/unit/` instead, since fixturing "AKOS's own repo root" cleanly would need the harness to monkeypatch the rule module's `AKOS_HOME`, adding real complexity for one rule already covered elsewhere. Not a silent gap: stated here, and in `docs/benchmarks/overview.md`.
 
@@ -40,7 +40,7 @@ Optional and graded weakly on purpose — see `providers/README.md`. The default
 
 ## Two kinds of case
 
-**Synthetic** (21) — written alongside the detectors, from the rule's own description. They are a regression guard: they catch a detector that stops doing what it did yesterday.
+**Synthetic** (23) — written alongside the detectors, from the rule's own description. They are a regression guard: they catch a detector that stops doing what it did yesterday.
 
 **Real-shape** (7, prefixed `real-`) — copied from actual repositories, and every one is a false positive that shipped. They exist because the synthetic corpus reported **precision 100%** while three real repositories each produced a distinct set of wrong findings the corpus could not contain. A corpus written by the same process that wrote the detectors cannot surface a failure mode its author did not already have in mind; these were added the only way that gap closes, by running the rules on code nobody wrote them against.
 

@@ -13,6 +13,7 @@ Relative weights applied to the assessed dimensions (unassessed dimensions get `
 |-----------|-----------|-----|------------|------------|----------|----------|
 | UX | 3 | 3 | 3 | 2 | 2 | 2 |
 | Accessibility | 1 | 2 | 3 | 3 | 2 | 2 |
+| Mobile | 1 | 2 | 3 | 2 | 1 | 1 |
 | Architecture | 0 | 1 | 3 | 3 | 1 | 1 |
 | Security | 1 | 2 | 3 | 3 | 1 | 2 |
 | Performance | 0 | 1 | 3 | 2 | 3 | 1 |
@@ -21,7 +22,12 @@ Relative weights applied to the assessed dimensions (unassessed dimensions get `
 
 Weight 0 = the dimension is typically `n/a` for that profile (not scored), not scored-as-zero.
 
-Each dimension scores against its own rubric (`scoring/<dimension>-score.md`). Maintainability is the one dimension with no dedicated review agent — it is scored across the code-review pass per [scoring/maintainability-score.md](maintainability-score.md).
+Each dimension scores against its own rubric (`scoring/<dimension>-score.md`).
+Mobile is additive rather than hidden inside UX/Accessibility: include its
+assessed score with the weights above, while deduplicating the same underlying
+finding across dimensions. Maintainability is the one dimension with no
+dedicated review agent — it is scored across the code-review pass per
+[scoring/maintainability-score.md](maintainability-score.md).
 
 ## Computation
 

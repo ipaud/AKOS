@@ -19,7 +19,6 @@ the severity order, worst first). 1 on setup error.
 
 from __future__ import annotations
 
-import argparse
 import sys
 from datetime import date
 from pathlib import Path
@@ -27,6 +26,7 @@ from pathlib import Path
 AKOS_HOME = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
 import yaml_subset  # noqa: E402
+from cli_args import UsageArgumentParser  # noqa: E402
 
 DUE_SOON_DAYS = 90
 DUE_DAYS = 30
@@ -93,7 +93,7 @@ def print_text(rows: list[dict]):
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = UsageArgumentParser(description=__doc__)
     ap.add_argument("--expired", action="store_true", help="Only show expired packs")
     ap.add_argument("--due-soon", action="store_true", help="Only show review-due-soon and worse")
     ap.add_argument("--pack", help="Only this pack, e.g. ux/wcag")

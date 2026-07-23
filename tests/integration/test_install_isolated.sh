@@ -19,7 +19,7 @@ mkdir -p "$HOME"
 
 # 1. Fresh install creates the expected symlinks.
 bash "$COPY/install.sh" >"$TMP/out1" 2>&1 || fail "install.sh exited non-zero on a fresh HOME: $(tail -3 "$TMP/out1")"
-[ "$(readlink "$HOME/bin/akos")" = "$COPY/bin/akos" ] || fail "~/bin/akos does not point at the installed copy"
+[ "$(readlink "$HOME/bin/akos")" = "$COPY/bin/akos" ] || fail "$HOME/bin/akos does not point at the installed copy"
 [ "$(readlink "$HOME/.claude/skills/akos")" = "$COPY/skills/akos" ] || fail "Claude skill 'akos' not linked"
 [ "$(readlink "$HOME/.agents/skills/akos-review")" = "$COPY/skills/akos-review" ] || fail "Codex skill 'akos-review' not linked"
 agent_links="$(find "$HOME/.claude/agents" -type l -name 'akos-*.md' | wc -l | tr -d ' ')"

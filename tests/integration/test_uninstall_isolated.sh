@@ -9,13 +9,13 @@ set -euo pipefail
 
 AKOS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TMP="$(mktemp -d)"
-trap 'chmod -R +w "$TMP" 2>/dev/null || true; rm -rf "$TMP"' EXIT
+trap 'chmod -R +w "${TMP:?}" 2>/dev/null || true; rm -rf "${TMP:?}"' EXIT
 
 pass() { printf '  ok - %s\n' "$1"; }
 fail() { printf '  FAIL - %s\n' "$1"; exit 1; }
 
 fresh_copy() {
-  rm -rf "$TMP/akos-copy" "$TMP/home"
+  rm -rf "${TMP:?}/akos-copy" "${TMP:?}/home"
   cp -R "$AKOS_HOME" "$TMP/akos-copy"
   rm -rf "$TMP/akos-copy/.git"
   export HOME="$TMP/home"
@@ -30,26 +30,59 @@ printf '' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out1" 2>&1 || fail "uninst
 grep -q "someone else's script" "$HOME/bin/akos" || fail "a foreign ~/bin/akos regular file was removed"
 pass "foreign ~/bin/akos regular file survives"
 
-# 2. A skill symlink pointing somewhere ELSE survives (readlink guard).
+# 2. A foreign ~/bin/akos symlink also survives; symlink-ness alone is not
+# proof that this AKOS checkout owns it.
+fresh_copy
+mkdir -p "$HOME/bin" "$TMP/elsewhere-bin"
+ln -s "$TMP/elsewhere-bin/tool" "$HOME/bin/akos"
+printf '' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out2" 2>&1 || fail "uninstall exited non-zero"
+[ -L "$HOME/bin/akos" ] || fail "a foreign ~/bin/akos symlink was removed"
+pass "foreign ~/bin/akos symlink survives"
+
+# 3. An owned ~/bin/akos symlink is removed.
+fresh_copy
+mkdir -p "$HOME/bin"
+ln -s "$TMP/akos-copy/bin/akos" "$HOME/bin/akos"
+printf '' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out3" 2>&1 || fail "uninstall exited non-zero"
+[ ! -e "$HOME/bin/akos" ] && [ ! -L "$HOME/bin/akos" ] || fail "the owned ~/bin/akos symlink was not removed"
+pass "owned ~/bin/akos symlink is removed"
+
+# 4. A skill symlink pointing somewhere ELSE survives (readlink guard).
 fresh_copy
 mkdir -p "$HOME/.claude/skills" "$TMP/elsewhere"
 ln -s "$TMP/elsewhere" "$HOME/.claude/skills/akos"
-printf '' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out2" 2>&1 || fail "uninstall exited non-zero"
+printf '' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out4" 2>&1 || fail "uninstall exited non-zero"
 [ -L "$HOME/.claude/skills/akos" ] || fail "a foreign skill symlink was removed"
 pass "foreign skill symlink survives"
 
-# 3. Declining deletion (empty stdin) keeps all content.
+# 5. The canonical leaf is removed only when it points to this checkout.
 fresh_copy
-printf '' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out3" 2>&1 || fail "uninstall exited non-zero"
+mkdir -p "$HOME/DEV" "$HOME/bin"
+ln -s "$TMP/akos-copy" "$HOME/DEV/AKOS"
+ln -s "$TMP/akos-copy/bin/akos" "$HOME/bin/akos"
+printf '' | "$HOME/DEV/AKOS/uninstall.sh" >"$TMP/out5" 2>&1 || fail "canonical uninstall exited non-zero"
+[ ! -L "$HOME/DEV/AKOS" ] || fail "owned canonical ~/DEV/AKOS symlink was not removed"
+[ ! -L "$HOME/bin/akos" ] || fail "canonical uninstall did not remove the owned CLI symlink"
+
+fresh_copy
+mkdir -p "$HOME/DEV" "$TMP/foreign-akos"
+ln -s "$TMP/foreign-akos" "$HOME/DEV/AKOS"
+printf '' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out6" 2>&1 || fail "uninstall exited non-zero"
+[ -L "$HOME/DEV/AKOS" ] || fail "foreign canonical ~/DEV/AKOS symlink was removed"
+pass "canonical leaf removal requires ownership"
+
+# 6. Declining deletion (empty stdin) keeps all content.
+fresh_copy
+printf '' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out7" 2>&1 || fail "uninstall exited non-zero"
 [ -f "$TMP/akos-copy/VERSION" ] || fail "declining deletion still removed content"
-grep -q "Nothing deleted" "$TMP/out3" || fail "expected the 'Nothing deleted' confirmation"
+grep -q "Nothing deleted" "$TMP/out7" || fail "expected the 'Nothing deleted' confirmation"
 pass "declining deletion keeps everything"
 
-# 4. Typed confirmation backs up ALL of packs/ (not just personal/) before deleting.
+# 7. Typed confirmation backs up ALL of packs/ (not just personal/) before deleting.
 fresh_copy
 mkdir -p "$TMP/akos-copy/packs/ux/my-own-pack"
 echo "user-authored" > "$TMP/akos-copy/packs/ux/my-own-pack/README.md"
-printf 'DELETE AKOS\n' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out4" 2>&1 || fail "confirmed uninstall exited non-zero: $(tail -3 "$TMP/out4")"
+printf 'DELETE AKOS\n' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out8" 2>&1 || fail "confirmed uninstall exited non-zero: $(tail -3 "$TMP/out8")"
 [ ! -d "$TMP/akos-copy" ] || fail "content was not deleted after typed confirmation"
 backup="$(find "$HOME" -maxdepth 1 -type d -name 'akos-packs-backup-*' | head -1)"
 [ -n "$backup" ] || fail "no backup directory was created before deletion"
@@ -57,17 +90,17 @@ backup="$(find "$HOME" -maxdepth 1 -type d -name 'akos-packs-backup-*' | head -1
 grep -q "user-authored" "$backup/ux/my-own-pack/README.md" || fail "a user-authored non-personal pack missing from the backup"
 pass "typed confirmation backs up all of packs/ before deleting"
 
-# 5. When the backup cannot be written, deletion ABORTS and content survives.
+# 8. When the backup cannot be written, deletion ABORTS and content survives.
 fresh_copy
 chmod -w "$HOME"
 set +e
-printf 'DELETE AKOS\n' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out5" 2>&1
+printf 'DELETE AKOS\n' | bash "$TMP/akos-copy/uninstall.sh" >"$TMP/out9" 2>&1
 rc=$?
 set -e
 chmod +w "$HOME"
 [ "$rc" -ne 0 ] || fail "uninstall exited 0 even though the backup could not be written"
 [ -f "$TMP/akos-copy/VERSION" ] || fail "content was deleted despite the backup failing — the data-loss bug is back"
-grep -q "aborting" "$TMP/out5" || fail "expected an explicit abort message when the backup fails"
+grep -q "aborting" "$TMP/out9" || fail "expected an explicit abort message when the backup fails"
 pass "failed backup aborts the deletion — nothing lost"
 
 echo "PASS: test_uninstall_isolated.sh"

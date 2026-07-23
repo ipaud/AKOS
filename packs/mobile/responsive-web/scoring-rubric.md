@@ -1,6 +1,12 @@
 # Scoring Rubric — Responsive Web Pack (Layout & Adaptation)
 
-Primary input to lens 4 (mobile/responsive) of the [review pipeline](../../../core/review-pipeline.md); its safety-floor findings also feed [accessibility-score](../../../scoring/accessibility-score.md) and its task-completion findings feed [ux-score](../../../scoring/ux-score.md). Score = 100 − deductions, floor 0. Bands per [core/scoring-model.md](../../../core/scoring-model.md).
+Primary input to the Mobile dimension in lens 4 of the
+[review pipeline](../../../core/review-pipeline.md), fed directly into
+[overall-score](../../../scoring/overall-score.md). Its safety-floor findings
+also feed [accessibility-score](../../../scoring/accessibility-score.md), and
+its task-completion findings feed [ux-score](../../../scoring/ux-score.md).
+Score = 100 − deductions, floor 0. Bands per
+[core/scoring-model.md](../../../core/scoring-model.md).
 
 Deduplicate across lenses: one defect, one deduction, cited by the pack that explains it deepest.
 

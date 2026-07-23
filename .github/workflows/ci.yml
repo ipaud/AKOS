@@ -9,44 +9,44 @@ permissions:
   contents: read
 
 jobs:
-  ci:
+  quality:
+    name: Quality gates + coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.14"
+
+      - name: Install development-only test tooling
+        run: python3 -m pip install --disable-pip-version-check -r requirements-dev.txt
 
       - name: Bash syntax check
         run: |
           set -e
-          for f in bin/akos bin/akos-common.sh install.sh update.sh doctor.sh uninstall.sh merge-pr.sh; do
+          for f in bin/akos bin/akos-common.sh install.sh update.sh doctor.sh uninstall.sh merge-pr.sh tests/integration/test_*.sh; do
             echo "bash -n $f"
             bash -n "$f"
           done
 
       - name: shellcheck (gating)
-        # ubuntu-latest ships shellcheck. For a project whose highest-risk code
-        # is bash, the one tool that catches unquoted expansions must be able to
-        # fail the build — no `|| true`, no silent skip.
-        # SC2088 excluded: the scripts print `~/...` in human-readable status
-        # messages by design; every REAL path uses $HOME. Excluding it here
-        # keeps intent in one visible place rather than scattering per-line
-        # disables through the display strings.
         run: |
           shellcheck --version
-          shellcheck -x -S warning -e SC2088 bin/akos bin/akos-common.sh install.sh update.sh doctor.sh uninstall.sh merge-pr.sh
+          shellcheck -x -S warning bin/akos $(git ls-files '*.sh')
 
       - name: No tracked Python bytecode
-        # .gitignore does not untrack already-tracked files; a committed .pyc
-        # regenerates locally and breaks `git pull --ff-only` in update.sh.
         run: |
           if git ls-files | grep -E '\.pyc$|__pycache__/'; then
-            echo "tracked bytecode above — run: git rm -r --cached the paths, then commit"
+            echo "tracked bytecode above — remove it from the index before merging"
             exit 1
           fi
 
       - name: Python syntax check
         run: |
           set -e
-          python3 -m py_compile schemas/*.py bin/*.py rules/*/*.py benchmarks/runners/*.py benchmarks/providers/*.py
+          python3 -m py_compile schemas/*.py bin/*.py rules/*.py rules/*/*.py benchmarks/runners/*.py benchmarks/providers/*.py tests/ci/*.py
 
       - name: chmod scripts
         run: chmod +x install.sh update.sh doctor.sh uninstall.sh bin/akos
@@ -62,40 +62,59 @@ jobs:
       - name: akos routing-check (draft packs excluded from stable routing)
         run: python3 schemas/routing_check.py
 
-      - name: akos rules registry sanity (list only — no target project to scan in CI)
+      - name: akos rules registry sanity
         run: |
           bin/akos rules list
           python3 - <<'PY'
           import sys
           sys.path.insert(0, 'rules')
           from runner import discover_rules
-          # No errors collector — a malformed registry raises RegistryError and
-          # fails this step loudly, rather than silently discovering fewer rules.
           rules = discover_rules()
           print(f'{len(rules)} rules discovered')
           assert len(rules) >= 8, f'expected at least 8 rules, found {len(rules)}'
           PY
 
-      - name: akos rules self-scan completes (fail-closed — no operational errors)
-        run: |
-          bin/akos rules run . --format json > /tmp/akos-self-scan.json
-          python3 - <<'PY'
-          import json
-          d = json.load(open('/tmp/akos-self-scan.json'))
-          # The invariant is that the scan RAN COMPLETELY: every registry parsed
-          # and every detector loaded and executed. Findings on AKOS's own
-          # deliberately-vulnerable corpus are expected; a broken detector or
-          # registry is not.
-          assert d['status'] != 'error', d
-          assert not d['errors'], d['errors']
-          print('self-scan complete:', d['summary'])
-          PY
+      - name: akos rules self-scan completes
+        # Exit 0 (clean) and 2 (blocking fixture finding) are complete scans.
+        # The helper rejects exit 1, malformed JSON, errors, rc/status drift,
+        # and any blocker outside exact reviewed rule-id + fixture-case pairs.
+        run: python3 tests/ci/self_scan_gate.py --akos-bin bin/akos --target .
 
       - name: akos freshness (fail only on expired)
         run: python3 schemas/freshness.py --fail-on expired
 
-      - name: akos benchmark (full suite — all cases are fast/synthetic)
-        run: python3 benchmarks/runners/run.py run
+      - name: Unit, benchmark, and integration tests with branch coverage
+        run: |
+          mkdir -p .cache
+          coverage erase
+          coverage run -m unittest discover -s tests/unit -p 'test_*.py' -v
+          coverage run benchmarks/runners/run.py run
+          python3 tests/ci/run_integrations.py --coverage
+          coverage report
+
+  functional:
+    name: Functional (${{ matrix.label }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Ubuntu / Python 3.10 floor
+            os: ubuntu-latest
+            python-version: "3.10"
+          - label: macOS / current Python
+            os: macos-latest
+            python-version: "3.14"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: chmod scripts
+        run: chmod +x install.sh update.sh doctor.sh uninstall.sh bin/akos
 
       - name: Unit tests
         run: python3 -m unittest discover -s tests/unit -p 'test_*.py' -v

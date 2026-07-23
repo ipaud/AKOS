@@ -36,6 +36,11 @@ Steps 2, 3, 8 never drop below weight 1 in any profile (the safety floor plus "o
 
 **Targeted run**: any single step can run alone via its agent file or `prompts/run-*.md`.
 
+**Full frontend/UI run**: for “full frontend review” or “UI screen review,”
+run [ui-screen-review](../workflows/ui-screen-review.md): UX → Accessibility →
+Mobile/responsive → Copywriting → Frontend quality. This is a five-lens workflow,
+not an alias for the single Frontend quality lens.
+
 **Lightweight loop** (during development): steps 2, 5, 6 after each UI iteration; steps 3, 4 before calling a screen done; the rest at feature completion.
 
 ## Unified report format
@@ -60,6 +65,7 @@ Every agent, every step, same output:
 ## Scores
 - UX:
 - Accessibility:
+- Mobile:
 - Architecture:
 - Security:
 - Performance:
