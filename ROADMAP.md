@@ -17,10 +17,6 @@ when picking up work.
 
 Concrete, scoped, unblocked by the above.
 
-- **Centralize `metadata.yaml` reading.** Duplicated across
-  `bin/akos`, `schemas/freshness.py`, `schemas/config_check.py`,
-  `schemas/routing_check.py`, `schemas/validate.py`, each with slightly
-  different parse-error semantics. Extract one canonical catalog/DTO.
 - **Give rules a real schema.** `rules/runner.py`'s `Rule` class still
   consumes loose dicts; a scalar where a list is assumed (`glob`) throws
   outside the fail-closed path instead of inside it.
@@ -64,6 +60,13 @@ every audit pass.
 
 ## Recently shipped (context for what's *not* on this list anymore)
 
+- **`metadata.yaml` reading centralized.** New `schemas/pack_metadata.py`
+  (`discover_pack_metadata_paths`, `load_pack_metadata`) replaces 5 open-coded
+  copies in `bin/akos`, `freshness.py`, `config_check.py`, `routing_check.py`,
+  `validate.py`. Behavior at each call site unchanged — `validate.py` still
+  surfaces a parse failure as a finding, the rest still fall back to `{}`.
+  New unit tests in `test_pack_metadata.py`; full suite (460 unit +
+  integration + doctor.sh) green after the change.
 - **v1.12.0 tagged.** Annotated tag pushed, pointing at the CI-green state
   (`e9cff00`).
 - **3 Dependabot PRs merged.** #26 (`actions/checkout` → 7.0.1), #25
