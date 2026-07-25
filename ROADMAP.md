@@ -15,11 +15,11 @@ when picking up work.
 
 ## Next
 
-Concrete, scoped, unblocked by the above.
-
-- **Unified versioned JSON envelope.** CLI subcommands (`check-config`,
-  `rules run`, `eval`, ...) each shape their JSON output differently; some
-  return plain text with exit 0 where JSON + non-zero would be correct.
+Empty. Everything the audit carried into this list has either shipped (see
+Recently shipped) or turned out to already be resolved/deliberately decided
+against — three of five items were stale by the time we got to them. Next
+time this fills up, re-verify each item against current code before trusting
+the audit's wording; don't repeat the same mistake a fourth time.
 
 ## Later
 
@@ -50,6 +50,16 @@ every audit pass.
 
 ## Recently shipped (context for what's *not* on this list anymore)
 
+- **JSON envelope unification was already decided against, deliberately.**
+  `docs/cli/exit-codes.md` has a "Stable JSON contracts (v1.12)" section
+  documenting all 9 commands' shapes as intentionally different, plus a "Why
+  not unify everything under one scheme" section: extending one binary
+  0/1/2-shaped envelope to every command would lose the "ran fine, but found
+  a real problem" signal CI depends on, and any shape change is explicitly
+  defined as a breaking change requiring a new contract version. This is a
+  documented team decision, not an oversight — implementing "unify the
+  envelope" would mean overriding it unasked. Removed from Next without a
+  code change.
 - **`merge-pr.sh` has behavioral tests.** `tests/integration/test_merge_pr.sh`,
   20 scenarios against fake `gh`/`git` (never the real API or remote): every
   usage/precondition error, both refused states (no checks, failing checks),
