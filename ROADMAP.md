@@ -9,16 +9,9 @@ Last reviewed: 2026-07-25.
 
 ## Now
 
-Ready to execute, no blockers.
-
-- **Cut and tag the v1.12.0 release.** `VERSION` and `CHANGELOG.md` already
-  describe it; CI is green on `main` (`5b81389`, run `30026634808`). No tag
-  exists yet — `git tag -l` stops at `v1.9.0`. The audit was explicit: don't
-  publish a version without green CI + an annotated/signed tag. CI condition
-  is now met.
-- **Merge the 3 open Dependabot PRs.** #32 (`actions/setup-python` → 7.0.0),
-  #26 (`actions/checkout` → 7.0.1), #25 (`actions/upload-artifact` → 7.0.1).
-  Low risk, unblocks Dependabot from re-opening stale diffs.
+Nothing queued. The previous "Now" batch (tag v1.12.0, merge the 3 open
+Dependabot PRs) shipped today — see Recently shipped. Pull the top of Next
+when picking up work.
 
 ## Next
 
@@ -70,6 +63,17 @@ every audit pass.
   close.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **v1.12.0 tagged.** Annotated tag pushed, pointing at the CI-green state
+  (`e9cff00`).
+- **3 Dependabot PRs merged.** #26 (`actions/checkout` → 7.0.1), #25
+  (`actions/upload-artifact` → 7.0.1), both green on first try. #32
+  (`actions/setup-python` → 7.0.0) needed a real fix: `tests/unit/
+  test_ci_contract.py` hardcoded the old v6.2.0 action SHA as part of the
+  "immutable pin" contract test, so it broke the moment the pin moved to the
+  new SHA (`5fda3b95a4ea91299a34e894583c3862153e4b97`). Updated the test to
+  the new SHA — the pin-immutability check is doing its job correctly, it just
+  needs updating on every intentional bump, same as any pinned-hash contract.
 
 v1.11.1 and v1.12.0 already closed the audit's two CRITICAL findings
 (symlink-followable `history clean`, self-deleting E2E test) and most HIGH
