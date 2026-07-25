@@ -25,8 +25,8 @@ from pathlib import Path
 
 AKOS_HOME = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
-import yaml_subset  # noqa: E402
 from cli_args import UsageArgumentParser  # noqa: E402
+from pack_metadata import discover_pack_metadata_paths, load_pack_metadata  # noqa: E402
 
 DUE_SOON_DAYS = 90
 DUE_DAYS = 30
@@ -58,16 +58,12 @@ def band_for(review_after: str | None, today: date) -> tuple[str, int | None]:
 def collect(pack_filter: str | None) -> list[dict]:
     today = date.today()
     rows = []
-    for meta_path in sorted((AKOS_HOME / "packs").glob("*/*/metadata.yaml")):
-        if "personal" in meta_path.parts:
-            continue
+    for meta_path in discover_pack_metadata_paths(AKOS_HOME / "packs"):
         rel = str(meta_path.parent.relative_to(AKOS_HOME / "packs"))
         if pack_filter and rel != pack_filter:
             continue
-        try:
-            data = yaml_subset.load(meta_path)
-        except yaml_subset.YamlSubsetError:
-            data = {}
+        data, _ = load_pack_metadata(meta_path)
+        data = data or {}
         band, delta_days = band_for(data.get("review_after"), today)
         rows.append({
             "pack": data.get("id", rel),

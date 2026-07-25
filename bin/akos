@@ -115,19 +115,14 @@ from pathlib import Path
 akos_home = Path(sys.argv[1])
 status_filter = sys.argv[2] or None
 sys.path.insert(0, str(akos_home / "schemas"))
-import yaml_subset
+from pack_metadata import discover_pack_metadata_paths, load_pack_metadata
 
 c_bold, c_yellow, c_reset = "\033[1m", "\033[33m", "\033[0m"
 
 entries = []
-for meta_path in sorted(akos_home.glob("packs/*/*/metadata.yaml")):
-    if "personal" in meta_path.parts:
-        continue
+for meta_path in discover_pack_metadata_paths(akos_home / "packs"):
     domain, name = meta_path.parent.parent.name, meta_path.parent.name
-    try:
-        data = yaml_subset.load(meta_path)
-    except yaml_subset.YamlSubsetError:
-        data = {}
+    data, _ = load_pack_metadata(meta_path)
     status = data.get("status", "stable") if isinstance(data, dict) else "stable"
     entries.append((domain, name, status))
 

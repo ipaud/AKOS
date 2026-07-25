@@ -31,7 +31,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import yaml_subset  # noqa: E402
+from pack_metadata import load_pack_metadata  # noqa: E402
 
 VALID_PROFILES = {
     "Prototype", "Startup MVP", "Production",
@@ -141,10 +141,7 @@ def check_config(config_path: Path, akos_home: Path) -> list[dict]:
             # user explicitly asking for it, never this untrusted file.
             meta_path = resolved / "metadata.yaml"
             if meta_path.is_file():
-                try:
-                    meta = yaml_subset.load(meta_path)
-                except yaml_subset.YamlSubsetError:
-                    meta = {}
+                meta, _ = load_pack_metadata(meta_path)
                 status = meta.get("status") if isinstance(meta, dict) else None
                 if status == "draft":
                     findings.append({

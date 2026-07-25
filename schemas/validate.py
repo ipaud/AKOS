@@ -36,6 +36,7 @@ AKOS_HOME = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
 import yaml_subset  # noqa: E402
 from cli_args import UsageArgumentParser  # noqa: E402
+from pack_metadata import discover_pack_metadata_paths, load_pack_metadata  # noqa: E402
 
 VALID_TARGETS = {"packs", "agents", "workflows", "all"}
 
@@ -213,14 +214,11 @@ def _check_pack_semantics(data: dict, meta_path: Path) -> list[dict]:
 
 def check_packs(schema: dict) -> list[dict]:
     results = []
-    for meta_path in sorted((AKOS_HOME / "packs").glob("*/*/metadata.yaml")):
-        if "personal" in meta_path.parts:
-            continue
+    for meta_path in discover_pack_metadata_paths(AKOS_HOME / "packs"):
         rel = str(meta_path.relative_to(AKOS_HOME))
-        try:
-            data = yaml_subset.load(meta_path)
-        except yaml_subset.YamlSubsetError as e:
-            results.append({"file": rel, "errors": [{"field": "<parse>", "message": str(e), "rule": "parse"}], "warnings": []})
+        data, err = load_pack_metadata(meta_path)
+        if err is not None:
+            results.append({"file": rel, "errors": [{"field": "<parse>", "message": err, "rule": "parse"}], "warnings": []})
             continue
         errors, warnings = validate_instance(data, schema)
         if isinstance(data, dict):

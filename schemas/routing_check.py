@@ -36,6 +36,7 @@ sys.path.insert(0, str(AKOS_HOME / "schemas"))
 from cli_args import UsageArgumentParser  # noqa: E402
 sys.path.insert(0, str(AKOS_HOME / "schemas"))
 import yaml_subset  # noqa: E402
+from pack_metadata import discover_pack_metadata_paths, load_pack_metadata  # noqa: E402
 
 PACK_ROW_RE = re.compile(r"^\|\s*`([a-z0-9]+(?:-[a-z0-9]+)*/[a-z0-9]+(?:-[a-z0-9]+)*)`\s*\|")
 EXPERIMENTAL_HEADING_RE = re.compile(r"^###\s+Experimental")
@@ -68,14 +69,9 @@ def parse_skill_routing(skill_path: Path) -> tuple[set[str], set[str]]:
 def load_pack_statuses(akos_home: Path) -> dict[str, str]:
     """{domain/name: status} for every non-personal pack."""
     statuses: dict[str, str] = {}
-    for meta_path in sorted(akos_home.glob("packs/*/*/metadata.yaml")):
-        if "personal" in meta_path.parts:
-            continue
+    for meta_path in discover_pack_metadata_paths(akos_home / "packs"):
         domain, name = meta_path.parent.parent.name, meta_path.parent.name
-        try:
-            data = yaml_subset.load(meta_path)
-        except yaml_subset.YamlSubsetError:
-            data = {}
+        data, _ = load_pack_metadata(meta_path)
         status = data.get("status", "stable") if isinstance(data, dict) else "stable"
         statuses[f"{domain}/{name}"] = status
     return statuses
