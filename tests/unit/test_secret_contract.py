@@ -9,8 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "helpers"))
 import paths  # noqa: F401,E402
 
-sys.path.insert(0, str(Path(paths.AKOS_HOME) / "rules" / "security"))
-from _secret_utils import redact_secrets  # noqa: E402
+from secret_utils import redact_secrets  # noqa: E402
 
 
 AKOS_HOME = Path(paths.AKOS_HOME)

@@ -32,11 +32,11 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-# The secret patterns live with the detector that owns them. Importing them
-# rather than restating them here keeps one copy: a second set of regexes
-# would drift from the first the moment either is updated.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "rules" / "security"))
-from _secret_utils import redact_secrets  # noqa: E402
+# Shared with the SECRET_IN_SOURCE/SERVICE_ROLE_IN_CLIENT detectors. Importing
+# rather than restating the patterns here keeps one copy: a second set of
+# regexes would drift from the first the moment either is updated.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from secret_utils import redact_secrets  # noqa: E402
 
 
 def git_info(project_dir: Path) -> dict:

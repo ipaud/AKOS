@@ -26,9 +26,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "schemas"))
 from io_utils import read_text_file  # noqa: E402
-from _secret_utils import (  # noqa: E402
+from secret_utils import (  # noqa: E402
     VENDOR_PATTERNS, GENERIC_ASSIGNMENT_RE, JWT_RE,
     generic_assignment_value, is_generic_secret_assignment_value,
     decode_jwt_claims,

@@ -51,7 +51,7 @@ from rule_schema import (  # noqa: E402
     RuleContractError,
     require_valid_rule_registry,
 )
-from _secret_utils import mask_js_comments  # noqa: E402
+from secret_utils import mask_js_comments  # noqa: E402
 from _sql_utils import mask_sql_comments  # noqa: E402
 
 DEFAULT_IGNORE_DIRS = {"node_modules", ".git", "dist", "build", "vendor", ".next", "__pycache__", ".venv"}

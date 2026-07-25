@@ -19,9 +19,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent.parent / "security"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "schemas"))
 from io_utils import read_text_file  # noqa: E402
-from _secret_utils import mask_js_comments  # noqa: E402
+from secret_utils import mask_js_comments  # noqa: E402
 
 # Case-SENSITIVE on the tag name, deliberately. JSX capitalises components to
 # distinguish them from HTML elements, so `<Input>` is a React component whose

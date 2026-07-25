@@ -23,9 +23,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "schemas"))
 from io_utils import read_text_file  # noqa: E402
-from _secret_utils import JWT_RE, decode_jwt_claims, mask_js_comments, classification_path  # noqa: E402
+from secret_utils import JWT_RE, decode_jwt_claims, mask_js_comments, classification_path  # noqa: E402
 
 SERVER_SOURCE_SUFFIXES = (".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs")
 SERVICE_ROLE_RE = re.compile(r"service[_-]?role", re.IGNORECASE)

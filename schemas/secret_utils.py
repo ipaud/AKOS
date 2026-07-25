@@ -1,5 +1,11 @@
-"""Shared helpers for SECRET_IN_SOURCE and SERVICE_ROLE_IN_CLIENT. Not a rule
-itself — no registry YAML, never discovered by the runner's glob.
+"""Shared secret-detection and redaction helpers.
+
+Used by the SECRET_IN_SOURCE and SERVICE_ROLE_IN_CLIENT detectors, by
+A11Y_INPUT_NO_LABEL for comment-masking, and by schemas/history.py to redact
+credentials before a review report is written to a consuming project's
+.akos/reviews/. Lives in schemas/ — a neutral module both rules/ and
+schemas/ import — rather than under rules/security/, since it is not itself
+a rule: no registry YAML, never discovered by the runner's glob.
 """
 
 from __future__ import annotations
