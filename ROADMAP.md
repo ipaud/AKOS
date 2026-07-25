@@ -17,13 +17,6 @@ when picking up work.
 
 Concrete, scoped, unblocked by the above.
 
-- **Give rules a real schema.** `rules/runner.py`'s `Rule` class still
-  consumes loose dicts; a scalar where a list is assumed (`glob`) throws
-  outside the fail-closed path instead of inside it.
-- **Move secret redaction out of the security-rules private path.**
-  `schemas/history.py` imports `redact_secrets` from `rules/security/
-  _secret_utils` — a neutral module has no business depending on a specific
-  rule's internals. Extract to a shared location both can import.
 - **Behavioral tests for `merge-pr.sh`.** It's the only mitigation for
   unprotected branches on the free/private repo tier, and currently has zero
   tests. Needs `gh`/`git` fakes covering every exit state.
@@ -60,6 +53,23 @@ every audit pass.
 
 ## Recently shipped (context for what's *not* on this list anymore)
 
+- **Secret redaction moved out of `rules/security/`.** `rules/security/
+  _secret_utils.py` → `schemas/secret_utils.py` (renamed, no leading
+  underscore — it's shared infrastructure now, alongside `yaml_subset`,
+  `cli_args`, `pack_metadata`). Updated all 6 consumers: `schemas/history.py`,
+  `rules/runner.py`, the `SECRET_IN_SOURCE` and `SERVICE_ROLE_IN_CLIENT`
+  detectors, `A11Y_INPUT_NO_LABEL`'s comment masker, and
+  `test_secret_contract.py`. 460 unit tests, 12 integration suites,
+  shellcheck, and `doctor.sh` self-scan (which exercises the moved detectors
+  for real, not just imports them) all green after the move.
+- **Rule schema was already real, this roadmap was stale.** The "give rules a
+  real schema" item carried over from the audit unchanged, but v1.12.0's
+  "Strict executable-rule contract" (`rules/rule_schema.py`,
+  `require_valid_rule_registry`) already rejects a scalar `applies_to.glob`
+  before `Rule.__init__` ever runs — verified directly: a registry with
+  `glob: '**/*.py'` (string, not list) raises `RuleContractError` at
+  discovery, never reaches the `Rule` constructor. No code change needed;
+  removed from Next.
 - **`metadata.yaml` reading centralized.** New `schemas/pack_metadata.py`
   (`discover_pack_metadata_paths`, `load_pack_metadata`) replaces 5 open-coded
   copies in `bin/akos`, `freshness.py`, `config_check.py`, `routing_check.py`,
