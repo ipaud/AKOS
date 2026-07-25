@@ -34,7 +34,7 @@ class TestCIWorkflowContract(unittest.TestCase):
         self.assertIn("ubuntu-latest", text)
         self.assertIn('"3.10"', text)
         self.assertIn("macos-latest", text)
-        self.assertIn("a309ff8b426b58ec0e2a45f0f869d46889d02405", text)
+        self.assertIn("5fda3b95a4ea91299a34e894583c3862153e4b97", text)
 
     def test_coverage_is_branch_aware_and_gates_at_80(self):
         config = (AKOS_HOME / ".coveragerc").read_text()
