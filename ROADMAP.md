@@ -17,9 +17,6 @@ when picking up work.
 
 Concrete, scoped, unblocked by the above.
 
-- **Behavioral tests for `merge-pr.sh`.** It's the only mitigation for
-  unprotected branches on the free/private repo tier, and currently has zero
-  tests. Needs `gh`/`git` fakes covering every exit state.
 - **Unified versioned JSON envelope.** CLI subcommands (`check-config`,
   `rules run`, `eval`, ...) each shape their JSON output differently; some
   return plain text with exit 0 where JSON + non-zero would be correct.
@@ -53,6 +50,13 @@ every audit pass.
 
 ## Recently shipped (context for what's *not* on this list anymore)
 
+- **`merge-pr.sh` has behavioral tests.** `tests/integration/test_merge_pr.sh`,
+  20 scenarios against fake `gh`/`git` (never the real API or remote): every
+  usage/precondition error, both refused states (no checks, failing checks),
+  and every success path including all three tagging branches. Confirmed the
+  suite catches a real regression before trusting it (sabotaged a copy,
+  watched the right assertion fail). Runs automatically — the CI integration
+  runner glob-discovers `test_*.sh`, no wiring needed.
 - **Secret redaction moved out of `rules/security/`.** `rules/security/
   _secret_utils.py` → `schemas/secret_utils.py` (renamed, no leading
   underscore — it's shared infrastructure now, alongside `yaml_subset`,
