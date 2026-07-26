@@ -5,21 +5,59 @@ Source of truth for *why* an item exists: `.akos/audit-2026-07-23.md` (full
 integral audit) and `CHANGELOG.md` (what already shipped). This file only
 tracks what's still open.
 
-Last reviewed: 2026-07-25.
+Last reviewed: 2026-07-26.
 
 ## Now
 
-Nothing queued. The previous "Now" batch (tag v1.12.0, merge the 3 open
-Dependabot PRs) shipped today — see Recently shipped. Pull the top of Next
-when picking up work.
+Nothing queued. The corpus expansion (v1.13.0: `security/auth`,
+`security/privacy`, six `ai-engineering` packs promoted to stable, source
+intake gate, draft→stable criterion) shipped — see Recently shipped. Pull the
+top of Next when picking up work.
 
 ## Next
 
-Empty. Everything the audit carried into this list has either shipped (see
-Recently shipped) or turned out to already be resolved/deliberately decided
-against — three of five items were stale by the time we got to them. Next
-time this fills up, re-verify each item against current code before trusting
-the audit's wording; don't repeat the same mistake a fourth time.
+The second knowledge-pack batch. Each closed gap below was verified by grep
+against the corpus, not assumed; each was put through the [source intake
+gate](core/source-policy.md) before landing here. Budget matters as much as
+content: routing selects 2-5 packs from one flat table, so growth past roughly
+60 rows costs selection precision faster than it buys coverage. The corpus is
+at 56. This list is four packs, and then the table is full until something
+earns its way in by displacing something else.
+
+- **`architecture/philosophy-of-software-design`** (Ousterhout, L3). `Ousterhout`
+  and `deep module` return zero hits. Deep modules and complexity as a measured
+  quantity are distinct from `solid` (class and module design) and
+  `clean-architecture` (dependency direction), and it's the closest external
+  source to [pau-avila principle 2](packs/personal/pau-avila/principles.md) —
+  challenge complexity as a standing instruction. Highest value of the four.
+- **`devops/observability`** (OpenTelemetry spec L1 + *Observability Engineering*
+  L3). `OpenTelemetry` returns zero hits. `devops/sre` sets SLOs and error
+  budgets but nothing says how to instrument in order to meet them. Deferred
+  behind the item above because Prototype/MVP projects rarely reach the
+  question.
+- **`frontend/seo`** (Google Search Central + schema.org, L1). `schema.org` and
+  `sitemap` return zero; `SEO` appears once, in passing, in `frontend/html`.
+  Landing pages are a recurring surface here, but nothing is currently blocked
+  on it.
+- **`product/experimentation`** (Kohavi, Tang & Xu, L3). `Kohavi` and
+  `statistical significance` return zero. `product/lean-startup` supplies the
+  hypothesis and none of the statistics — sample size, power, guardrail metrics,
+  p-hacking. Only pays off with real traffic, so it sits last.
+
+Two process items the pack work surfaced:
+
+- **Backfill graph coverage, or state the rule.** 19 packs are absent from
+  `graphs/knowledge-graph.md`. Most are absent correctly — it indexes
+  cross-cutting *concepts*, and `testing/playwright` has no cross-cutting
+  concept — which is why `doctor.sh` deliberately does not require a link.
+  But nobody has checked which of the 19 are genuine omissions versus correct
+  absences. Decide per pack, then either add the node or record that the file
+  is concept-scoped and pack coverage was never the goal.
+- **Split the oversized `ai-engineering` files.**
+  `agent-security/engineering-rules.md` is ~18 KB with 95 `ASE` rules, well past
+  the 40-200 line guidance in `core/knowledge-schema.md`. Promotion to stable
+  deliberately did not require splitting — the content is correct, just long —
+  but a rule file nobody finishes reading is a rule file that gets skimmed.
 
 ## Later
 
@@ -34,6 +72,16 @@ task.
   defines the study (median time-to-first-review, 4/5 solo devs succeeding)
   but it hasn't been run blind against held-out repos yet. The README already
   states the target isn't measured — don't claim it until this runs.
+- **Packs waiting on a stack trigger, not on a decision.** Each is a real gap
+  with a real source; none is worth a routing-table row until the trigger
+  fires. `frontend/tailwind` (L2) — only if `frontend/css` + `design-systems`
+  are shown to fall short in an actual review. `games/godot` (L2) — when a
+  Godot project reaches an AKOS review; today Godot appears once, in the
+  personal layer. `content/i18n` (Unicode CLDR + W3C, L1) — when a project goes
+  multi-language. `architecture/legacy-code` (Feathers, L3) — zero hits today,
+  but it overlaps `martin-fowler-refactoring`, so it waits for a real
+  inherited codebase. `backend/payments` (Stripe's published practice, L2,
+  named explicitly in `core/authority-model.md`) — when something is monetized.
 
 ## Won't do now
 
@@ -47,9 +95,65 @@ every audit pass.
   AKOS is a CLI with no deployed UI. These lenses correctly report `n/a`
   rather than inventing a score — that's the correct behavior, not a gap to
   close.
+- **Knowledge packs rejected by the intake gate**, so the same candidates
+  don't get re-proposed every few months. Each was checked against the corpus
+  before being turned down:
+  - `security/threat-modeling` (STRIDE, Shostack) — `threat model` returns 29
+    hits across `nist-ssdf`, `owasp-asvs`, `owasp-api-top-10` and
+    `agent-security`. Already covered; a pack would duplicate.
+  - `design/motion` — `motion` returns 64 hits, `easing` 13, spread across
+    `material-design`, `frontend/css` and `design-systems`.
+  - `design/typography`, `design/color` — partly covered by `refactoring-ui`
+    and `wcag`; the remainder is preference, and preference lives at Level 0 in
+    [design-language.md](packs/personal/pau-avila/design-language.md), where it
+    wins anyway.
+  - `architecture/data-intensive` (DDIA, Kleppmann) — excellent book, wrong
+    context. Distributed systems at scale versus React + Supabase in
+    Prototype/MVP. Fails intake question 2.
+  - `architecture/pragmatic-programmer`, `testing/goos` — more than half
+    overlapping `martin-fowler-refactoring`, `solid` and `tdd`.
+  - `devops/dora` (*Accelerate*) — team delivery metrics; the owner is a solo
+    developer. Fails intake question 1 in practice.
+  - Any "MDN" or API-reference pack — reference, not doctrine. Fails intake
+    question 1 by definition.
+  - Any pack named after a paper — papers enter as `sources[]` inside a pack.
+    Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
 
+- **Corpus expansion, v1.13.0.** Two packs closing verified zero-coverage gaps:
+  `security/auth` (L1, AU1–AU60 — OAuth/OIDC flow, token validation, session
+  lifecycle, passwords, with a Supabase mapping) and `security/privacy` (L1,
+  PR1–PR49 — lawful basis, minimization at the schema, retention as an enforced
+  job, subject rights, processors). Before them, `OAuth`, `OpenID`, `GDPR`, and
+  `consent-as-legal-basis` returned zero hits across all 54 packs. Both wired
+  into `security-reviewer`; privacy also into `database-reviewer`.
+- **The six `ai-engineering` packs are stable.** They had been `draft` since
+  authoring — readable but excluded from automatic routing — with no documented
+  promotion criterion, so ~7,000 lines of written content was unreachable
+  unless a user named the pack. `core/knowledge-schema.md` now carries a
+  draft→stable criterion built from checks that already existed (citations,
+  source grounding, prefix uniqueness, the disclaimer) rather than new ones, all
+  six were assessed against it, and their rows moved into the stable routing
+  table.
+- **Source intake gate.** `core/source-policy.md` now answers "does this source
+  deserve a pack at all" before scaffolding: a pack is doctrine, not reference;
+  the gap must be shown by grep rather than asserted; a Level 4 source can never
+  be a pack's primary source. It also records two recurring answers — papers
+  enter as `sources[]` inside packs and are never packs themselves, and a
+  website earns a pack only as a platform owner's normative documentation.
+- **Two authoring steps became checks.** `doctor.sh` now verifies every pack
+  README carries an independent-distillation line (this caught
+  `packs/ux/wcag/README.md`, which had shipped without one) and that every
+  `metadata.yaml` `related:` path resolves — schema-typed as plain strings, so a
+  typo silently pointed nowhere. Both were confirmed to fail when deliberately
+  sabotaged before being trusted.
+- **A graph-link check was designed, then rejected.** The plan called for
+  requiring every pack to appear in `graphs/knowledge-graph.md`. Checking first
+  showed 19 packs absent — because that file indexes cross-cutting *concepts*,
+  not packs, and `testing/playwright` correctly has no node. The check would
+  have encoded a rule the graph doesn't follow, so it was dropped and the
+  `related:` check took its slot. The open question is in Next.
 - **JSON envelope unification was already decided against, deliberately.**
   `docs/cli/exit-codes.md` has a "Stable JSON contracts (v1.12)" section
   documenting all 9 commands' shapes as intentionally different, plus a "Why

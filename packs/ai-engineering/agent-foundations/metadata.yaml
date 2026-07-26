@@ -1,7 +1,7 @@
 name: agent-foundations
 domain: ai-engineering
 authority-level: 2
-version: 1.0.0
+version: 1.0.1
 tags: [agent-architecture, workflow-vs-agent, routing, parallelization, orchestrator-worker, evaluator-optimizer, planning, termination-conditions, iteration-limits, error-recovery, escalation, idempotency]
 sources:
   - title: "Building Effective Agents"
@@ -26,9 +26,9 @@ related:
   - packs/devops/sre
   - packs/testing/testing-pyramid
 id: ai-engineering/agent-foundations
-status: draft
-last_reviewed: 2026-07-20
-review_after: 2027-07-20
+status: stable
+last_reviewed: 2026-07-26
+review_after: 2027-07-26
 maintainer: core
 license: MIT
 deprecated: false
