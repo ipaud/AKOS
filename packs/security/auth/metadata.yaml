@@ -1,0 +1,32 @@
+schema_version: 1
+name: auth
+domain: security
+authority-level: 1
+version: 1.0.0
+tags: [authentication, oauth, oidc, pkce, sessions, tokens, refresh-rotation, mfa, passwords, logout, redirect-validation]
+sources:
+  - title: "RFC 9700: Best Current Practice for OAuth 2.0 Security"
+    org: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9700.html
+  - title: "RFC 6749: The OAuth 2.0 Authorization Framework"
+    org: IETF
+    url: https://www.rfc-editor.org/rfc/rfc6749.html
+  - title: "OpenID Connect Core 1.0"
+    org: OpenID Foundation
+    url: https://openid.net/specs/openid-connect-core-1_0.html
+  - title: "NIST SP 800-63B: Digital Identity Guidelines — Authentication and Authenticator Management"
+    org: NIST
+    url: https://pages.nist.gov/800-63-4/sp800-63b.html
+related:
+  - packs/security/owasp-top-10
+  - packs/security/owasp-asvs
+  - packs/security/owasp-api-top-10
+  - packs/backend/supabase
+  - packs/backend/rest
+id: security/auth
+status: stable
+last_reviewed: 2026-07-26
+review_after: 2028-01-22
+maintainer: core
+license: MIT
+deprecated: false

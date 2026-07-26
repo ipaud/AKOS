@@ -1,7 +1,7 @@
 name: tool-design
 domain: ai-engineering
 authority-level: 2
-version: 1.1.0
+version: 1.1.1
 tags: [tool-design, agent-tools, tool-descriptions, structured-inputs, structured-outputs, error-design, idempotency, dry-run, pagination, stable-references, model-context-protocol, agent-computer-interface]
 sources:
   - title: "Writing Effective Tools for AI Agents"
@@ -22,9 +22,9 @@ related:
   - packs/backend/rest
   - packs/architecture/design-patterns
 id: ai-engineering/tool-design
-status: draft
-last_reviewed: 2026-07-20
-review_after: 2027-07-20
+status: stable
+last_reviewed: 2026-07-26
+review_after: 2027-07-26
 maintainer: core
 license: MIT
 deprecated: false

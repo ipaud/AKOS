@@ -6,6 +6,14 @@ formatted to the 48 stable packs, one even labeled "Safety floor."
 These tests derive expectations by reading the REAL corpus's metadata.yaml
 files at test time — never a hardcoded list of "the 6 draft packs" — so a
 future promotion/demotion doesn't silently stale the test.
+
+That promotion has now happened: all six shipped as `stable`, and the corpus
+can legitimately hold zero draft packs. Corpus-derived tests therefore skip
+rather than pass when there is no draft to observe — a vacuous green here
+would claim the draft mechanism was verified when nothing exercised it. The
+mechanism itself stays covered unconditionally by `TestRoutingCheckSabotage`,
+which builds synthetic draft packs in a temp dir and asserts the violations
+are caught.
 """
 
 import shutil
@@ -28,15 +36,27 @@ def _real_pack_statuses() -> dict:
     return rc.load_pack_statuses(AKOS_HOME)
 
 
+def _real_draft_ids() -> set:
+    return {pid for pid, status in _real_pack_statuses().items() if status == "draft"}
+
+
+def _require_a_real_draft(test: unittest.TestCase) -> set:
+    """Corpus-derived draft assertions are only meaningful when a draft exists.
+    Skip instead of passing vacuously — see the module docstring."""
+    draft_ids = _real_draft_ids()
+    if not draft_ids:
+        test.skipTest("corpus currently has no draft packs; TestRoutingCheckSabotage "
+                      "covers the draft mechanism against synthetic packs")
+    return draft_ids
+
+
 class TestRoutingCheckAgainstRealCorpus(unittest.TestCase):
     def test_stable_routing_catalog_contains_only_stable_packs(self):
         errors = rc.check_stable_routing(AKOS_HOME)
         self.assertEqual(errors, [], f"real repo should have zero routing violations: {errors}")
 
     def test_draft_pack_is_absent_from_automatic_routing(self):
-        statuses = _real_pack_statuses()
-        draft_ids = {pid for pid, status in statuses.items() if status == "draft"}
-        self.assertTrue(draft_ids, "expected at least one real draft pack to test against")
+        draft_ids = _require_a_real_draft(self)
         stable_ids, experimental_ids = rc.parse_skill_routing(AKOS_HOME / "skills" / "akos" / "SKILL.md")
         for pid in draft_ids:
             self.assertNotIn(pid, stable_ids, f"draft pack {pid!r} must not be in the Stable routing catalog")
@@ -46,8 +66,7 @@ class TestRoutingCheckAgainstRealCorpus(unittest.TestCase):
         # graphs/knowledge-graph.md legitimately links several draft packs as
         # catalog cross-references — routing_check never scans graphs/ at
         # all, so this is satisfied by construction, not by an exception list.
-        statuses = _real_pack_statuses()
-        draft_ids = {pid for pid, status in statuses.items() if status == "draft"}
+        draft_ids = _require_a_real_draft(self)
         graph_text = (AKOS_HOME / "graphs" / "knowledge-graph.md").read_text(encoding="utf-8")
         referenced = {pid for pid in draft_ids if pid in graph_text}
         self.assertTrue(referenced, "expected the knowledge graph to reference at least one draft pack")
@@ -162,13 +181,13 @@ class TestListPacksCLI(unittest.TestCase):
         )
 
     def test_list_packs_default_hides_draft(self):
-        draft_ids = {pid for pid, s in _real_pack_statuses().items() if s == "draft"}
+        draft_ids = _require_a_real_draft(self)
         out = self._run().stdout
         for pid in draft_ids:
             self.assertNotIn(pid, out, f"default list-packs must not show draft pack {pid!r}")
 
     def test_draft_pack_is_visible_with_list_packs_all(self):
-        draft_ids = {pid for pid, s in _real_pack_statuses().items() if s == "draft"}
+        draft_ids = _require_a_real_draft(self)
         out = self._run("--all").stdout
         for pid in draft_ids:
             self.assertIn(pid, out, f"list-packs --all must show draft pack {pid!r}")
@@ -177,7 +196,20 @@ class TestListPacksCLI(unittest.TestCase):
         first = self._run("--status", "draft").stdout
         second = self._run("--status", "draft").stdout
         self.assertEqual(first, second)
-        self.assertNotEqual(first.strip(), "")
+        # Non-empty only asserted when the corpus actually holds a draft; with
+        # none, empty output is the correct answer, not a broken filter.
+        if _real_draft_ids():
+            self.assertNotEqual(first.strip(), "")
+
+    def test_list_packs_default_shows_stable_packs(self):
+        # Guards the guard: the two draft assertions above skip when the corpus
+        # has no drafts, so something must still prove `list-packs` produces
+        # real output rather than silently emitting nothing.
+        out = self._run().stdout
+        stable_ids = {pid for pid, s in _real_pack_statuses().items() if s == "stable"}
+        self.assertTrue(stable_ids, "corpus should contain stable packs")
+        for pid in sorted(stable_ids)[:5]:
+            self.assertIn(pid, out, f"list-packs must show stable pack {pid!r}")
 
 
 class TestCreatePackDraftWarning(unittest.TestCase):

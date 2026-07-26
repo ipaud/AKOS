@@ -23,6 +23,9 @@ Detects security vulnerabilities — the safety-floor security check. Covers OWA
 - [security/owasp-api-top-10](../packs/security/owasp-api-top-10/README.md) — for APIs
 - [security/owasp-asvs](../packs/security/owasp-asvs/README.md) — verification level
 - [security/nist-ssdf](../packs/security/nist-ssdf/README.md) — process
+- [security/auth](../packs/security/auth/README.md) — when a login, session, or token flow is in scope
+- [security/privacy](../packs/security/privacy/README.md) — when personal data is collected, stored, or sent to a third party
+- [ai-engineering/agent-security](../packs/ai-engineering/agent-security/README.md) — when a model reads external content and then acts
 - [backend/supabase](../packs/backend/supabase/README.md) + `packs/personal/<personal_profile>/supabase-rules.md` — RLS (profile named in `.akos/config.md`, default `pau-avila`)
 
 ## Review checklist

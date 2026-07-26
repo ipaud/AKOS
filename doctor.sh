@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # doctor.sh — AKOS health check.
-# Verifies directory structure, the 17-file pack contract, executable bits,
-# symlinks, and empty files. Exits non-zero on any failure.
+# Verifies directory structure, the 12-file pack contract, pack provenance,
+# executable bits, symlinks, and empty files. Exits non-zero on any failure.
 #
 # Deliberately no `set -e` (unlike install/update/uninstall): this script is a
 # report accumulator — individual checks failing IS the data, counted into the
@@ -89,6 +89,52 @@ for pack in "$AKOS_HOME"/packs/*/*/; do
   done
 done
 if [ "$pack_issues" -eq 0 ]; then ok "$pack_count packs all satisfy the file contract"; fi
+
+# --- Pack provenance & metadata links ---
+# Two authoring steps nothing verified before. Both are cheap greps and both
+# close a real gap: an audit found packs/ux/wcag/README.md shipping with no
+# independence claim at all, and `related:` is schema-typed as a list of plain
+# strings — a typo there resolves to nothing and no check noticed.
+#
+# NOT checked here: presence in graphs/knowledge-graph.md. That file indexes
+# cross-cutting *concepts*, not packs — a single-domain pack like
+# testing/playwright legitimately has no node, and 19 packs are absent by
+# design. Requiring a link would encode a rule the graph does not follow.
+printf '\n%sPack provenance & links%s\n' "$c_bold" "$c_reset"
+prov_issues=0; related_issues=0
+for pack in "$AKOS_HOME"/packs/*/*/; do
+  [ -d "$pack" ] || continue
+  rel="${pack#"$AKOS_HOME/packs/"}"; rel="${rel%/}"
+  # The personal layer distills nobody — it encodes the owner's own rules, so
+  # it carries neither a source disclaimer nor a `related:` list.
+  case "$rel" in personal/*) continue ;; esac
+  # Substring, not the canonical sentence: core/source-policy.md sanctions a
+  # terse variant for sources with no "originals to buy" (a standards body).
+  # What's required is the claim of independence, not one exact wording.
+  if [ -f "$pack/README.md" ] && ! grep -qi 'independent distillation' "$pack/README.md"; then
+    fail "pack '$rel': README.md has no independent-distillation line (core/source-policy.md)"
+    prov_issues=$((prov_issues+1))
+  fi
+  if [ -f "$pack/metadata.yaml" ]; then
+    related_targets="$(awk '
+      /^related:/ {inlist=1; next}
+      /^[a-zA-Z_-]+:/ {inlist=0}
+      inlist && /^[[:space:]]*-[[:space:]]/ {
+        sub(/^[[:space:]]*-[[:space:]]*/, ""); gsub(/["\r]/, ""); print
+      }' "$pack/metadata.yaml")"
+    # Unquoted on purpose: pack paths never contain whitespace, and word
+    # splitting is what turns the awk output into one target per iteration.
+    # shellcheck disable=SC2086
+    for target in $related_targets; do
+      [ -d "$AKOS_HOME/$target" ] || {
+        fail "pack '$rel': related '$target' does not exist"
+        related_issues=$((related_issues+1))
+      }
+    done
+  fi
+done
+if [ "$prov_issues" -eq 0 ]; then ok "all packs carry an independent-distillation line"; fi
+if [ "$related_issues" -eq 0 ]; then ok "all metadata 'related:' paths resolve"; fi
 
 # --- Empty file check ---
 printf '\n%sEmpty files%s\n' "$c_bold" "$c_reset"

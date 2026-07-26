@@ -3,6 +3,104 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.13.0] — 2026-07-26
+
+Corpus expansion release. Two new Level 1 packs closing verified zero-coverage
+gaps, the six `ai-engineering` packs promoted out of `draft`, and the authoring
+path hardened so the next batch is mechanical rather than archaeological.
+
+### Added
+
+- **`packs/security/auth`** (Level 1 — IETF RFC 9700 and RFC 6749, OpenID
+  Connect Core, NIST SP 800-63B). Principles P1–P16 and engineering rules
+  AU1–AU60 covering flow selection, the round trip, redirects, token validation,
+  token storage and transport, session lifecycle, passwords and recovery,
+  multi-factor, and enumeration. `★` marks the safety floor, which no reasoning
+  profile modulates. Before this pack, `grep -ril 'OAuth\|OpenID'` across all 54
+  packs returned nothing: `backend/supabase` covered row-level authorization and
+  `owasp-asvs` covered stating a verification level, but nothing covered
+  designing the login itself.
+- **A Supabase mapping inside that pack** (AU54–AU60), so it does not
+  re-litigate the stack it will most often load against — it names where the
+  platform already satisfies a rule and where the rule is a setting shipped
+  switched off. AU54 is the one most likely violated in practice: `getSession()`
+  returns unverified cookie contents, and authorizing from it server-side is a
+  client-trusted claim wearing server-side clothing.
+- **`packs/security/privacy`** (Level 1 — Regulation (EU) 2016/679, EDPB
+  guidelines on consent and on Article 25, AEPD cookie guidance). Principles
+  P1–P18 and engineering rules PR1–PR49 covering inventory and purpose, lawful
+  basis and consent, minimization and design defaults, retention and deletion,
+  subject rights, processors and transfers, incidents and high-risk processing,
+  and a Supabase/Postgres mapping. `GDPR` and consent-as-a-legal-basis returned
+  zero hits before this. The pack carries a second disclaimer beside the
+  standard distillation line: engineering guidance, not legal advice.
+- **A source intake gate** in `core/source-policy.md`, answered before
+  scaffolding: what position does this source hold that yields 10+ checkable
+  rules, what gap does it close (shown by grep, not asserted), what authority
+  level and why, and for a Level 3 paper or Level 4 web source, what corroborates
+  it. States the rule the corpus had been following implicitly — **a pack is
+  doctrine, not reference** — plus two recurring answers: papers enter as
+  `sources[]` inside packs and are never packs themselves, and a website earns a
+  pack only when it is the platform owner's normative documentation.
+- **A draft→stable criterion** in `core/knowledge-schema.md`, built deliberately
+  from checks that already existed (in-pack citation resolution, source grounding
+  in `references.md`, prefix uniqueness, the README disclaimer) rather than new
+  ones — a promotion bar nothing enforces is a bar that drifts.
+- **Two `doctor.sh` checks** covering authoring steps nothing verified before:
+  every non-personal pack README carries an independent-distillation line, and
+  every `metadata.yaml` `related:` path resolves to a real directory. Both were
+  confirmed to fail against a deliberately sabotaged copy before being trusted.
+
+### Changed
+
+- **The six `ai-engineering` packs are now `stable`** (`agent-foundations`,
+  `context-engineering`, `coding-agents`, `agent-security`, `agent-evals`,
+  `tool-design`). They had been `draft` since authoring — readable, but excluded
+  from automatic routing and loadable only when a user named them — leaving
+  roughly 7,000 lines of written content unreachable in normal use. Each was
+  assessed against the new criterion, re-stamped (`last_reviewed: 2026-07-26`,
+  `review_after` recomputed from the authority-level cadence), patch-bumped, and
+  moved from the Experimental table into the stable routing catalog.
+- **The Experimental section in `skills/akos/SKILL.md` is now empty by state, not
+  removed.** The mechanism is permanent — `akos create-pack` still writes
+  `status: draft`, and `schemas/routing_check.py` still fails the build on a
+  draft pack appearing in the stable catalog.
+- **`security-reviewer` loads `security/auth`, `security/privacy`, and
+  `ai-engineering/agent-security`**; `database-reviewer` loads
+  `security/privacy`. The agent-security dependency only became legal once that
+  pack was stable — `routing_check.py` bars a stable agent from depending on a
+  draft pack.
+- **`packs/ux/wcag/README.md` carries the mandatory disclaimer.** It had shipped
+  without any independence claim, which is what the new `doctor.sh` check caught
+  on its first run. `core/source-policy.md` now requires *a* line opening with
+  "Independent distillation" and pointing at `references.md` rather than one
+  exact sentence — the terse variant several packs already use is legitimate for
+  a standards body with no "originals to buy", and enforcing literal wording
+  would have meant rewriting ~49 READMEs to fix one real bug.
+- **`tests/unit/test_pack_lifecycle_routing.py` skips instead of passing
+  vacuously** when the corpus holds no draft packs — now a reachable state. A
+  green tick there would have claimed the draft mechanism was verified while
+  nothing exercised it; `TestRoutingCheckSabotage` still covers the mechanism
+  unconditionally against synthetic packs, and a new test asserts `list-packs`
+  produces real output so the skips can't hide a broken command.
+
+### Not done, deliberately
+
+- **No graph-link check.** The plan called for `doctor.sh` to require every pack
+  to appear in `graphs/knowledge-graph.md`. Checking first showed 19 packs
+  absent — that file indexes cross-cutting *concepts*, not packs, and
+  `testing/playwright` correctly has no node. The check would have encoded a rule
+  the graph does not follow. Dropped, with the open question recorded in
+  `ROADMAP.md`.
+- **The oversized `ai-engineering` rule files were not split.**
+  `agent-security/engineering-rules.md` runs ~18 KB / 95 rules against a
+  40–200-line guideline. The content is correct, just long; promotion did not
+  require restructuring it. Recorded in `ROADMAP.md`.
+- **No bulk import.** Routing selects 2–5 packs from one flat table, so the
+  corpus grew by two, not twenty. The evaluated catalog — four packs queued,
+  five waiting on a stack trigger, eight rejected with the reason and the
+  supporting grep — lives in `ROADMAP.md` so it isn't re-derived.
+
 ## [1.12.0] — 2026-07-23
 
 Testing and CI reliability release. Versions 1.10.0 and 1.11.0 were internal

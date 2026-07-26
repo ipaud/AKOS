@@ -20,6 +20,7 @@ Reviews database schema, queries, migrations, and — for this owner's stack —
 
 - [backend/postgres](../packs/backend/postgres/README.md) — primary
 - [backend/supabase](../packs/backend/supabase/README.md) + `packs/personal/<personal_profile>/supabase-rules.md` — RLS, Level 0 (profile named in `.akos/config.md`, default `pau-avila`)
+- [security/privacy](../packs/security/privacy/README.md) — when the schema holds personal data: minimization at column level, enforced retention, and whether the deletion path reaches every destination
 - Coordinates with [security-reviewer](security-reviewer.md) on RLS/PII.
 
 ## Review checklist

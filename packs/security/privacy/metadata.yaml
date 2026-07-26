@@ -1,0 +1,32 @@
+schema_version: 1
+name: privacy
+domain: security
+authority-level: 1
+version: 1.0.0
+tags: [gdpr, privacy, personal-data, lawful-basis, consent, data-minimization, data-subject-rights, retention, processors, data-residency, breach-notification, dpia, cookies]
+sources:
+  - title: "Regulation (EU) 2016/679 (General Data Protection Regulation)"
+    org: European Union
+    url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+  - title: "Guidelines 05/2020 on consent under Regulation 2016/679"
+    org: European Data Protection Board
+    url: https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-052020-consent-under-regulation-2016679_en
+  - title: "Guidelines 4/2019 on Article 25 Data Protection by Design and by Default"
+    org: European Data Protection Board
+    url: https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-42019-article-25-data-protection-design-and_en
+  - title: "Guía sobre el uso de las cookies"
+    org: Agencia Española de Protección de Datos
+    url: https://www.aepd.es/documento/guia-cookies.pdf
+related:
+  - packs/security/auth
+  - packs/security/owasp-top-10
+  - packs/backend/supabase
+  - packs/backend/postgres
+  - packs/content/ux-writing
+id: security/privacy
+status: stable
+last_reviewed: 2026-07-26
+review_after: 2028-01-22
+maintainer: core
+license: MIT
+deprecated: false

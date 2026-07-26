@@ -1,5 +1,22 @@
 # Changelog — context-engineering
 
+## [1.0.1] — 2026-07-26
+
+### Changed
+
+- **Promoted from `draft` to `stable`.** Assessed against the draft→stable criterion
+  now recorded in [core/knowledge-schema.md](../../../core/knowledge-schema.md): no
+  placeholder content in any required file, every cited rule code defined in this pack,
+  every `metadata.yaml` source grounded verbatim in `references.md`, the `CEE`
+  prefix owned by this pack alone, and the independent-distillation line present in
+  `README.md`. The first four are verified by the existing unit suite; the last by a new
+  `doctor.sh` check added alongside this promotion. `last_reviewed` re-stamped to the
+  promotion date and `review_after` recomputed from the Level 2 365-day cadence.
+- **Now routable automatically.** The pack's row moves from the Experimental table into
+  the stable routing table in `skills/akos/SKILL.md`, so it enters the "2-5 packs closest
+  to the task" selection instead of loading only when a user names it, and stable agents
+  may now depend on it.
+
 ## [1.0.0] — 2026-07-20
 
 ### Added

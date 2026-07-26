@@ -24,7 +24,7 @@ Importance encoded by prominence.
 → [WCAG](../packs/ux/wcag/README.md) (L1 authority) · [Apple HIG](../packs/ux/apple-hig/principles.md) · [Material](../packs/ux/material-design/principles.md) · [NN/g](../packs/ux/nielsen-norman-group/principles.md) · [Krug P15](../packs/ux/steve-krug/principles.md) · enforced by [constitution](../core/constitution.md)
 
 ### Security as a floor
-→ [OWASP Top 10](../packs/security/owasp-top-10/README.md) · [OWASP API](../packs/security/owasp-api-top-10/README.md) · [ASVS](../packs/security/owasp-asvs/README.md) · [NIST SSDF](../packs/security/nist-ssdf/README.md) · [Supabase RLS](../packs/backend/supabase/README.md) · [personal supabase-rules](../packs/personal/pau-avila/supabase-rules.md) · [agent-security](../packs/ai-engineering/agent-security/README.md) (L1, the agent surface)
+→ [OWASP Top 10](../packs/security/owasp-top-10/README.md) · [OWASP API](../packs/security/owasp-api-top-10/README.md) · [ASVS](../packs/security/owasp-asvs/README.md) · [NIST SSDF](../packs/security/nist-ssdf/README.md) · [Supabase RLS](../packs/backend/supabase/README.md) · [personal supabase-rules](../packs/personal/pau-avila/supabase-rules.md) · [agent-security](../packs/ai-engineering/agent-security/README.md) (L1, the agent surface) · [auth](../packs/security/auth/README.md) (L1, the login itself) · [privacy](../packs/security/privacy/README.md) (L1, what may be held at all)
 
 ### Product discovery / outcomes over output
 → [Inspired](../packs/product/inspired/README.md) · [Lean Startup](../packs/product/lean-startup/README.md) · [Escaping the Build Trap](../packs/product/escaping-the-build-trap/README.md) · [Continuous Discovery](../packs/product/continuous-discovery-habits/README.md)
@@ -42,7 +42,11 @@ Nothing counts as done because it looks right; it counts when something ran and 
 
 ### Blast radius and least privilege
 Bound what a thing *can* do rather than trusting it to choose well — whether the thing is an agent, a tool, a token, or a migration.
-→ [agent-security controls](../packs/ai-engineering/agent-security/engineering-rules.md) · [tool-design: dry-run and destructive confirmation](../packs/ai-engineering/tool-design/engineering-rules.md) · [ASVS](../packs/security/owasp-asvs/README.md) · [Supabase RLS](../packs/backend/supabase/README.md) · [deployment rollback](../packs/devops/deployment/principles.md)
+→ [agent-security controls](../packs/ai-engineering/agent-security/engineering-rules.md) · [tool-design: dry-run and destructive confirmation](../packs/ai-engineering/tool-design/engineering-rules.md) · [ASVS](../packs/security/owasp-asvs/README.md) · [Supabase RLS](../packs/backend/supabase/README.md) · [deployment rollback](../packs/devops/deployment/principles.md) · [auth P2: every credential is a bearer of blast radius until something binds it](../packs/security/auth/principles.md)
+
+### The cheapest control is the thing that was never created
+Complexity, capability, and data all cost the same way: once it exists, every subsequent control is damage limitation on a decision already made. The discipline is identical across four domains — decline first, mitigate second.
+→ [privacy P3: collection is the decision that cannot be undone](../packs/security/privacy/principles.md) · [constitution Art. 7](../core/constitution.md) · [pau-avila principle 2](../packs/personal/pau-avila/principles.md) · [SOLID overuse guards](../packs/architecture/solid/principles.md) · [agent-foundations: the agent is the last shape to reach for](../packs/ai-engineering/agent-foundations/philosophy.md) · [context-engineering: budget before you fetch](../packs/ai-engineering/context-engineering/principles.md)
 
 ### Bounded work: budgets, termination, recovery
 Any long-running process needs a stated stopping condition, a budget, and a defined response to failure — stated before it starts, not inferred after.

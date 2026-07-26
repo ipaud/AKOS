@@ -70,10 +70,46 @@ When unsure, ask: could a linter check it? → engineering rule. Would an expert
 
 ## Creating a pack
 
-`akos create-pack <domain>/<name>` scaffolds the contract. Then:
+Clear the [source intake gate](source-policy.md#source-intake-gate) first — it decides
+whether the source earns a pack at all. Then `akos create-pack <domain>/<name>` scaffolds
+the contract, and:
 
 1. Set `metadata.yaml` (authority level per [authority-model.md](authority-model.md)).
 2. Write `principles.md` first — it forces the distillation.
 3. Derive `review-checklist.md` and `engineering-rules.md` from the principles.
 4. Fill the rest; link related packs in the relevant `graphs/` file.
-5. Run `./doctor.sh` — it verifies the required-file contract.
+5. Add the pack to the routing table in `skills/akos/SKILL.md` — a pack absent from it
+   is a pack agents can't route to.
+6. Run `./doctor.sh` — it verifies the required-file contract.
+
+## Draft → stable
+
+`akos create-pack` writes `status: draft`. A draft pack is readable but excluded from
+automatic routing: it sits in the Experimental table in `skills/akos/SKILL.md`, loads
+only when the user asks for it by name, and no stable agent or workflow may depend on
+it (`schemas/routing_check.py` enforces both directions).
+
+Promotion is a judgment call with a fixed evidence bar, not a calendar event. All of
+these hold before `status` flips:
+
+- **Content bar met in every required file** — no placeholders, no "TBD", nothing that
+  reads as scaffolding output. See the bar above.
+- **Rules are operational and binary.** Every `engineering-rules.md` entry is checkable
+  in an artifact; every `review-checklist.md` item can fail.
+- **Every cited rule code is defined in the pack that cites it**
+  (`tests/unit/test_pack_citations.py`).
+- **Every `sources[].title` is grounded in `references.md`, verbatim**
+  (`tests/unit/test_sources_references_integrity.py`).
+- **The rule-code prefix is globally unique** — one defining pack per prefix
+  (`tests/unit/test_pack_prefix_uniqueness.py`).
+- **`README.md` carries the independent-distillation line** (`doctor.sh`).
+- **The pack is linked from `graphs/knowledge-graph.md`** (`doctor.sh`).
+
+The criterion deliberately reuses checks that already exist rather than inventing new
+ones — a promotion bar nothing enforces is a bar that drifts.
+
+On promotion: set `status: stable`, re-stamp `last_reviewed` to the promotion date,
+recompute `review_after` from the authority-level cadence, bump the patch version in
+`VERSION` *and* `metadata.yaml` together, add a `CHANGELOG.md` entry, and move the
+pack's row from the Experimental table into the stable routing table in
+`skills/akos/SKILL.md`. `routing_check.py` fails if the row and the status disagree.

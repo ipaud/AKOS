@@ -4,7 +4,7 @@
 
 Operationalizes the Web Content Accessibility Guidelines (2.2, level AA as the working target) into concrete pass/fail checks for building and reviewing. This is AKOS's accessibility floor: per the [constitution](../../../core/constitution.md), no reasoning profile and no personal preference may drop below it.
 
-This pack restates requirements operationally and cites success criteria by number — the normative text at w3.org is always the authority ([source-policy](../../../core/source-policy.md)).
+Independent distillation; not affiliated with or endorsed by the W3C. This pack restates requirements operationally and cites success criteria by number — the normative text at w3.org is always the authority. See [references.md](references.md) ([source-policy](../../../core/source-policy.md)).
 
 ## When to load this pack
 

@@ -1,7 +1,7 @@
 name: agent-security
 domain: ai-engineering
 authority-level: 1
-version: 1.0.0
+version: 1.0.1
 tags: [prompt-injection, indirect-prompt-injection, tool-poisoning, data-exfiltration, excessive-agency, confused-deputy, memory-poisoning, insecure-output-handling, human-in-the-loop, mcp-security, sandboxing, audit-logging]
 sources:
   - title: "OWASP Top 10 for Large Language Model Applications"
@@ -27,9 +27,9 @@ related:
   - packs/ai-engineering/tool-design
   - packs/ai-engineering/context-engineering
 id: ai-engineering/agent-security
-status: draft
-last_reviewed: 2026-07-20
-review_after: 2028-01-16
+status: stable
+last_reviewed: 2026-07-26
+review_after: 2028-01-22
 maintainer: core
 license: MIT
 deprecated: false
