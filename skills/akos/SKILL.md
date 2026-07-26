@@ -8,7 +8,7 @@ description: Load AKOS knowledge (constitution, authority model, reasoning profi
 AKOS root is `~/DEV/AKOS`. If that path does not exist, AKOS root is the
 directory two levels above this file. Every path below is relative to it.
 
-Read files with your file-reading tool. Do not load the whole repo — it is 56
+Read files with your file-reading tool. Do not load the whole repo — it is 57
 packs. Load the constitution, the profile, the Level-0 layer, and 2-5 packs.
 
 ## 1. Bootstrap
@@ -120,6 +120,7 @@ is really about visual craft wastes a slot.
 | `architecture/domain-driven-design` | The domain is genuinely complex and the language is inconsistent. |
 | `architecture/design-patterns` | A recurring structural problem has a known named solution. |
 | `architecture/martin-fowler-refactoring` | Code works but resists change. Smells, incremental restructuring. |
+| `architecture/philosophy-of-software-design` | What a boundary costs the next reader: module depth, information leakage, change amplification, error design, comments as a design test. Designing a schema, interface, or module split that is expensive to reverse. Skip in Prototype — nothing here is a floor. |
 | `architecture/twelve-factor-app` | Config, statelessness, and portability for a deployed service. |
 | `testing/tdd` | Writing new logic — tests lead the implementation. |
 | `testing/testing-pyramid` | Deciding *what level* to test at; the suite is slow or top-heavy. |

@@ -3,6 +3,53 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.14.0] — 2026-07-26
+
+First pack from the v1.13.0 backlog, and the first to go through the source
+intake gate that shipped with it.
+
+### Added
+
+- **`packs/architecture/philosophy-of-software-design`** (Level 3 — John Ousterhout,
+  *A Philosophy of Software Design*). Principles P1–P19 and engineering rules PSD1–PSD36
+  across module depth, information hiding, interfaces, errors and special cases, naming,
+  comments, and working method. Cleared the intake gate on a verified gap: `Ousterhout`,
+  `deep module`, `shallow module`, `information hiding`, `change amplification`,
+  `temporal decomposition`, `tactical programming`, and `define errors out of existence`
+  all returned zero hits across the 56-pack corpus. `information hiding` returning zero was
+  the deciding signal — a foundational concept that no architecture pack covered.
+- **The corpus's first pack with no starred rule and no CRITICAL scoring band.** Both
+  absences are deliberate: this is a Level 3 design opinion, and a rubric that let it push
+  a score into the Blocked band would make aesthetics outrank the things that genuinely
+  block. Total deduction is capped at −40, and the pack scores `n/a` under the Prototype
+  profile, where tactical programming is the correct mode.
+- **A reviewer-discipline rule, carried in three places** (review checklist, scoring
+  rubric, review-lens prompt fragment): a finding must name what a caller or the next
+  reader stops having to know, or it is dropped, and a finding without that sentence does
+  not score at all. "This module is shallow" with nothing after it is unanswerable — it
+  either blocks work arbitrarily or teaches people to ignore design feedback, and the
+  second costs more than the shallow module did. The pack's own `anti-patterns.md` lists
+  that failure, and design theatre on a prototype, as failure modes of *applying* the pack.
+
+### Changed
+
+- **`core/conflict-resolution.md` gains canonical ruling R13.** This pack disputes the
+  common reading of `solid` and `clean-architecture` on decomposition granularity — Level 3
+  against Level 3, both architecture sources, so resolution steps 4 (authority) and 5
+  (proximity) both tie and the existing rulings did not cover it. R13: **ask what the split
+  hides.** A boundary that lets the caller stop knowing something wins; one that only
+  reduces line count does not. State the tradeoff; a Level 0 file-size convention outranks
+  both (R4); the packs agree far more than they differ, so this applies only at the margin.
+  Added per `CONTRIBUTING.md`, which directs uncovered pack conflicts to this file rather
+  than to patching one pack.
+- **`packs/personal/pau-avila/coding-preferences.md` is untouched.** Its 200–400 line
+  convention stands. The accurate reading of this pack — and the one that dissolves most of
+  the conflict — is that it concerns *interface* depth, not file length.
+- `agents/architecture-reviewer.md` loads the pack, with the MEDIUM ceiling and the
+  name-the-beneficiary requirement stated at the point of loading rather than left in the
+  pack. `graphs/architecture-graph.md` gains three concept edges, including the
+  SOLID-versus-depth disagreement, and now describes seven packs.
+
 ## [1.13.0] — 2026-07-26
 
 Corpus expansion release. Two new Level 1 packs closing verified zero-coverage
