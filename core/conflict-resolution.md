@@ -32,6 +32,7 @@ These are precedents. Cite them instead of re-deriving.
 | R10 | Outcome-driven product advice (L3) vs stakeholder feature demand | **Surface, don't block.** Agent flags the outcome question but the human owns product calls. |
 | R11 | Newer community technique (L4) vs established L2 practice | **L2 wins** unless the L4 technique addresses something L2 predates — then flag as "promising, verify". |
 | R12 | Two Level 1 standards conflict (rare; e.g. platform pattern vs WCAG) | **WCAG wins** on accessibility substance; platform wins on idiom. Usually both can be satisfied — find that design first. |
+| R13 | Decomposition granularity: `philosophy-of-software-design` (module depth — a split must hide something) vs the common reading of `solid`/`clean-architecture` (smaller units are better) | **Ask what the split hides.** Steps 4 and 5 both tie — same level, same domain — so neither authority nor proximity settles it. A boundary that lets the caller stop knowing something wins; one that only reduces line count does not. State the tradeoff explicitly. A Level 0 file-size convention outranks both (R4), and the packs agree far more than they differ — this applies only at the margin. |
 
 ## The tradeoff statement
 

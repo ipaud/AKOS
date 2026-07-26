@@ -9,27 +9,21 @@ Last reviewed: 2026-07-26.
 
 ## Now
 
-Nothing queued. The corpus expansion (v1.13.0: `security/auth`,
-`security/privacy`, six `ai-engineering` packs promoted to stable, source
-intake gate, draft→stable criterion) shipped — see Recently shipped. Pull the
-top of Next when picking up work.
+Nothing queued. v1.14.0 (`architecture/philosophy-of-software-design` + ruling
+R13) shipped on top of v1.13.0 — see Recently shipped. Pull the top of Next
+when picking up work; `devops/observability` is now at the top of it.
 
 ## Next
 
-The second knowledge-pack batch. Each closed gap below was verified by grep
-against the corpus, not assumed; each was put through the [source intake
-gate](core/source-policy.md) before landing here. Budget matters as much as
-content: routing selects 2-5 packs from one flat table, so growth past roughly
-60 rows costs selection precision faster than it buys coverage. The corpus is
-at 56. This list is four packs, and then the table is full until something
-earns its way in by displacing something else.
+The rest of the second knowledge-pack batch. Each closed gap below was verified
+by grep against the corpus, not assumed; each was put through the [source
+intake gate](core/source-policy.md) before landing here. Budget matters as much
+as content: routing selects 2-5 packs from one flat table, so growth past
+roughly 60 rows costs selection precision faster than it buys coverage. The
+corpus is at 57 after `philosophy-of-software-design` shipped. Three packs
+remain in this batch, and then the table is full until something earns its way
+in by displacing something else.
 
-- **`architecture/philosophy-of-software-design`** (Ousterhout, L3). `Ousterhout`
-  and `deep module` return zero hits. Deep modules and complexity as a measured
-  quantity are distinct from `solid` (class and module design) and
-  `clean-architecture` (dependency direction), and it's the closest external
-  source to [pau-avila principle 2](packs/personal/pau-avila/principles.md) —
-  challenge complexity as a standing instruction. Highest value of the four.
 - **`devops/observability`** (OpenTelemetry spec L1 + *Observability Engineering*
   L3). `OpenTelemetry` returns zero hits. `devops/sre` sets SLOs and error
   budgets but nothing says how to instrument in order to meet them. Deferred
@@ -121,6 +115,23 @@ every audit pass.
 
 ## Recently shipped (context for what's *not* on this list anymore)
 
+- **`architecture/philosophy-of-software-design`, v1.14.0.** First pack from this
+  backlog, and the first through the intake gate that shipped with v1.13.0 — the
+  gate worked as designed, turning "is Ousterhout worth a pack" into eight greps
+  and a stated position. P1–P19, PSD1–PSD36. Notable for two firsts: no starred
+  rule and no CRITICAL scoring band anywhere in the pack (a Level 3 design
+  opinion must not acquire floor authority), and a reviewer-discipline rule
+  requiring every finding to name what a caller stops needing to know — the
+  pack's own likely failure mode is a reviewer wielding "that's shallow" as an
+  unanswerable objection.
+- **Canonical ruling R13.** The pack disputes the common reading of `solid` and
+  `clean-architecture` on decomposition granularity, L3 against L3 in the same
+  domain, so the resolution algorithm's authority and proximity steps both tie.
+  R13 settles it — ask what the split hides — and `CONTRIBUTING.md` directs
+  exactly this case to `core/conflict-resolution.md` rather than to patching one
+  pack. The Level 0 file-size convention in `packs/personal/pau-avila/` was left
+  untouched: it outranks both packs, and reading PSD as being about interface
+  depth rather than file length dissolves most of the conflict anyway.
 - **Corpus expansion, v1.13.0.** Two packs closing verified zero-coverage gaps:
   `security/auth` (L1, AU1–AU60 — OAuth/OIDC flow, token validation, session
   lifecycle, passwords, with a Supabase mapping) and `security/privacy` (L1,

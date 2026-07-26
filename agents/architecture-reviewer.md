@@ -24,6 +24,7 @@ Reviews structural decisions: right-sized layering, dependency direction, coupli
 - [architecture/domain-driven-design](../packs/architecture/domain-driven-design/README.md)
 - [architecture/martin-fowler-refactoring](../packs/architecture/martin-fowler-refactoring/README.md)
 - [architecture/design-patterns](../packs/architecture/design-patterns/README.md)
+- [architecture/philosophy-of-software-design](../packs/architecture/philosophy-of-software-design/README.md) — module depth and information leakage; MEDIUM at most, and every finding must name what a caller stops needing to know
 - [architecture/twelve-factor-app](../packs/architecture/twelve-factor-app/README.md) — for deployable services
 
 ## Review checklist
