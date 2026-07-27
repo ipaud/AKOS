@@ -9,9 +9,9 @@ Last reviewed: 2026-07-26.
 
 ## Now
 
-Nothing queued. v1.14.0 (`architecture/philosophy-of-software-design` + ruling
-R13) shipped on top of v1.13.0 — see Recently shipped. Pull the top of Next
-when picking up work; `devops/observability` is now at the top of it.
+Nothing queued. v1.15.0 (`devops/observability`) shipped — see Recently
+shipped. Pull the top of Next when picking up work; `frontend/seo` is now at
+the top of it.
 
 ## Next
 
@@ -20,15 +20,10 @@ by grep against the corpus, not assumed; each was put through the [source
 intake gate](core/source-policy.md) before landing here. Budget matters as much
 as content: routing selects 2-5 packs from one flat table, so growth past
 roughly 60 rows costs selection precision faster than it buys coverage. The
-corpus is at 57 after `philosophy-of-software-design` shipped. Three packs
-remain in this batch, and then the table is full until something earns its way
-in by displacing something else.
+corpus is at 58 after `observability` shipped. Two packs remain in this batch,
+and then the table is full until something earns its way in by displacing
+something else.
 
-- **`devops/observability`** (OpenTelemetry spec L1 + *Observability Engineering*
-  L3). `OpenTelemetry` returns zero hits. `devops/sre` sets SLOs and error
-  budgets but nothing says how to instrument in order to meet them. Deferred
-  behind the item above because Prototype/MVP projects rarely reach the
-  question.
 - **`frontend/seo`** (Google Search Central + schema.org, L1). `schema.org` and
   `sitemap` return zero; `SEO` appears once, in passing, in `frontend/html`.
   Landing pages are a recurring surface here, but nothing is currently blocked
@@ -114,6 +109,21 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **`devops/observability`, v1.15.0.** Second pack off this backlog. The gate's
+  most useful output was a negative: `SLO` returned 111 hits and `error budget`
+  10, all in `devops/sre`, which turned "does this overlap SRE" into a stated
+  boundary — SRE owns the targets, observability owns the signals they are
+  measured from. Only two of its 44 rules are starred, and both are data
+  protection rather than observability: telemetry leaves the system into a
+  vendor's store, so secrets and personal data in it are the floor arriving
+  through a devops pack.
+- **Level assignment corrected against this roadmap.** The entry above queued
+  observability at Level 1 on the OpenTelemetry spec. Writing it changed the
+  answer to Level 2: OTel is a CNCF project authoritative about itself, not a
+  normative standard like the IETF RFCs or WCAG, and half the pack's reasoning
+  is book-derived. Recorded in the pack's `references.md` — a roadmap entry is a
+  hypothesis about a pack, not a specification of it.
 
 - **`architecture/philosophy-of-software-design`, v1.14.0.** First pack from this
   backlog, and the first through the intake gate that shipped with v1.13.0 — the

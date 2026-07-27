@@ -3,6 +3,57 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.15.0] — 2026-07-27
+
+Second pack off the v1.13.0 backlog.
+
+### Added
+
+- **`packs/devops/observability`** (Level 2 — OpenTelemetry, W3C Trace Context, and
+  published practice). Principles P1–P16 and engineering rules OBS1–OBS44 across signal
+  choice, tracing, metrics, logs, naming and resource identity, cost control, what
+  telemetry may carry, working method, and a small-stack mapping. Cleared the intake gate
+  on a verified gap: `OpenTelemetry`, `distributed tracing`, `cardinality`,
+  `semantic convention`, `RED method`, `USE method`, and `golden signal` all returned zero
+  across the 57-pack corpus.
+- **The boundary against `devops/sre` is the pack's organising decision.** `SLO` returned
+  111 hits and `error budget` 10, all in `sre` — which confirmed a boundary rather than an
+  overlap. SRE owns the targets, alerting, and incident process; this pack owns the signals
+  those targets are measured from and the debugging that starts once an alert fires. Both
+  packs state it, and the glossary marks the terms that belong to the other.
+- **Only two rules are starred, and neither is about observability.** OBS31 (no credential
+  or token in telemetry) and OBS32 (personal data in telemetry is personal data —
+  inventoried, pseudonymized, retained deliberately, reachable by the deletion path) are
+  the safety floor arriving through this pack, since telemetry leaves the system into a
+  third party's store with long retention and broad team access. The rubric says to score
+  those findings here **or** in `security/privacy`, never both.
+- **A small-stack mapping (OBS41–OBS44), stated before the rest rather than as a
+  footnote.** Most of this domain assumes you operate services; a managed-platform MVP does
+  not. The decision framework opens with a "do you need this pack yet" table whose honest
+  trigger is *"we could not answer a question about production"* — not headcount or an
+  architecture diagram. For a small stack the answer is platform logs, a request identifier
+  generated at the edge and returned to the client, and error tracking with release
+  identifiers. The matching anti-pattern is "the observability platform nobody needed", the
+  prompt fragments include a block that explicitly tells an agent not to propose a
+  collector for such a project, and the rubric refuses to deduct a small stack for having
+  no distributed tracing — calling that a rubric error rather than a finding.
+- `graphs/knowledge-graph.md` gains a concept node — *questions the system must be able to
+  answer about itself* — linking observability, SRE targets, agent evals, and the
+  executed-evidence discipline in `coding-agents`. `agents/release-reviewer.md` loads the
+  pack to check whether a change ships debuggable.
+
+### Authority level: 2, not the 1 the roadmap proposed
+
+The backlog entry queued this at Level 1 on the strength of the OpenTelemetry
+specification. Reconsidered while writing and recorded in the pack's `references.md`:
+OpenTelemetry is a CNCF project, authoritative about itself and broadly adopted, but not a
+normative standard in the sense of the IETF RFCs behind `security/auth` or of WCAG. The
+reasoning half of the pack — unknown-unknowns, wide events, high cardinality as a feature,
+the narrowing debug loop — is book-derived, which is Level 3 territory. Claiming Level 1
+would lend book judgment the deference owed to normative requirements. Level 2 matches the
+sibling `devops/sre`. W3C Trace Context genuinely is Level 1 and is cited as the authority
+where the pack restates it.
+
 ## [1.14.0] — 2026-07-26
 
 First pack from the v1.13.0 backlog, and the first to go through the source

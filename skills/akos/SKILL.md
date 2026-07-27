@@ -8,7 +8,7 @@ description: Load AKOS knowledge (constitution, authority model, reasoning profi
 AKOS root is `~/DEV/AKOS`. If that path does not exist, AKOS root is the
 directory two levels above this file. Every path below is relative to it.
 
-Read files with your file-reading tool. Do not load the whole repo — it is 57
+Read files with your file-reading tool. Do not load the whole repo — it is 58
 packs. Load the constitution, the profile, the Level-0 layer, and 2-5 packs.
 
 ## 1. Bootstrap
@@ -134,6 +134,7 @@ is really about visual craft wastes a slot.
 | `devops/ci-cd` | Pipeline design and what gates a merge. |
 | `devops/sre` | Reliability as a target: SLOs, error budgets, alerting, incidents. |
 | `devops/git` | Branching model, commit hygiene, history strategy. |
+| `devops/observability` | Instrumenting so production can be questioned: which signal answers which question, trace propagation, cardinality as the cost model, sampling, and what telemetry must never carry. Reach for it when a production question went unanswered — not before. |
 | `ai-engineering/agent-foundations` | Deciding whether a task needs an agent at all: shape selection across the workflow/agent spectrum, routing, parallelization, termination conditions, budgets, error recovery, escalation, idempotency. |
 | `ai-engineering/context-engineering` | Deciding what an agent's prompt, skill, or session loads and when: context budgeting, progressive disclosure, just-in-time retrieval, poisoning and rot, instruction hierarchy, memory tiers, compaction boundaries, large-repo navigation. |
 | `ai-engineering/coding-agents` | An agent will read and modify a real repository: orientation before the first edit, search before changing an interface, minimal diffs that match existing conventions, and executed verification — never claiming done without running the command and reading its real exit code. |

@@ -48,6 +48,10 @@ Bound what a thing *can* do rather than trusting it to choose well — whether t
 Complexity, capability, and data all cost the same way: once it exists, every subsequent control is damage limitation on a decision already made. The discipline is identical across four domains — decline first, mitigate second.
 → [privacy P3: collection is the decision that cannot be undone](../packs/security/privacy/principles.md) · [PSD P6: splitting adds interface, and interface is cost](../packs/architecture/philosophy-of-software-design/principles.md) · [constitution Art. 7](../core/constitution.md) · [pau-avila principle 2](../packs/personal/pau-avila/principles.md) · [SOLID overuse guards](../packs/architecture/solid/principles.md) · [agent-foundations: the agent is the last shape to reach for](../packs/ai-engineering/agent-foundations/philosophy.md) · [context-engineering: budget before you fetch](../packs/ai-engineering/context-engineering/principles.md)
 
+### Questions the system must be able to answer about itself
+A running system is opaque unless it was built to be interrogated, and the interesting failures are always the ones nobody enumerated in advance. The same shape recurs wherever something must be judged after the fact rather than predicted before it.
+→ [observability: answer new questions without shipping code](../packs/devops/observability/principles.md) · [SRE: SLOs and error budgets as the target](../packs/devops/sre/principles.md) · [agent-evals: suites over anecdotes](../packs/ai-engineering/agent-evals/principles.md) · [coding-agents: the exit code is the verdict](../packs/ai-engineering/coding-agents/philosophy.md) · [confidence-model](../core/confidence-model.md)
+
 ### Bounded work: budgets, termination, recovery
 Any long-running process needs a stated stopping condition, a budget, and a defined response to failure — stated before it starts, not inferred after.
 → [agent-foundations termination and budgets](../packs/ai-engineering/agent-foundations/principles.md) · [SRE error budgets](../packs/devops/sre/principles.md) · [deployment rollback](../packs/devops/deployment/principles.md)
