@@ -1,0 +1,32 @@
+schema_version: 1
+name: observability
+domain: devops
+authority-level: 2
+version: 1.0.0
+tags: [opentelemetry, tracing, metrics, structured-logging, cardinality, sampling, instrumentation, semantic-conventions, context-propagation, debugging]
+sources:
+  - title: "OpenTelemetry Specification"
+    org: OpenTelemetry Authors (CNCF)
+    url: https://opentelemetry.io/docs/specs/otel/
+  - title: "OpenTelemetry Semantic Conventions"
+    org: OpenTelemetry Authors (CNCF)
+    url: https://opentelemetry.io/docs/specs/semconv/
+  - title: "Trace Context"
+    org: W3C
+    url: https://www.w3.org/TR/trace-context/
+  - title: "Observability Engineering: Achieving Production Excellence"
+    author: Charity Majors, Liz Fong-Jones, George Miranda
+    url: https://www.oreilly.com/library/view/observability-engineering/9781492076438/
+related:
+  - packs/devops/sre
+  - packs/devops/deployment
+  - packs/devops/ci-cd
+  - packs/security/privacy
+  - packs/performance/core-web-vitals
+id: devops/observability
+status: stable
+last_reviewed: 2026-07-27
+review_after: 2027-07-27
+maintainer: core
+license: MIT
+deprecated: false

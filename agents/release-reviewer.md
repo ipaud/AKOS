@@ -21,6 +21,7 @@ The final gate: can this ship, and can it un-ship? Reviews release readiness —
 - [devops/deployment](../packs/devops/deployment/README.md) — rollout/rollback/migrations
 - [devops/ci-cd](../packs/devops/ci-cd/README.md) — pipeline gating
 - [devops/sre](../packs/devops/sre/README.md) — monitoring/SLOs
+- [devops/observability](../packs/devops/observability/README.md) — whether the change ships debuggable: instrumentation present, build identifier on telemetry, and nothing secret or unpseudonymized leaving the system
 - [devops/git](../packs/devops/git/README.md) — history hygiene
 - [architecture/twelve-factor-app](../packs/architecture/twelve-factor-app/README.md)
 
