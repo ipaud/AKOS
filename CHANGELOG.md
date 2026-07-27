@@ -3,6 +3,49 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.3] — 2026-07-27
+
+Documentation catch-up. `README.md` and `CONTRIBUTING.md` had fallen behind the v1.13.0–
+v1.17.2 work; neither described the corpus or the two mechanics added to guard it.
+
+### Added
+
+- **`README.md` now states what the corpus actually contains** — 60 packs across 12
+  domains, with a table naming the sources per domain. It previously gave two examples and
+  no scope, which left the most useful fact for a reader deciding whether AKOS covers their
+  stack entirely unstated.
+- **The bound is stated with it.** Routing selects 2–5 packs from one flat table, and past
+  roughly 60 rows selection precision degrades faster than coverage improves — so a new
+  pack has to displace one. Readers were otherwise free to assume the corpus grows
+  indefinitely, which is the opposite of the design.
+- **`CONTRIBUTING.md` gained the two steps that became mandatory in v1.13.0 and were never
+  written into the human-facing guide:** the source intake gate as a *first* section before
+  scaffolding (four questions, plus the two settled answers — papers become `sources[]`
+  inside packs and never packs themselves; a website earns a pack only as a platform
+  owner's normative documentation), and the draft→stable promotion procedure as a final
+  one.
+- CONTRIBUTING also records the graph rule from v1.17.1 — `graphs/` indexes concepts, not
+  packs; 9 of 60 are absent by design; quote the line in the pack or the link is padding.
+
+### Changed
+
+- `README.md`'s quality-infrastructure guarantees gained the two `doctor.sh` checks added
+  in v1.13.0: every pack README carries an independent-distillation line, and every
+  `metadata.yaml` `related:` path resolves.
+- The "Add a new pack" section now opens with the intake gate rather than with
+  `akos create-pack`, matching the order the process actually runs in, and notes that new
+  packs start at `status: draft`.
+- Rollback example moved from `v1.7.0` to `v1.16.0` — ten releases had passed.
+- `CONTRIBUTING.md` step 7 lists what `doctor.sh` now actually enforces.
+
+### Checked and left alone
+
+- `akos rules run` is documented as "8 executable checks" and there are exactly 8. Verified
+  rather than assumed after the same class of claim proved wrong in `[1.17.2]`.
+- `docs/architecture/current-system.md` still says "49 packs, 17-file contract". That file
+  self-declares as a dated v1.3.0 baseline kept as history, so the numbers are correct *as
+  history* and were not touched. `README.md` describes it accurately as such.
+
 ## [1.17.2] — 2026-07-27
 
 Correction release. No pack content changed, and no files were split.

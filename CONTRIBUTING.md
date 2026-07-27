@@ -10,11 +10,36 @@ AKOS is a personal, reusable knowledge system, but it's structured so contributi
 
 ## Adding a knowledge pack
 
+### First: does the source earn a pack at all?
+
+Clear the [source intake gate](core/source-policy.md#source-intake-gate) **before**
+scaffolding. Four questions, answered in the PR:
+
+1. **What position does this source hold that yields 10+ checkable rules?** If the honest
+   answer is "it explains how X works", it is reference, not doctrine — and a pack is
+   doctrine. Reference enters as a `sources[]` entry in an existing pack, or not at all.
+2. **What gap does it close?** Shown by a grep across `packs/`, not asserted. More than half
+   overlapping an existing pack means extending that pack instead.
+3. **What authority level, and why?** Per [core/authority-model.md](core/authority-model.md).
+4. **For a Level 3 paper or a Level 4 web source: what corroborates it?** A Level 4 source
+   may never be a pack's primary source.
+
+Two answers that come up repeatedly and are settled: **papers become `sources[]` inside
+packs, never packs themselves**, and **a website earns a pack only as a platform owner's
+normative documentation**.
+
+The corpus is bounded at roughly 60 routing rows. Past that, selection precision degrades
+faster than coverage improves — so a new pack now has to name the row it displaces.
+`ROADMAP.md` records the candidates already evaluated and rejected, with the reason and the
+supporting grep, so the same ones don't get re-proposed.
+
+### Then: build it
+
 ```bash
-akos create-pack <domain>/<name>     # scaffolds the required files
+akos create-pack <domain>/<name>     # scaffolds the required files, at status: draft
 ```
 
-Then, per [core/knowledge-schema.md](core/knowledge-schema.md):
+Per [core/knowledge-schema.md](core/knowledge-schema.md):
 
 1. Set `metadata.yaml` — name, domain, authority level (0–4 per [core/authority-model.md](core/authority-model.md)), sources, tags, related packs.
 2. Write `principles.md` **first** — it forces the distillation.
@@ -22,7 +47,27 @@ Then, per [core/knowledge-schema.md](core/knowledge-schema.md):
 4. Fill the rest: philosophy, mental-models, heuristics, decision-framework, anti-patterns, examples (invented), prompt-fragments, scoring-rubric, glossary, references, README.
 5. Link the pack in the relevant [graphs/](graphs/) file.
 6. Add the pack to the routing table in [skills/akos/SKILL.md](skills/akos/SKILL.md) — a pack that isn't listed there is a pack agents can't route to.
-7. Run `./doctor.sh` — the required-file contract must pass, every pack must appear in the routing table, no empty files.
+7. Run `./doctor.sh` — the required-file contract must pass, every pack must appear in the routing table, the README must carry an independent-distillation line, every `related:` path must resolve, and no file may be empty.
+
+### Finally: promote it
+
+`akos create-pack` writes `status: draft`. A draft pack is readable but excluded from
+automatic routing, and no stable agent or workflow may depend on it. Promotion requires
+clearing the [draft→stable criterion](core/knowledge-schema.md#draft--stable), which is
+deliberately built from checks that already run — citation resolution, source grounding in
+`references.md`, prefix uniqueness, the README disclaimer — because a promotion bar nothing
+enforces is a bar that drifts.
+
+On promotion: flip `status`, re-stamp `last_reviewed`, recompute `review_after` from the
+authority-level cadence, bump the patch version in `VERSION` *and* `metadata.yaml` together,
+add a `CHANGELOG.md` entry, and move the row from the Experimental table into the stable
+routing table. `schemas/routing_check.py` fails if the row and the status disagree.
+
+**Note on the graph (step 5):** [graphs/](graphs/) indexes cross-cutting *concepts*, not
+packs. A pack whose content is mechanics for one protocol, tool, or platform legitimately
+has no node — 9 of 60 are absent by design and listed as such. The test before adding a
+link: quote the line in the pack that states the concept. If you cannot, the link is
+padding.
 
 ## Distinguishing content types
 

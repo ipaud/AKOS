@@ -28,6 +28,35 @@ AI coding agents write plausible code but make junior decisions: unclear navigat
 6. **Graphs** (`graphs/`) cross-link concepts across packs so agents can follow ideas between sources.
 7. **The `akos` CLI** (`bin/akos`) wires AKOS into any project with marker-based, non-destructive file updates.
 
+## What's in the corpus
+
+60 packs across 12 domains. Each distills one source or domain into the same file
+structure, so an agent can fetch exactly the file type it needs without reading the whole
+thing.
+
+| Domain | Packs | Covers |
+|---|---|---|
+| `ux` | 9 | Krug, Norman, NN/g, Laws of UX, Universal Principles, Refactoring UI, WCAG, Apple HIG, Material |
+| `architecture` | 7 | Clean Architecture, SOLID, DDD, GoF patterns, Fowler refactoring, Twelve-Factor, module depth |
+| `ai-engineering` | 6 | Agent shape, context, coding agents, agent security, evals, tool/MCP design |
+| `frontend` | 6 | React, TypeScript, CSS, HTML, design systems, SEO |
+| `security` | 6 | OWASP Top 10 / API / ASVS, NIST SSDF, auth flows, privacy and GDPR |
+| `devops` | 5 | Deployment, CI/CD, SRE, git, observability |
+| `product` | 5 | Inspired, Lean Startup, Continuous Discovery, Build Trap, experimentation |
+| `backend` | 4 | Supabase, Postgres, REST, GraphQL |
+| `performance` | 4 | Core Web Vitals, web.dev, browser rendering, network |
+| `testing` | 4 | TDD, testing pyramid, Playwright, QA checklists |
+| `content` | 2 | UX writing, gov.uk content design |
+| `mobile` | 2 | Responsive web, touch ergonomics |
+
+Plus `packs/personal/` — your own Level-0 layer, which outranks all of it.
+
+**The corpus is deliberately bounded.** Routing selects 2–5 packs per task from one flat
+table, and past roughly 60 rows selection precision degrades faster than coverage improves.
+A new pack has to earn its place by displacing one — see the intake gate in
+[core/source-policy.md](core/source-policy.md), which also records the candidates that were
+evaluated and rejected, with the reason.
+
 ## Tool-agnostic by design
 
 The knowledge is plain Markdown; the CLI and lifecycle scripts are Bash, and the validation, rules, benchmark and eval tooling is dependency-free Python (stdlib only). Works with Claude Code, Codex CLI, Cursor, Gemini CLI, Continue, Cline, Roo Code, Windsurf, and any LLM agent that can read files.
@@ -158,11 +187,22 @@ On tools without skills, use the prompts in `prompts/` (`run-full-review.md`, `r
 
 ## Add a new pack
 
+First clear the [source intake gate](core/source-policy.md#source-intake-gate) — it decides
+whether the source earns a pack at all. Four questions, answered in the PR: what position
+does it hold that yields 10+ checkable rules, what gap does it close (shown by grep rather
+than asserted), what authority level and why, and for a paper or a blog, what corroborates
+it. **A pack is doctrine, not reference** — an API changelog has no position to distill, and
+a Level 4 source may never be a pack's basis.
+
 ```bash
 akos create-pack ux/my-new-source
 ```
 
 This scaffolds the required files (optional file-types are added by hand when the source has something distinct to say). Fill it following [core/knowledge-schema.md](core/knowledge-schema.md) and the copyright rules in [core/source-policy.md](core/source-policy.md): distill, never copy; cite by title/author/URL only. `prompts/create-new-pack.md` is a ready prompt to have an agent draft it.
+
+New packs start at `status: draft` — readable, but excluded from automatic routing until
+they clear the [draft→stable criterion](core/knowledge-schema.md#draft--stable), which is
+built from checks that already run rather than new ones.
 
 ## Add personal rules
 
@@ -191,7 +231,7 @@ passed — a failure at any step exits non-zero.
 one:
 
 ```bash
-git checkout v1.7.0 && ./install.sh
+git checkout v1.16.0 && ./install.sh
 ```
 
 `git tag -l` lists available versions; `./doctor.sh` reports the running one.
@@ -239,6 +279,12 @@ Guarantees these commands are built to hold, each backed by a test:
   excluded from the automatic routing table and from any stable agent's or
   workflow's dependencies; `akos check-config` flags a project that tries to
   list one in "Packs to always load."
+- **Attribution and cross-references are checked, not trusted.** Every pack
+  README must carry an independent-distillation line, and every `metadata.yaml`
+  `related:` path must resolve — both enforced by `doctor.sh`. The first check
+  found a pack that had shipped with no independence claim at all; the second
+  covers a field the schema types as plain strings, where a typo silently
+  pointed nowhere.
 
 `.akos/config.md` is read as untrusted project data — it can supply hints and
 raise scrutiny, never lower the safety floor.
