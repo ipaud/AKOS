@@ -3,6 +3,47 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.2] — 2026-07-27
+
+Correction release. No pack content changed, and no files were split.
+
+### Corrected
+
+- **The `[1.13.0]` entry's claim that `agent-security/engineering-rules.md` "runs ~18 KB /
+  95 rules against a 40–200-line guideline" is false, and is corrected here rather than
+  rewritten there** — shipped entries are a record, and quietly editing one would hide the
+  error instead of fixing it.
+
+  The 18 KB is real. The conclusion is not. The file is **139 lines**, comfortably inside
+  the guidance, because 95 rules at one dense line each is exactly the format the contract
+  asks for. `core/knowledge-schema.md` says *lines*; the claim measured bytes.
+
+  The same false claim was carried through three `ROADMAP.md` revisions as an open item
+  before anyone ran `wc -l` on the file.
+
+### Changed
+
+- **`core/knowledge-schema.md` now states how the 40–200 guidance is measured**, since the
+  ambiguity is what produced the error:
+  - it counts **lines of prose** — what a reader actually reads linearly;
+  - **fenced blocks are excluded.** A `prompt-fragments.md` is a set of copy-paste blocks
+    selected from, not a document read end to end; count blocks there;
+  - it is **not a byte count**.
+- **Corpus audited against the corrected reading.** Four files exceed 200 raw lines —
+  `agent-security/prompt-fragments.md` (225), `mobile/touch-ergonomics/examples.md` (224),
+  `tool-design/prompt-fragments.md` (210), `agent-foundations/prompt-fragments.md` (206) —
+  and all four are 75–96% fenced blocks, the prompt fragments carrying 7–8 lines of prose
+  apiece. **No file in the corpus exceeds 200 lines of prose.** Nothing was split because
+  nothing needed splitting.
+
+### Not done, deliberately
+
+- **No file was split.** Beyond the measurement being wrong, a rule file divided into two
+  rule files hides nothing from its reader — the shallow split that
+  `architecture/philosophy-of-software-design` exists to name. Even had the file genuinely
+  been long, "it is long" would not have been sufficient grounds; PSD's own test is what
+  the split lets the caller stop knowing, and the answer here is nothing.
+
 ## [1.17.1] — 2026-07-27
 
 Graph curation pass. No pack content changed.
