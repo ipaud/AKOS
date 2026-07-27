@@ -110,6 +110,27 @@ every audit pass.
 
 ## Recently shipped (context for what's *not* on this list anymore)
 
+- **Routing verified against the four new packs (2026-07-27).** The corpus grew
+  54 → 58 across v1.13.0–v1.15.0 with nothing confirming the new rows were
+  actually reachable. Three trials, predictions pre-registered before running,
+  three independent agents given only a scratch project and
+  `skills/akos/SKILL.md` — no hint which packs existed or which were under test.
+  Result: 3/3 MUST, 2/2 MUST NOT, 3/4 SHOULD, 3/3 SHOULD NOT. No defect.
+  - The skip-in-Prototype guards on `philosophy-of-software-design` and
+    `devops/observability` both held; the first was rejected quoting its own
+    routing row back.
+  - Cited rule codes (AU12–AU57, PSD4–PSD34) all resolve to the rule they
+    actually state, so the new packs are usable by an agent that had never seen
+    them — the strongest signal in the run.
+  - The three trials selected genuinely different pack sets, overlapping only on
+    the two mandatory-when-deployed packs. The feared "58 rows and the table
+    stops discriminating" did not appear on these tasks.
+  - The single miss was mine: I predicted `security/privacy` would load for a
+    login review. The agent declined it — *"one line inside a finding already
+    made, not a data-lifecycle review"* — which is better reasoning than the
+    prediction. Widening that row would make it over-trigger. No change made.
+  - Limits, stated: three trials, one model, one synthetic project. A smoke
+    test for gross failure, not a measure of ranking quality across 58 packs.
 - **`devops/observability`, v1.15.0.** Second pack off this backlog. The gate's
   most useful output was a negative: `SLO` returned 111 hits and `error budget`
   10, all in `devops/sre`, which turned "does this overlap SRE" into a stated
