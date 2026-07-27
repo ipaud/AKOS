@@ -3,6 +3,46 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.1] — 2026-07-27
+
+Graph curation pass. No pack content changed.
+
+### Changed
+
+- **`graphs/knowledge-graph.md` audited for coverage, and the criterion written into the
+  file.** 17 of 60 packs had no node and nobody had checked which of them were genuine
+  omissions. All 17 were read for a cross-cutting claim, with the link label required to
+  quote the pack's own line:
+  - **8 linked.** `mobile/responsive-web` (RW2 — 320px is simultaneously a small phone and
+    a 1280px page at 400% zoom, so one effort serves both) and `mobile/touch-ergonomics`
+    joined *accessibility as a floor*; `content/ux-writing` joined *the four states*, since
+    it supplies the strings the other packs only require; `architecture/martin-fowler-refactoring`
+    joined *complexity as a cost* via the rule of three; `frontend/typescript` (TS4 —
+    validate against a schema at the boundary, not cast) joined *untrusted content is data*;
+    and `testing/testing-pyramid` (TP4 — a flaky test is worse than no test),
+    `testing/playwright` (PW1) and `performance/core-web-vitals` (CW13 — field data is the
+    verdict, lab tools debug) joined *a number you cannot act on is worse than no number*.
+  - **1 genuine hole found.** No perceived-performance concept existed anywhere in the
+    graph. New node: *perceived speed is designed, not measured into existence*, linking
+    web.dev WD6, Core Web Vitals CW8, and Laws of UX on waiting and errors as the negative
+    peaks worth disproportionate investment.
+  - **9 absent by design**, listed in the file with the audit date:
+    `architecture/twelve-factor-app`, `backend/graphql`, `backend/postgres`, `backend/rest`,
+    `devops/ci-cd`, `devops/git`, `frontend/design-systems`, `frontend/react`,
+    `performance/network-performance`. Each is mechanics for one protocol, tool, or
+    platform.
+- **`frontend/design-systems` was the closest call and was deliberately not linked.** Design
+  tokens look like the "one owner per decision" idea that `philosophy-of-software-design`
+  and `security/privacy` both carry — but the pack does not make that claim, and linking it
+  would have been inventing a node to improve a count.
+- **A new `## What belongs here` section states the rule** the file had been following
+  without recording: this indexes concepts, not packs; pack coverage is not a goal;
+  `doctor.sh` deliberately does not check it (a check requiring it was designed in v1.13.0
+  and dropped on discovering it would encode a rule the graph does not follow). The test
+  before adding a link is *quote the line in the pack that says the concept* — if you
+  cannot, the link is padding, and every spurious link is a source an agent will pull and
+  find nothing transferable in.
+
 ## [1.17.0] — 2026-07-27
 
 Last pack of the v1.13.0 backlog. The routing table is now at its stated ceiling.

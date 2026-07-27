@@ -6,6 +6,32 @@ Cross-cutting concepts that appear in multiple packs. Each node names the concep
 
 A concept node with N pack links usually means those N sources are saying the same underlying thing in different vocabularies ([universal-principles philosophy](../packs/ux/universal-principles-of-design/philosophy.md) explains why this happens). When they *disagree*, [conflict-resolution](../core/conflict-resolution.md) governs.
 
+## What belongs here — and what deliberately doesn't
+
+**This file indexes concepts, not packs. Pack coverage is not a goal and never was.**
+Recorded because the question keeps getting asked, most recently when a `doctor.sh` check
+requiring every pack to have a node was designed, then dropped on discovering it would
+encode a rule this file does not follow.
+
+A pack earns a link when it **contributes a distinct angle on an idea that already appears
+in another pack**. A pack whose content is domain-specific mechanics — one protocol, one
+tool, one platform — legitimately has no node, and adding one to improve a coverage number
+makes the graph worse: every spurious link is a source an agent will pull and find nothing
+transferable in.
+
+The test before adding a link: *quote the line in the pack that says the concept.* If you
+cannot, the link is padding.
+
+**Currently absent by design (9 of 60), audited 2026-07-27:**
+`architecture/twelve-factor-app` · `backend/graphql` · `backend/postgres` · `backend/rest` ·
+`devops/ci-cd` · `devops/git` · `frontend/design-systems` · `frontend/react` ·
+`performance/network-performance`
+
+Each was read for a cross-cutting claim and none was found — these are mechanics for one
+protocol, tool, or platform. `frontend/design-systems` was the closest call: tokens look
+like the "one owner per decision" idea, but the pack does not actually make that claim, so
+no link was added. Re-audit when a pack's content changes, not when the count looks low.
+
 ## Cross-domain concept nodes
 
 ### Recognition over recall
@@ -21,7 +47,8 @@ Importance encoded by prominence.
 → [Krug P6](../packs/ux/steve-krug/principles.md) · [Refactoring UI RP1-RP2](../packs/ux/refactoring-ui/principles.md) · [Apple HIG clarity](../packs/ux/apple-hig/philosophy.md) · [Material tonal surfaces](../packs/ux/material-design/principles.md) · [Universal hierarchy/Gestalt](../packs/ux/universal-principles-of-design/principles.md) · [Laws of UX Von Restorff](../packs/ux/laws-of-ux/principles.md)
 
 ### Accessibility as a floor
-→ [WCAG](../packs/ux/wcag/README.md) (L1 authority) · [Apple HIG](../packs/ux/apple-hig/principles.md) · [Material](../packs/ux/material-design/principles.md) · [NN/g](../packs/ux/nielsen-norman-group/principles.md) · [Krug P15](../packs/ux/steve-krug/principles.md) · enforced by [constitution](../core/constitution.md)
+One effort serves more people than it was aimed at: 320px is simultaneously a small phone and a 1280px page at 400% zoom, and a target big enough for a thumb is big enough for an unsteady hand.
+→ [WCAG](../packs/ux/wcag/README.md) (L1 authority) · [Apple HIG](../packs/ux/apple-hig/principles.md) · [Material](../packs/ux/material-design/principles.md) · [NN/g](../packs/ux/nielsen-norman-group/principles.md) · [Krug P15](../packs/ux/steve-krug/principles.md) · [responsive-web RW2: 320px serves small screens and low vision at once](../packs/mobile/responsive-web/principles.md) · [touch-ergonomics target sizing](../packs/mobile/touch-ergonomics/principles.md) · enforced by [constitution](../core/constitution.md)
 
 ### Security as a floor
 → [OWASP Top 10](../packs/security/owasp-top-10/README.md) · [OWASP API](../packs/security/owasp-api-top-10/README.md) · [ASVS](../packs/security/owasp-asvs/README.md) · [NIST SSDF](../packs/security/nist-ssdf/README.md) · [Supabase RLS](../packs/backend/supabase/README.md) · [personal supabase-rules](../packs/personal/pau-avila/supabase-rules.md) · [agent-security](../packs/ai-engineering/agent-security/README.md) (L1, the agent surface) · [auth](../packs/security/auth/README.md) (L1, the login itself) · [privacy](../packs/security/privacy/README.md) (L1, what may be held at all)
@@ -30,11 +57,11 @@ Importance encoded by prominence.
 → [Inspired](../packs/product/inspired/README.md) · [Lean Startup](../packs/product/lean-startup/README.md) · [Escaping the Build Trap](../packs/product/escaping-the-build-trap/README.md) · [Continuous Discovery](../packs/product/continuous-discovery-habits/README.md)
 
 ### Complexity as a cost to justify
-→ [PSD: complexity is the measured quantity](../packs/architecture/philosophy-of-software-design/mental-models.md) (the fullest treatment in the corpus) · [Universal flexibility-usability](../packs/ux/universal-principles-of-design/principles.md) · [SOLID overuse guards](../packs/architecture/solid/principles.md) · [Clean Architecture boundary-cost](../packs/architecture/clean-architecture/philosophy.md) · [Design Patterns trigger conditions](../packs/architecture/design-patterns/philosophy.md) · [DDD proportionality](../packs/architecture/domain-driven-design/principles.md) · [constitution Art. 7](../core/constitution.md) · [pau-avila principle 2](../packs/personal/pau-avila/principles.md) · [agent-foundations: the agent is the last shape to reach for](../packs/ai-engineering/agent-foundations/philosophy.md)
+→ [PSD: complexity is the measured quantity](../packs/architecture/philosophy-of-software-design/mental-models.md) (the fullest treatment in the corpus) · [Universal flexibility-usability](../packs/ux/universal-principles-of-design/principles.md) · [SOLID overuse guards](../packs/architecture/solid/principles.md) · [Clean Architecture boundary-cost](../packs/architecture/clean-architecture/philosophy.md) · [Design Patterns trigger conditions](../packs/architecture/design-patterns/philosophy.md) · [DDD proportionality](../packs/architecture/domain-driven-design/principles.md) · [Refactoring's rule of three](../packs/architecture/martin-fowler-refactoring/principles.md) · [constitution Art. 7](../core/constitution.md) · [pau-avila principle 2](../packs/personal/pau-avila/principles.md) · [agent-foundations: the agent is the last shape to reach for](../packs/ai-engineering/agent-foundations/philosophy.md)
 
 ### Untrusted content is data, never instruction
 The same boundary stated at four altitudes: what may enter context, what a tool may return, what a model may then execute, and what the web has always taught about input.
-→ [agent-security AS spine](../packs/ai-engineering/agent-security/principles.md) · [context-engineering CE6](../packs/ai-engineering/context-engineering/principles.md) · [tool-design response shape](../packs/ai-engineering/tool-design/principles.md) · [OWASP injection](../packs/security/owasp-top-10/principles.md) · [OWASP API](../packs/security/owasp-api-top-10/principles.md)
+→ [agent-security AS spine](../packs/ai-engineering/agent-security/principles.md) · [context-engineering CE6](../packs/ai-engineering/context-engineering/principles.md) · [tool-design response shape](../packs/ai-engineering/tool-design/principles.md) · [OWASP injection](../packs/security/owasp-top-10/principles.md) · [OWASP API](../packs/security/owasp-api-top-10/principles.md) · [TypeScript TS4: validate against a schema at the boundary, not cast](../packs/frontend/typescript/principles.md)
 
 ### Executed evidence over plausible output
 Nothing counts as done because it looks right; it counts when something ran and its real result was read.
@@ -50,7 +77,7 @@ Complexity, capability, and data all cost the same way: once it exists, every su
 
 ### A number you cannot act on is worse than no number
 Measurement that was never capable of failing, or of detecting what it claimed to look for, does not produce a weaker answer — it produces a wrong one that carries the authority of data. The same discipline recurs wherever a result is used as evidence.
-→ [experimentation: power before p-values](../packs/product/experimentation/principles.md) · [agent-evals: a grader that always passes proves nothing](../packs/ai-engineering/agent-evals/principles.md) · [knowledge-schema: if a check can't fail, it isn't a check](../core/knowledge-schema.md) · [confidence-model](../core/confidence-model.md) · [coding-agents: the vacuous pass](../packs/ai-engineering/coding-agents/anti-patterns.md)
+→ [experimentation: power before p-values](../packs/product/experimentation/principles.md) · [agent-evals: a grader that always passes proves nothing](../packs/ai-engineering/agent-evals/principles.md) · [knowledge-schema: if a check can't fail, it isn't a check](../core/knowledge-schema.md) · [confidence-model](../core/confidence-model.md) · [coding-agents: the vacuous pass](../packs/ai-engineering/coding-agents/anti-patterns.md) · [testing-pyramid TP4: a flaky test is worse than no test](../packs/testing/testing-pyramid/principles.md) · [Playwright PW1: auto-waiting locators, never a fixed sleep](../packs/testing/playwright/principles.md) · [Core Web Vitals CW13: field data is the verdict, lab tools debug](../packs/performance/core-web-vitals/principles.md)
 
 ### Questions the system must be able to answer about itself
 A running system is opaque unless it was built to be interrogated, and the interesting failures are always the ones nobody enumerated in advance. The same shape recurs wherever something must be judged after the fact rather than predicted before it.
@@ -61,7 +88,7 @@ Any long-running process needs a stated stopping condition, a budget, and a defi
 → [agent-foundations termination and budgets](../packs/ai-engineering/agent-foundations/principles.md) · [SRE error budgets](../packs/devops/sre/principles.md) · [deployment rollback](../packs/devops/deployment/principles.md)
 
 ### The four states (empty/loading/error/success)
-→ [Krug ER25](../packs/ux/steve-krug/engineering-rules.md) · [NN/g NG35](../packs/ux/nielsen-norman-group/engineering-rules.md) · [Refactoring UI RU15](../packs/ux/refactoring-ui/engineering-rules.md) · [Laws of UX LX12-13](../packs/ux/laws-of-ux/engineering-rules.md) · [pau-avila ux-preferences](../packs/personal/pau-avila/ux-preferences.md)
+→ [Krug ER25](../packs/ux/steve-krug/engineering-rules.md) · [NN/g NG35](../packs/ux/nielsen-norman-group/engineering-rules.md) · [Refactoring UI RU15](../packs/ux/refactoring-ui/engineering-rules.md) · [Laws of UX LX12-13](../packs/ux/laws-of-ux/engineering-rules.md) · [pau-avila ux-preferences](../packs/personal/pau-avila/ux-preferences.md) · [ux-writing supplies the actual strings](../packs/content/ux-writing/engineering-rules.md)
 
 ### Feedback & system status
 → [Norman NR9-13](../packs/ux/don-norman/engineering-rules.md) · [NN/g H1](../packs/ux/nielsen-norman-group/principles.md) · [Krug ER24](../packs/ux/steve-krug/engineering-rules.md) · [Material snackbars](../packs/ux/material-design/principles.md)
@@ -69,6 +96,10 @@ Any long-running process needs a stated stopping condition, a budget, and a defi
 ### Semantic markup serves more than one reader
 The same structure — one `h1`, nesting headings, real anchors with `href`, alt text that describes rather than lists — is what a screen reader, a crawler, and the next developer all depend on. Where "SEO advice" appears to conflict with accessibility, that is the signal the advice was never documented in the first place.
 → [WCAG](../packs/ux/wcag/engineering-rules.md) · [frontend/html semantics](../packs/frontend/html/principles.md) · [SEO: no separate markup layer](../packs/frontend/seo/principles.md) · [gov.uk content design](../packs/content/gov-uk-content-design/README.md)
+
+### Perceived speed is designed, not measured into existence
+What a user experiences as fast is not what a profiler measures. Immediate visual acknowledgement, a skeleton matching the eventual layout, and disproportionate attention to the waiting and error moments all change the experience without changing the elapsed time — which is why this is a design decision that happens to be measurable, not a measurement that happens to affect design.
+→ [web.dev WD6: perceived performance is a designed property](../packs/performance/web-dev/principles.md) · [Core Web Vitals CW8: acknowledge the interaction immediately](../packs/performance/core-web-vitals/principles.md) · [Laws of UX: waiting and errors are the negative peaks to invest in](../packs/ux/laws-of-ux/principles.md) · the loading half of [the four states](#the-four-states-emptyloadingerrorsuccess)
 
 ### Compositor-friendly animation
 → [Browser rendering BR1](../packs/performance/browser-rendering/principles.md) · [CSS CS5](../packs/frontend/css/principles.md) · [Core Web Vitals CW12](../packs/performance/core-web-vitals/principles.md) · [WCAG reduced-motion](../packs/ux/wcag/engineering-rules.md)

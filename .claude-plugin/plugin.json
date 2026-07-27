@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "akos",
   "displayName": "AKOS — AI Knowledge Operating System",
-  "version": "1.17.0",
+  "version": "1.17.1",
   "description": "Senior-level UX, product, architecture, security, accessibility, performance, and testing knowledge as loadable packs, with a twelve-lens review pipeline and reasoning profiles.",
   "author": {
     "name": "Pau Avila",
