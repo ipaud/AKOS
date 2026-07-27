@@ -5,13 +5,13 @@ Source of truth for *why* an item exists: `.akos/audit-2026-07-23.md` (full
 integral audit) and `CHANGELOG.md` (what already shipped). This file only
 tracks what's still open.
 
-Last reviewed: 2026-07-26.
+Last reviewed: 2026-07-27.
 
 ## Now
 
-Nothing queued. v1.15.0 (`devops/observability`) shipped — see Recently
-shipped. Pull the top of Next when picking up work; `frontend/seo` is now at
-the top of it.
+Nothing queued. v1.16.0 (`frontend/seo`) shipped — see Recently shipped. One
+pack left in the batch: `product/experimentation`. After it the routing table
+is at its stated ceiling.
 
 ## Next
 
@@ -20,14 +20,10 @@ by grep against the corpus, not assumed; each was put through the [source
 intake gate](core/source-policy.md) before landing here. Budget matters as much
 as content: routing selects 2-5 packs from one flat table, so growth past
 roughly 60 rows costs selection precision faster than it buys coverage. The
-corpus is at 58 after `observability` shipped. Two packs remain in this batch,
-and then the table is full until something earns its way in by displacing
-something else.
+corpus is at 59 after `seo` shipped. One pack remains in this batch, and then
+the table is full until something earns its way in by displacing something
+else.
 
-- **`frontend/seo`** (Google Search Central + schema.org, L1). `schema.org` and
-  `sitemap` return zero; `SEO` appears once, in passing, in `frontend/html`.
-  Landing pages are a recurring surface here, but nothing is currently blocked
-  on it.
 - **`product/experimentation`** (Kohavi, Tang & Xu, L3). `Kohavi` and
   `statistical significance` return zero. `product/lean-startup` supplies the
   hypothesis and none of the statistics — sample size, power, guardrail metrics,
@@ -109,6 +105,17 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **`frontend/seo`, v1.16.0.** Third pack off this backlog. Its organising
+  decision is a refusal: ranking is excluded from the pack entirely, not
+  demoted, because result ordering is unpublished and every claim about it is a
+  Level 4 assertion about a system nobody outside the search engine can
+  inspect. This is the corpus's widest gap between how much advice a domain has
+  and how much is verifiable, so the line is enforced in five places rather
+  than stated once — including a reviewer rule that drops any finding which
+  cannot name the pipeline stage it breaks. Only two of its 50 rules are
+  starred and neither is discoverability: markup must not misrepresent the
+  page, and nothing is applied at the cost of accessibility or honesty.
 
 - **Routing verified against the four new packs (2026-07-27).** The corpus grew
   54 → 58 across v1.13.0–v1.15.0 with nothing confirming the new rows were

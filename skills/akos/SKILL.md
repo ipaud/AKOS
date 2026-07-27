@@ -8,7 +8,7 @@ description: Load AKOS knowledge (constitution, authority model, reasoning profi
 AKOS root is `~/DEV/AKOS`. If that path does not exist, AKOS root is the
 directory two levels above this file. Every path below is relative to it.
 
-Read files with your file-reading tool. Do not load the whole repo — it is 58
+Read files with your file-reading tool. Do not load the whole repo — it is 59
 packs. Load the constitution, the profile, the Level-0 layer, and 2-5 packs.
 
 ## 1. Bootstrap
@@ -103,6 +103,7 @@ is really about visual craft wastes a slot.
 | `frontend/css` | Layout and motion: grid, flexbox, custom properties, container queries. |
 | `frontend/html` | Semantics and forms before styling. Landmarks, native elements. |
 | `frontend/design-systems` | Tokens, shared component library, theming, versioned component APIs. |
+| `frontend/seo` | A public surface must be findable: crawl and index control, URL identity and canonicalization, rendering strategy for indexability, structured data, and URL migrations. Says nothing about ranking. Skip entirely when everything is behind a login. |
 | `backend/supabase` | Supabase in the stack. **Mandatory when deployed** — RLS, auth, storage. |
 | `backend/postgres` | Schema, indexing, migrations, slow queries. |
 | `backend/rest` | Designing or changing an HTTP API: resources, status codes, pagination, versioning. |
