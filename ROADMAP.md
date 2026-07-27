@@ -9,27 +9,22 @@ Last reviewed: 2026-07-27.
 
 ## Now
 
-Nothing queued. v1.16.0 (`frontend/seo`) shipped — see Recently shipped. One
-pack left in the batch: `product/experimentation`. After it the routing table
-is at its stated ceiling.
+Nothing queued. v1.17.0 (`product/experimentation`) shipped and **the
+knowledge-pack batch is closed** — see Recently shipped. The corpus is at 60
+and the routing table is at the ceiling this file set: nothing new enters
+without displacing something. Pull from Next.
 
 ## Next
 
-The rest of the second knowledge-pack batch. Each closed gap below was verified
-by grep against the corpus, not assumed; each was put through the [source
-intake gate](core/source-policy.md) before landing here. Budget matters as much
-as content: routing selects 2-5 packs from one flat table, so growth past
-roughly 60 rows costs selection precision faster than it buys coverage. The
-corpus is at 59 after `seo` shipped. One pack remains in this batch, and then
-the table is full until something earns its way in by displacing something
-else.
+The knowledge-pack batch is closed. What remains is the process work the pack
+work surfaced, plus one standing constraint.
 
-- **`product/experimentation`** (Kohavi, Tang & Xu, L3). `Kohavi` and
-  `statistical significance` return zero. `product/lean-startup` supplies the
-  hypothesis and none of the statistics — sample size, power, guardrail metrics,
-  p-hacking. Only pays off with real traffic, so it sits last.
-
-Two process items the pack work surfaced:
+**The routing table is full.** 60 packs, against a stated operating ceiling of
+roughly 60 rows — past that, selection precision degrades faster than coverage
+improves. The 2026-07-27 routing trial found no degradation *at 58*, which is
+evidence for the current size and not for a larger one. A new pack now needs to
+displace an existing one, and the case for it has to include which row it
+replaces.
 
 - **Backfill graph coverage, or state the rule.** 19 packs are absent from
   `graphs/knowledge-graph.md`. Most are absent correctly — it indexes
@@ -43,6 +38,12 @@ Two process items the pack work surfaced:
   the 40-200 line guidance in `core/knowledge-schema.md`. Promotion to stable
   deliberately did not require splitting — the content is correct, just long —
   but a rule file nobody finishes reading is a rule file that gets skimmed.
+- **Get CI running again.** Six releases (v1.13.0–v1.17.0 plus the routing-trial
+  commit) have merged on local evidence alone because GitHub Actions is blocked
+  on account billing. Local gates cover everything except the Ubuntu runner, so
+  the one genuinely open question is whether the `awk` added to `doctor.sh` in
+  v1.13.0 behaves the same under GNU awk. One green CI run on `main` closes all
+  six at once.
 
 ## Later
 
@@ -105,6 +106,16 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **`product/experimentation`, v1.17.0 — batch closed.** The last of six packs.
+  Its organising decision is the same shape as `observability`'s and `seo`'s but
+  sharper, because here it is arithmetic: required sample per arm is
+  ~16·p·(1−p)/δ², so under ~5,000 weekly users into a funnel you cannot A/B test
+  conversion, and that is the finding rather than a reason to lower a threshold.
+  The refusal ships with teeth — a rules section for when you cannot experiment,
+  a rubric returning `n/a` instead of a low score and never deducting for not
+  running experiments, and a checklist gate before the checklist, because
+  reviewing the methodology of a test that should not exist legitimizes it.
 
 - **`frontend/seo`, v1.16.0.** Third pack off this backlog. Its organising
   decision is a refusal: ranking is excluded from the pack entirely, not

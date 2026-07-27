@@ -22,6 +22,7 @@ Reviews product clarity: does this solve a real user problem, with a defined out
 - [product/lean-startup](../packs/product/lean-startup/README.md) — MVP, validated learning
 - [product/escaping-the-build-trap](../packs/product/escaping-the-build-trap/README.md) — outcomes over output
 - [product/continuous-discovery-habits](../packs/product/continuous-discovery-habits/README.md)
+- [product/experimentation](../packs/product/experimentation/README.md) — when a result is used as evidence. Check power before methodology: a decision resting on an underpowered test is the finding, and every design comment after it is moot
 
 ## Review checklist
 
