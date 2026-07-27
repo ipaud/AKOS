@@ -26,11 +26,6 @@ evidence for the current size and not for a larger one. A new pack now needs to
 displace an existing one, and the case for it has to include which row it
 replaces.
 
-- **Split the oversized `ai-engineering` files.**
-  `agent-security/engineering-rules.md` is ~18 KB with 95 `ASE` rules, well past
-  the 40-200 line guidance in `core/knowledge-schema.md`. Promotion to stable
-  deliberately did not require splitting — the content is correct, just long —
-  but a rule file nobody finishes reading is a rule file that gets skimmed.
 - **Get CI running again.** Six releases (v1.13.0–v1.17.0 plus the routing-trial
   commit) have merged on local evidence alone because GitHub Actions is blocked
   on account billing. Local gates cover everything except the Ubuntu runner, so
@@ -99,6 +94,31 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **"Split the oversized `ai-engineering` files" was wrong, and is closed
+  without a split (2026-07-27).** The item claimed
+  `agent-security/engineering-rules.md` was "~18 KB with 95 `ASE` rules, well
+  past the 40-200 line guidance". The 18 KB is real; the conclusion is not. The
+  file is **139 lines** — inside the guidance — because 95 rules at one dense
+  line each is exactly the intended format. The guidance says *lines*, and this
+  was read as bytes.
+  Measuring the whole corpus: four files exceed 200 raw lines
+  (`agent-security/prompt-fragments.md` 225, `touch-ergonomics/examples.md` 224,
+  `tool-design/prompt-fragments.md` 210, `agent-foundations/prompt-fragments.md`
+  206) and all four are 75-96% fenced blocks — 7-8 lines of prose in the prompt
+  fragments. **No file in the corpus exceeds 200 lines of prose.** Nothing to
+  split.
+  `core/knowledge-schema.md` now says the guidance measures prose, excludes
+  fenced blocks, and is not a byte count — with the audit recorded, because this
+  item survived three roadmap revisions and a shipped CHANGELOG entry before
+  anyone ran `wc -l`. The `[1.13.0]` CHANGELOG entry still carries the false
+  claim; it is corrected in `[1.17.2]` rather than rewritten, since shipped
+  entries are a record.
+  Worth noting the second reason not to split: a rule file divided into two rule
+  files hides nothing from its reader, which
+  [philosophy-of-software-design](packs/architecture/philosophy-of-software-design/decision-framework.md)
+  calls a shallow split. Even had the measurement been right, "it is long" would
+  not have been sufficient grounds.
 
 - **Graph coverage audited and the rule written down (2026-07-27).** 17 packs
   had no node in `graphs/knowledge-graph.md` and nobody had checked which were

@@ -58,7 +58,17 @@ related:
 - Rules are operational: an agent reading them can *act*. "Reduce cognitive load" is philosophy; "one primary action per screen, visually dominant" is a rule.
 - Checklists are binary. If a check can't fail, it isn't a check.
 - Examples use invented cases, not excerpts from the source.
-- File length: aim 40–200 lines. A 600-line principles file means the pack should split.
+- File length: aim 40–200 lines **of prose**. A 600-line principles file means the pack
+  should split.
+  - Measure what a reader actually reads linearly. Exclude fenced blocks: a
+    `prompt-fragments.md` is a set of copy-paste blocks selected from, not a document read
+    end to end, and the same is true of a heavily-fenced `examples.md`. Count blocks there,
+    not lines.
+  - **Do not measure in bytes.** A dense rule file is one line per rule and can be well
+    inside the guidance at 18 KB. Audited 2026-07-27: four files exceed 200 raw lines, all
+    four are 75–96% fenced blocks, and **no file in the corpus exceeds 200 lines of
+    prose.** A "split the oversized files" item survived three roadmap revisions on a
+    byte-count reading of this line before anyone measured it.
 
 ## Distinguishing principles / heuristics / engineering rules
 
