@@ -23,6 +23,7 @@ The final gate: can this ship, and can it un-ship? Reviews release readiness —
 - [devops/sre](../packs/devops/sre/README.md) — monitoring/SLOs
 - [devops/observability](../packs/devops/observability/README.md) — whether the change ships debuggable: instrumentation present, build identifier on telemetry, and nothing secret or unpseudonymized leaving the system
 - [devops/git](../packs/devops/git/README.md) — history hygiene
+- [frontend/seo](../packs/frontend/seo/README.md) — when the release changes URLs on a public surface: a redirect map built from a pre-migration baseline is the difference between a restructure and a traffic loss
 - [architecture/twelve-factor-app](../packs/architecture/twelve-factor-app/README.md)
 
 ## Review checklist

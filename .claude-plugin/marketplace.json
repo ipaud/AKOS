@@ -6,14 +6,14 @@
     "url": "https://github.com/ipaud"
   },
   "description": "AKOS — AI Knowledge Operating System",
-  "version": "1.15.0",
+  "version": "1.16.0",
   "plugins": [
     {
       "name": "akos",
       "source": "./",
       "displayName": "AKOS — AI Knowledge Operating System",
       "description": "Senior-level UX, product, architecture, security, accessibility, performance, and testing knowledge as loadable packs, with a twelve-lens review pipeline and reasoning profiles.",
-      "version": "1.15.0",
+      "version": "1.16.0",
       "license": "MIT",
       "category": "productivity",
       "keywords": ["knowledge", "review", "ux", "accessibility", "security", "architecture"],

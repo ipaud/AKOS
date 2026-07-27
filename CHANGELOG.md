@@ -3,6 +3,66 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.16.0] — 2026-07-27
+
+Third pack off the v1.13.0 backlog. One left.
+
+### Added
+
+- **`packs/frontend/seo`** (Level 1 — Google Search Central, IETF RFC 9309, schema.org,
+  sitemaps.org). Principles P1–P17 and engineering rules SEO1–SEO50 across crawl and index
+  control, rendering and indexability, URL identity, metadata, structured data,
+  internationalization, migrations, monitoring, and a React/Next-class framework mapping.
+  Cleared the intake gate on a verified gap: `schema.org`, `sitemap`, `robots.txt`,
+  `structured data`, `rich result`, `hreflang`, `noindex`, `open graph`, `title tag`, and
+  `page experience` all returned zero across the 58-pack corpus. `canonical` returned 41
+  hits, every one in the "canonical ruling" sense rather than `rel=canonical`.
+
+### The organising decision is what the pack refuses to contain
+
+**Ranking is excluded entirely — not demoted to Level 4, excluded.** How results are
+ordered is unpublished, so every claim about it is a Level 4 assertion about a system
+nobody outside the search engine can inspect, and `core/source-policy.md` bars a Level 4
+source from being a pack's basis. There is no honest version of this pack containing that
+material.
+
+This is the corpus's widest gap between how much advice exists in a domain and how much of
+it is verifiable, so the line is enforced in five places rather than asserted once: two
+principles, a reviewer rule requiring every finding to **name the pipeline stage** it
+breaks (discover / crawl / render / index / serve — a finding that cannot name one is
+folklore and is dropped), a second reviewer rule forbidding ranking claims outright, a
+scoring rule that no deduction may rest on one, and an anti-pattern naming the review
+comment that triggers it.
+
+`references.md` states exactly what Level 1 covers: documented, enforceable mechanisms —
+crawl directives, indexing controls, canonicalization, structured-data eligibility
+requirements, and spam policies carrying real penalties. Google is the platform owner for
+appearing in Google Search, the same basis on which `performance/web-dev`,
+`ux/material-design` and `ux/apple-hig` are Level 1.
+
+### Other choices worth recording
+
+- **Only two rules are starred, and neither is discoverability.** SEO27 (structured data
+  describes only what the page visibly shows — the one actively enforced rule in the
+  domain) and SEO44 (nothing applied at the cost of accessibility, honesty, or
+  performance). Hidden text and keyword-stuffed alt attributes fail the safety floor before
+  they fail any search policy.
+- **The pipeline is the diagnostic method, not a description.** A five-stage ladder worked
+  top-down to the first failure. Naming the failing stage *is* the diagnosis; skipping it is
+  how teams add tags to a page a crawler never fetched.
+- **`n/a` for surfaces with no public pages.** An app behind a login scores `n/a`, not a low
+  number, and the decision framework calls it a five-minute exclusion check rather than an
+  audit. The matching anti-pattern names the failure of producing a report about pages no
+  crawler will fetch.
+- **Migrations get their own procedure.** Everything else in the domain is incremental; a
+  URL change is not, and it is where organic traffic is actually lost. Four rules
+  (SEO36–SEO40), a decision-framework section, and a prompt fragment, all built around
+  capturing a baseline *before* the change.
+- `graphs/knowledge-graph.md` gains a concept node — *semantic markup serves more than one
+  reader* — linking WCAG, `frontend/html`, this pack, and gov.uk content design, since the
+  same structure serves a screen reader, a crawler, and the next developer.
+  `agents/frontend-reviewer.md` and `agents/release-reviewer.md` both load it conditionally.
+
 ## [1.15.0] — 2026-07-27
 
 Second pack off the v1.13.0 backlog.

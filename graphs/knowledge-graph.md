@@ -62,6 +62,10 @@ Any long-running process needs a stated stopping condition, a budget, and a defi
 ### Feedback & system status
 → [Norman NR9-13](../packs/ux/don-norman/engineering-rules.md) · [NN/g H1](../packs/ux/nielsen-norman-group/principles.md) · [Krug ER24](../packs/ux/steve-krug/engineering-rules.md) · [Material snackbars](../packs/ux/material-design/principles.md)
 
+### Semantic markup serves more than one reader
+The same structure — one `h1`, nesting headings, real anchors with `href`, alt text that describes rather than lists — is what a screen reader, a crawler, and the next developer all depend on. Where "SEO advice" appears to conflict with accessibility, that is the signal the advice was never documented in the first place.
+→ [WCAG](../packs/ux/wcag/engineering-rules.md) · [frontend/html semantics](../packs/frontend/html/principles.md) · [SEO: no separate markup layer](../packs/frontend/seo/principles.md) · [gov.uk content design](../packs/content/gov-uk-content-design/README.md)
+
 ### Compositor-friendly animation
 → [Browser rendering BR1](../packs/performance/browser-rendering/principles.md) · [CSS CS5](../packs/frontend/css/principles.md) · [Core Web Vitals CW12](../packs/performance/core-web-vitals/principles.md) · [WCAG reduced-motion](../packs/ux/wcag/engineering-rules.md)
 

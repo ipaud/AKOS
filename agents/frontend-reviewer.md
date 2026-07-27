@@ -20,6 +20,7 @@ Reviews frontend code quality and visual craft: semantic HTML, modern CSS, React
 
 - [frontend/html](../packs/frontend/html/README.md), [frontend/css](../packs/frontend/css/README.md), [frontend/typescript](../packs/frontend/typescript/README.md), [frontend/react](../packs/frontend/react/README.md), [frontend/design-systems](../packs/frontend/design-systems/README.md)
 - [ux/refactoring-ui](../packs/ux/refactoring-ui/README.md) — visual craft
+- [frontend/seo](../packs/frontend/seo/README.md) — only when the surface has public pages: rendering strategy for indexability, URL identity, metadata. Never report ranking; every finding names the pipeline stage it breaks
 - `packs/personal/<personal_profile>/design-language.md` — anti-template stance, Level 0 (profile named in `.akos/config.md`, default `pau-avila`)
 
 ## Review checklist

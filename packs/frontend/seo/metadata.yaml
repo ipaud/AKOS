@@ -1,0 +1,35 @@
+schema_version: 1
+name: seo
+domain: frontend
+authority-level: 1
+version: 1.0.0
+tags: [seo, indexing, crawling, canonicalization, structured-data, schema-org, robots, sitemaps, hreflang, redirects, metadata, discoverability]
+sources:
+  - title: "Google Search Essentials"
+    org: Google
+    url: https://developers.google.com/search/docs/essentials
+  - title: "Google Search Central Documentation"
+    org: Google
+    url: https://developers.google.com/search/docs
+  - title: "RFC 9309: Robots Exclusion Protocol"
+    org: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9309.html
+  - title: "Schema.org"
+    org: Schema.org
+    url: https://schema.org/
+  - title: "Sitemaps XML format"
+    org: sitemaps.org
+    url: https://www.sitemaps.org/protocol.html
+related:
+  - packs/frontend/html
+  - packs/frontend/react
+  - packs/performance/core-web-vitals
+  - packs/mobile/responsive-web
+  - packs/content/gov-uk-content-design
+id: frontend/seo
+status: stable
+last_reviewed: 2026-07-27
+review_after: 2028-01-23
+maintainer: core
+license: MIT
+deprecated: false
