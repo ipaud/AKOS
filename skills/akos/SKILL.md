@@ -8,7 +8,7 @@ description: Load AKOS knowledge (constitution, authority model, reasoning profi
 AKOS root is `~/DEV/AKOS`. If that path does not exist, AKOS root is the
 directory two levels above this file. Every path below is relative to it.
 
-Read files with your file-reading tool. Do not load the whole repo — it is 59
+Read files with your file-reading tool. Do not load the whole repo — it is 60
 packs. Load the constitution, the profile, the Level-0 layer, and 2-5 packs.
 
 ## 1. Bootstrap
@@ -131,6 +131,7 @@ is really about visual craft wastes a slot.
 | `product/lean-startup` | The assumption is unvalidated. MVP scope, hypothesis, measure-learn. |
 | `product/continuous-discovery-habits` | Setting up a real customer-contact cadence and opportunity mapping. |
 | `product/escaping-the-build-trap` | Shipping features but not outcomes. Strategy and org shape. |
+| `product/experimentation` | An A/B test is proposed, or a result is being used to justify a decision. Power and sample size, criterion and guardrails, stopping rules, reading a result. Its most common answer is that the traffic isn't there — reach for it to settle that in two minutes. |
 | `devops/deployment` | Rollout and rollback: canary, blue-green, migration safety. |
 | `devops/ci-cd` | Pipeline design and what gates a merge. |
 | `devops/sre` | Reliability as a target: SLOs, error budgets, alerting, incidents. |

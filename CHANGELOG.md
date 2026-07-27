@@ -3,6 +3,65 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.0] — 2026-07-27
+
+Last pack of the v1.13.0 backlog. The routing table is now at its stated ceiling.
+
+### Added
+
+- **`packs/product/experimentation`** (Level 3 — Kohavi, Tang & Xu, *Trustworthy Online
+  Controlled Experiments*). Principles P1–P17 and engineering rules EXP1–EXP45 across
+  pre-launch planning, assignment and instrumentation, running, reading, deciding and
+  shipping, what to do when you cannot experiment, and ethics. Cleared the intake gate on a
+  verified gap: `Kohavi`, `statistical significance`, `statistical power`, `p-value`,
+  `OEC`, `novelty effect`, `sample ratio`, `peeking`, `multiple comparison`,
+  `minimum detectable` and `confidence interval` all returned zero across the 59-pack
+  corpus. `A/B` returned five hits, all in passing — `product/lean-startup` supplies the
+  hypothesis loop and none of the statistics, which is exactly the gap.
+
+### The pack opens by talking most readers out of it
+
+Required sample per arm is approximately `16·p·(1−p)/δ²`. On a 3% baseline that is ~52,000
+per arm to detect a 10% relative lift and ~207,000 for a 5% one — halve the effect,
+quadruple the requirement. **Under roughly 5,000 weekly users into the funnel, conversion
+is not experimentable, and that is the finding.** An underpowered test does not produce a
+weaker answer; it converts "we don't know" into a number people will quote.
+
+So the pack ships a refusal with teeth: a traffic table with a verdict per scale and a list
+of what to do instead; a rules section (EXP38–EXP41) for when experimentation is
+unavailable, including that "we tested it" may never be claimed for an underpowered test; a
+scoring rubric returning `n/a` rather than a low score for a surface without the traffic,
+in which **not running experiments is never a deduction**; a checklist gate placed before
+the checklist proper, because reviewing the methodology of a test that should not exist
+legitimizes it; and an anti-pattern for the platform-and-process build-out that cannot
+produce a valid answer.
+
+This is the Level 3 failure mode named directly — the source's context is large-scale
+consumer products, and `core/authority-model.md` is explicit that methodologies encode the
+setting they came from.
+
+### Other choices
+
+- **Only two rules are starred, and neither is methodology.** EXP42 (no arm withholds
+  safety, accessibility, or security — the floor is not contingent on whether users are
+  observed to want it) and EXP43 (experiment data is personal data). Both apply at any
+  scale, including where the rest of the pack does not.
+- **"Not significant" may never be reported as "no effect"** (EXP27); the detectable
+  threshold must be stated alongside. One rule, and it is what makes a flat result honest.
+- **A program reporting mostly wins is a finding, not a success**, with an A/A test as the
+  diagnostic.
+- `graphs/knowledge-graph.md` gains a concept node — *a number you cannot act on is worse
+  than no number* — linking this pack, `agent-evals`, the knowledge schema's "if a check
+  can't fail, it isn't a check", and the confidence model.
+
+### Backlog closed
+
+`security/auth`, `security/privacy`, `architecture/philosophy-of-software-design`,
+`devops/observability`, `frontend/seo` and `product/experimentation` — six packs across
+v1.13.0–v1.17.0, plus six `ai-engineering` packs promoted out of draft. The corpus is at 60
+and the routing table is at the ceiling stated in `ROADMAP.md`: nothing new enters without
+displacing something.
+
 ## [1.16.0] — 2026-07-27
 
 Third pack off the v1.13.0 backlog. One left.
