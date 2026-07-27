@@ -26,13 +26,6 @@ evidence for the current size and not for a larger one. A new pack now needs to
 displace an existing one, and the case for it has to include which row it
 replaces.
 
-- **Backfill graph coverage, or state the rule.** 19 packs are absent from
-  `graphs/knowledge-graph.md`. Most are absent correctly — it indexes
-  cross-cutting *concepts*, and `testing/playwright` has no cross-cutting
-  concept — which is why `doctor.sh` deliberately does not require a link.
-  But nobody has checked which of the 19 are genuine omissions versus correct
-  absences. Decide per pack, then either add the node or record that the file
-  is concept-scoped and pack coverage was never the goal.
 - **Split the oversized `ai-engineering` files.**
   `agent-security/engineering-rules.md` is ~18 KB with 95 `ASE` rules, well past
   the 40-200 line guidance in `core/knowledge-schema.md`. Promotion to stable
@@ -106,6 +99,18 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **Graph coverage audited and the rule written down (2026-07-27).** 17 packs
+  had no node in `graphs/knowledge-graph.md` and nobody had checked which were
+  omissions. Read all 17 for a cross-cutting claim: 8 had one and were linked,
+  9 did not and are recorded as absent by design. One genuine hole turned up —
+  no perceived-performance concept existed at all — now a node linking web.dev
+  WD6, Core Web Vitals CW8, and Laws of UX on waiting as a negative peak.
+  `frontend/design-systems` was the closest call and was **not** linked: tokens
+  look like the "one owner per decision" idea but the pack does not make that
+  claim. The file now carries the criterion, the test ("quote the line in the
+  pack that says the concept — if you cannot, the link is padding"), and the
+  audited absent list, so the question is answered rather than re-derived.
 
 - **`product/experimentation`, v1.17.0 — batch closed.** The last of six packs.
   Its organising decision is the same shape as `observability`'s and `seo`'s but
