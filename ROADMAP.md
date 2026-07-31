@@ -5,19 +5,47 @@ Source of truth for *why* an item exists: `.akos/audit-2026-07-23.md` (full
 integral audit) and `CHANGELOG.md` (what already shipped). This file only
 tracks what's still open.
 
-Last reviewed: 2026-07-27.
+Last reviewed: 2026-07-31.
 
 ## Now
 
-Nothing queued. v1.17.0 (`product/experimentation`) shipped and **the
-knowledge-pack batch is closed** — see Recently shipped. The corpus is at 60
-and the routing table is at the ceiling this file set: nothing new enters
-without displacing something. Pull from Next.
+**Verify the merge step under real context pressure.** The 2026-07-31 dry run
+(see Recently shipped) fixed the pipeline's blind spots by writing instructions
+— checkpoint each lens to a file, dispatch in waves, `INCOMPLETE` when a lens
+does not report. None of that has been executed since. The next full run on a
+real project is the test, and the thing to watch is whether the orchestrator
+now reaches the merge at all. If it does not, the fix is structural rather than
+textual: the subagent contract has to shrink from "return a Review Summary" to
+"return a findings table", so five returns cost a fifth of the context.
 
 ## Next
 
-The knowledge-pack batch is closed. What remains is the process work the pack
-work surfaced, plus one standing constraint.
+The knowledge-pack batch is closed and the CI backlog is validated. What the
+dry run left open, plus one standing constraint.
+
+- **Write the merge algorithm down.** `skills/akos-review/SKILL.md` spends one
+  sentence on the hardest step in the pipeline — "merge every returned summary
+  into **one** Review Summary". Missing: the dedup rule, what happens when two
+  lenses fill the same score dimension (`frontend-reviewer` and `ux-reviewer`
+  both fill UX; nothing says who wins), and how to reconcile two lenses that
+  disagree. Four of the five lenses in the dry run scored overlapping
+  dimensions and there is no stated way to combine them.
+- **Give §1 a configless default block.** `akos check-config` exits 0 on a
+  missing `.akos/config.md`, which is by definition every new user's first run,
+  and the skill documents only the malformed case. `Deployed`, `Primary
+  surface` and `Style direction` need stated fallbacks — the frontend lens's
+  primary instruction ("judge consistency against the committed style
+  direction") is literally unexecutable without one.
+- **Resolve the profile-inference contradiction.** `core/reasoning-profiles.md`
+  defaults to Startup MVP; `packs/personal/pau-avila/project-patterns.md` maps
+  never-deployed to Prototype. Both apply to an undeployed local project and
+  `core/conflict-resolution.md` does not cover it — it resolves conflicts
+  between guidance sources, not between config inferences. This moves UX from
+  weight 2 to 3, which is the boundary between a HIGH blocking and not.
+- **Add a "scope the target" step before lens dispatch.** Nothing instructs the
+  orchestrator to look at the project before choosing lenses. In the dry run
+  the file inventory, line counts and CI read were the participant's own
+  initiative — and the only evidence that survived the run.
 
 **The routing table is full.** 60 packs, against a stated operating ceiling of
 roughly 60 rows — past that, selection precision degrades faster than coverage
@@ -25,13 +53,6 @@ improves. The 2026-07-27 routing trial found no degradation *at 58*, which is
 evidence for the current size and not for a larger one. A new pack now needs to
 displace an existing one, and the case for it has to include which row it
 replaces.
-
-- **Get CI running again.** Six releases (v1.13.0–v1.17.0 plus the routing-trial
-  commit) have merged on local evidence alone because GitHub Actions is blocked
-  on account billing. Local gates cover everything except the Ubuntu runner, so
-  the one genuinely open question is whether the `awk` added to `doctor.sh` in
-  v1.13.0 behaves the same under GNU awk. One green CI run on `main` closes all
-  six at once.
 
 ## Later
 
@@ -94,6 +115,78 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **Onboarding dry run before the activation study, and it was worth doing
+  (2026-07-31).** The five-participant study is a one-shot resource: if the
+  install path is broken you learn it from participant 1 and the study is
+  spent. Two agents ran first — one auditing the install path as a first-time
+  user, one running a real five-lens frontend review on a held-out repo with
+  only `skills/akos-review/SKILL.md` as its entry point. Both found blockers,
+  and the review trial found something worse than friction.
+
+  **The trial did not finish.** It dispatched five lens subagents, burned ~123k
+  tokens, and never reached the merge step. The lenses themselves were
+  excellent — four eventually returned reviews that found a real accessibility
+  CRITICAL and two UX CRITICALs in the target — but their output never reached
+  the orchestrator, and the run's own report was assembled from shell commands
+  alone. **AKOS had no way to say the review did not happen.** §6's decision
+  semantics are purely severity-driven, so a run where every lens silently
+  failed emits the same string as a run where every lens passed. Fixed by
+  adding an `INCOMPLETE` state that outranks the severity rules, written
+  alongside the reason coverage still must not *soften* findings — the two
+  rules pull in opposite directions and both are deliberate.
+
+  Also fixed, all in the same class of defect — reporting success that was
+  never verified:
+  - **`akos rules run` exit `0` was documented as "no findings".** It means *no
+    CRITICAL*. Confirmed by running it: exit 0 with five MEDIUM findings. An
+    agent following the documentation checks `$?`, sees 0, and reports clean.
+  - **`akos list-skills` printed "Linked into: …" unconditionally**, never
+    stating either destination — byte-identical output whether the symlinks
+    existed or not, while being the README's documented verification step. Now
+    reports per skill and per tool.
+  - **`doctor.sh` tested symlink existence, not identity.** Verified by
+    cloning a throwaway checkout that had installed nothing and watching it
+    print `✓ 69 ! 0 ✗ 0`. Now compares resolved targets via a shared
+    `akos_link_status` helper, warning (not failing) on a foreign checkout,
+    since several checkouts on one machine is legitimate. The helper resolves
+    physically because `~/DEV` is commonly a symlink to somewhere else, so the
+    final path component alone is not comparable.
+  - **Eight detectors, seven documented.** `PACK_EXPIRED` (domain `meta`) was
+    absent from both the prose and the routing table. It is a finding about
+    AKOS's own freshness, not the project under review, and now says so.
+  - **The plugin path told the skills to run a CLI it does not ship.** Both
+    skills opened by mandating `akos check-config` and treating a non-zero exit
+    as "do not proceed" — so a plugin user hit `command not found` on the
+    second instruction they read. Both now carry a by-hand fallback that keeps
+    the check's substance: absence of the CLI is not permission to skip it,
+    because that check is what stops a hostile `.akos/config.md` from lowering
+    the profile and silently skipping lenses.
+  - **README:** SSH clone URL on a now-public repo (an evaluator without SSH
+    keys cannot clone at all, and HTTPS works anonymously), macOS's Python 3.9
+    floor with no stated remedy and the existing `AKOS_PYTHON_BIN` escape hatch
+    documented nowhere, no "restart your agent session" step (skills are
+    enumerated at session start, so an already-open session improvises a
+    generic review — which the study would have recorded as a success), the 13
+    subagents written into `~/.claude/agents/` undisclosed, `uninstall.sh`
+    unmentioned, and PATH persistence assuming zsh.
+  - **`LICENSE` was MIT plus an appended note**, which is why GitHub reported
+    the repo's license as "Other" rather than "MIT". The note moved to
+    `NOTICE.md`; the grant is unchanged.
+
+  Estimated time-to-first-review before these fixes: 15–35 minutes for a
+  realistic newcomer against a stated 10-minute median target, with two
+  documentation defects each able to consume the whole budget alone.
+
+- **CI is green on `main` — the six-release validation backlog is closed
+  (2026-07-31).** The repo was made public, which lifted the Actions billing
+  block (public repos get unlimited minutes on standard runners). Re-running
+  the v1.17.3 `main` run passed all three jobs: Quality gates + coverage,
+  Functional (Ubuntu / Python 3.10 floor), and Functional (macOS / current
+  Python). The one genuinely open question — whether the `awk` added to
+  `doctor.sh` in v1.13.0 behaves the same under GNU awk — is answered: it
+  does. Everything merged between v1.13.0 and v1.17.3 on local evidence alone
+  is now CI-validated.
 
 - **"Split the oversized `ai-engineering` files" was wrong, and is closed
   without a split (2026-07-27).** The item claimed

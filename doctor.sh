@@ -422,20 +422,40 @@ done
 
 # --- Symlinks ---
 printf '\n%sSymlinks%s\n' "$c_bold" "$c_reset"
-if [ -e "$HOME/DEV/AKOS" ]; then ok "$HOME/DEV/AKOS resolves"; else warn "$HOME/DEV/AKOS not found (run ./install.sh)"; fi
-if [ -L "$HOME/bin/akos" ]; then ok "$HOME/bin/akos symlink present"; else warn "$HOME/bin/akos symlink absent (run ./install.sh)"; fi
+# Identity, not existence: on a machine with two checkouts the links exist but
+# may belong to the other one, which would report this tree as installed when
+# it installed nothing. `foreign` is a warning rather than a failure — several
+# checkouts on one machine is legitimate, but the user must be told which one
+# the links actually serve.
+case "$(akos_link_status "$HOME/DEV/AKOS" "$AKOS_HOME")" in
+  linked)  ok "$HOME/DEV/AKOS -> this checkout" ;;
+  foreign) warn "$HOME/DEV/AKOS points at a different AKOS checkout" ;;
+  *)       warn "$HOME/DEV/AKOS not found (run ./install.sh)" ;;
+esac
+case "$(akos_link_status "$HOME/bin/akos" "$AKOS_HOME/bin/akos")" in
+  linked)  ok "$HOME/bin/akos -> this checkout" ;;
+  foreign) warn "$HOME/bin/akos points at a different AKOS checkout" ;;
+  *)       warn "$HOME/bin/akos symlink absent (run ./install.sh)" ;;
+esac
 for dir in "$HOME/.claude/skills:Claude Code" "$HOME/.agents/skills:Codex CLI"; do
   d="${dir%%:*}"; label="${dir##*:}"
   for skill in akos akos-review; do
-    if [ -e "$d/$skill" ]; then ok "$label: $skill linked"
-    else warn "$label: $skill not linked (run ./install.sh)"; fi
+    case "$(akos_link_status "$d/$skill" "$AKOS_HOME/skills/$skill")" in
+      linked)  ok "$label: $skill linked" ;;
+      foreign) warn "$label: $skill linked to a different AKOS checkout" ;;
+      *)       warn "$label: $skill not linked (run ./install.sh)" ;;
+    esac
   done
 done
-linked_agents=0
+linked_agents=0; foreign_agents=0
 for a in "$AKOS_HOME"/agents/*.md; do
-  [ -e "$HOME/.claude/agents/akos-$(basename "$a")" ] && linked_agents=$((linked_agents+1))
+  case "$(akos_link_status "$HOME/.claude/agents/akos-$(basename "$a")" "$a")" in
+    linked)  linked_agents=$((linked_agents+1)) ;;
+    foreign) foreign_agents=$((foreign_agents+1)) ;;
+  esac
 done
 if [ "$linked_agents" -eq "$agent_n" ]; then ok "Claude Code: $linked_agents reviewer subagents linked"
+elif [ "$foreign_agents" -gt 0 ]; then warn "Claude Code: $linked_agents/$agent_n reviewer subagents linked, $foreign_agents from a different checkout"
 else warn "Claude Code: $linked_agents/$agent_n reviewer subagents linked (run ./install.sh)"; fi
 
 # --- Summary ---

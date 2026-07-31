@@ -3,6 +3,100 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.4] — 2026-07-31
+
+Onboarding dry run, prompted by the repo going public. Two agents ran first —
+one auditing the install path as a first-time user, one running a real
+five-lens frontend review on a held-out repo through nothing but
+`skills/akos-review/SKILL.md`. Both surfaced real defects; the review trial
+surfaced one worse than friction.
+
+### Fixed
+
+- **The review pipeline had no way to say a review did not happen.** The trial
+  dispatched five lens subagents, spent ~123k tokens, and never reached the
+  merge step — the lenses' output never reached the orchestrator, and the
+  run's own report was assembled from shell commands alone. `core/
+  review-pipeline.md`'s decision semantics are purely severity-driven, so a run
+  where every lens silently failed would have emitted the same PASS/BLOCKED
+  string as a run where every lens passed. `skills/akos-review/SKILL.md`
+  gained an `INCOMPLETE` state that outranks the severity rules, plus
+  checkpoint-to-disk and wave-dispatch guidance so the orchestrator's own
+  context is less likely to fill before the merge. **Not yet propagated to the
+  12 other files that enumerate PASS/PASS WITH FIXES/BLOCKED** (`core/
+  review-pipeline.md`, `core/constitution.md`, `core/scoring-model.md`,
+  `agents/ux-reviewer.md`, `scoring/overall-score.md`,
+  `docs/scoring/evidence-confidence-coverage.md`, `workflows/new-feature.md`,
+  `workflows/ui-screen-review.md`, `docs/architecture/current-system.md`,
+  `docs/migration/v1.1-to-next.md`, three `templates/*.md` files) — tracked in
+  `ROADMAP.md`.
+- **`akos rules run` exit `0` was documented as "no findings"; it means no
+  CRITICAL.** Confirmed by running it against a real project: exit 0 with five
+  MEDIUM findings. An agent following the old wording checks `$?`, sees 0, and
+  reports clean without reading the findings array.
+- **`akos list-skills` printed "Linked into: …" unconditionally** — identical
+  output whether the symlinks existed or not, while being the README's
+  documented verification step. Now reports per skill, per tool.
+- **`doctor.sh` tested symlink existence, not identity — confirmed by
+  reproducing it.** A throwaway checkout that had installed nothing printed
+  `✓ 69 ! 0 ✗ 0`, because the links belonging to a *different* checkout
+  exist. New `akos_link_status` helper in `bin/akos-common.sh` compares
+  resolved targets; `doctor.sh` and `akos list-skills` now warn (not fail) on
+  a foreign checkout, since several checkouts on one machine is legitimate.
+  The resolver walks symlinks at any depth rather than checking only the final
+  path component, because `~/DEV` is commonly itself a symlink
+  (`~/DEV` → `~/Desktop/DEV` on the maintainer's own machine) — a first version
+  of this check flagged the maintainer's own healthy install as foreign.
+  Covered by 10 cases in new `tests/integration/test_link_status.sh`, verified
+  to actually catch the regression by sabotaging a copy back to the
+  final-component-only check and confirming it fails.
+- **Eight detectors ship, seven were documented.** `PACK_EXPIRED` (domain
+  `meta`) was absent from `skills/akos-review/SKILL.md`'s prose and routing
+  table. It is a finding about a knowledge pack's own freshness, not the
+  project under review, and the routing table now says so explicitly.
+- **The plugin path told both skills to run a CLI the plugin does not ship.**
+  `akos` and `akos-review` opened by mandating `akos check-config` and told the
+  agent to treat a non-zero exit as "do not proceed" — so a plugin install (no
+  `bin/akos` on PATH) hits `command not found` on the second instruction it
+  reads. Both skills now carry a by-hand fallback that verifies the same five
+  config properties without the CLI, because the check exists to stop a
+  hostile `.akos/config.md` from lowering the profile and silently skipping
+  lenses — the CLI's absence is not license to skip that check, only to run it
+  differently.
+- **`LICENSE` was the canonical MIT text plus an appended note**, which is why
+  GitHub reported this repo's license as "Other" rather than "MIT" the moment
+  it went public — the detector only recognizes the unmodified body. The note
+  moved to new `NOTICE.md`; the grant itself is unchanged.
+- **README install path**, audited against the code rather than assumed
+  correct: SSH clone URL on a now-public repo (confirmed anonymous HTTPS works
+  against it; an evaluator without SSH keys configured cannot clone at all),
+  macOS's Python 3.9 floor with no stated remedy (the existing
+  `AKOS_PYTHON_BIN` escape hatch was documented only in the error message, now
+  also in Prerequisites), no "restart your agent session" step (skills are
+  enumerated at session start, so an already-open session improvises a generic
+  review instead — which the planned activation-baseline study would have
+  recorded as a false success), the 13 reviewer subagents written into
+  `~/.claude/agents/` left undisclosed, `uninstall.sh` never mentioned, and
+  PATH persistence assuming zsh with no note for bash/fish users.
+- **`skills/{akos,akos-review}/SKILL.md`'s AKOS-root fallback was ambiguous
+  to the letter.** "the directory two levels above this file" resolves to
+  `skills/` under a literal per-file-not-per-directory reading — the exact
+  case a plugin install depends on, since it lands outside `~/DEV/AKOS`. Now
+  states it as `../..` from the file, i.e. the parent of `skills/`.
+
+### Added
+
+- `tests/integration/test_link_status.sh` — 10 cases for `akos_link_status`:
+  missing/linked/foreign/dangling/real-directory, a symlinked ancestor
+  (resolving correctly *and* still catching a real mismatch through one),
+  relative targets, file targets, and chained symlinks.
+
+Estimated time-to-first-review before this release, measured against the
+stated 10-minute median target: 15–35 minutes for a realistic newcomer, with
+two of the documentation defects above each individually able to consume the
+whole budget. Not yet re-measured after the fixes; that is the next open item
+in `ROADMAP.md`.
+
 ## [1.17.3] — 2026-07-27
 
 Documentation catch-up. `README.md` and `CONTRIBUTING.md` had fallen behind the v1.13.0–

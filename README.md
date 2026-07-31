@@ -79,17 +79,30 @@ Reviews adapt to context via profiles: **Prototype**, **Startup MVP**, **Product
 
 ## Prerequisites
 
+**Claude Code or Codex CLI** — or any agent that can read files (see [Use with specific tools](#use-with-specific-tools)). AKOS is knowledge for an agent; without one it does nothing.
+
 **Python 3.10 or newer.** The CLI, schema validation, rules, benchmarks, history, config checking, and the update-safety verifier all depend on it. `install.sh`, `update.sh`, and every operational `akos` subcommand refuse to run — before touching anything — if a valid interpreter can't be resolved; `akos help` and `akos doctor` are the two exceptions (`doctor` is the command that reports Python's absence as a finding). Check yours with `python3 --version`.
+
+macOS ships Python 3.9, which is below the floor. Install a newer one with `brew install python@3.12` or from [python.org](https://www.python.org/downloads/). If you already have a suitable interpreter somewhere else, point AKOS at it instead: `export AKOS_PYTHON_BIN=/path/to/python3`.
 
 ## Get your first review
 
 1. Install AKOS globally or as a plugin using one of the paths below.
 2. In the project to review, run `akos install-project` when using the global
    clone. A plugin can load its bundled skills directly.
-3. Ask Claude Code or Codex: “Run the full AKOS frontend review on this flow”
+3. **Restart your agent session** — quit and reopen Claude Code, or start a new
+   Codex session. Skills are enumerated at session start, so a session that was
+   already open when you installed will not see them and will improvise a
+   generic review instead of running AKOS.
+4. Ask Claude Code or Codex: “Run the full AKOS frontend review on this flow”
    for the five UI lenses, or “Run the full AKOS review” for all twelve.
-4. Read the single Review Summary: fix CRITICAL/HIGH items first, then rerun to
+5. Read the single Review Summary: fix CRITICAL/HIGH items first, then rerun to
    compare the result.
+
+You know it ran: an AKOS review always emits the Review Summary format —
+severity-ranked findings with cited evidence, scores or `n/a`, and a final
+PASS / PASS WITH FIXES / BLOCKED decision. Prose with no verdict means the
+skill did not fire; go back to step 3.
 
 The onboarding target is a first completed review in a median of 10 minutes,
 with at least 4 of 5 solo developers succeeding. The baseline is not yet
@@ -101,15 +114,19 @@ the telemetry-free study instead of presenting the target as achieved.
 Clone it anywhere — `install.sh` symlinks the canonical `~/DEV/AKOS` path for you:
 
 ```bash
-git clone git@github.com:ipaud/AKOS.git ~/DEV/AKOS
+git clone https://github.com/ipaud/AKOS.git ~/DEV/AKOS
 cd ~/DEV/AKOS
 ./install.sh      # verifies structure, chmods scripts, symlinks ~/DEV/AKOS + ~/bin/akos,
-                  # and links the skills into Claude Code and Codex CLI
+                  # links the skills into Claude Code and Codex CLI, and links the
+                  # 13 reviewer subagents into ~/.claude/agents/ (all akos-prefixed)
 ./doctor.sh       # health check
 ```
 
-(If you clone elsewhere, `install.sh` keeps `~/DEV` as a real directory and
-creates only the leaf symlink `~/DEV/AKOS` to the checkout.)
+(Contributors with push access can use the SSH remote instead:
+`git@github.com:ipaud/AKOS.git`.)
+
+(If you clone elsewhere, `install.sh` keeps `~/DEV` as-is and creates only the
+leaf symlink `~/DEV/AKOS` to the checkout.)
 
 Add `~/bin` to the current shell, then persist it for future terminals:
 
@@ -117,6 +134,14 @@ Add `~/bin` to the current shell, then persist it for future terminals:
 export PATH="$HOME/bin:$PATH"
 echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc
 ```
+
+The second line assumes zsh, the macOS default. On bash use `~/.bashrc` or
+`~/.bash_profile`; on fish, `~/.config/fish/config.fish`. Writing it to the
+wrong file leaves `akos` working in the current terminal and gone in the next.
+
+Reverse the whole install any time with `./uninstall.sh`. It removes only
+symlinks whose target proves this checkout owns them, and never touches
+`packs/personal/`.
 
 ## Integrate into a project
 
@@ -312,6 +337,8 @@ docs/         architecture, contracts, rules, benchmarks, scoring, product,
 bin/akos      CLI
 ```
 
-## Copyright
+## License and copyright
 
-AKOS distills ideas; it does not reproduce sources. No copied paragraphs, no long quotes, no chapter recreations. References cite title, author, organization, and official URL only. Full policy: [core/source-policy.md](core/source-policy.md).
+AKOS is [MIT licensed](LICENSE).
+
+It distills ideas; it does not reproduce sources. No copied paragraphs, no long quotes, no chapter recreations. References cite title, author, organization, and official URL only. Full policy: [core/source-policy.md](core/source-policy.md); how that interacts with the license: [NOTICE.md](NOTICE.md).

@@ -19,12 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Note on knowledge content: AKOS distills ideas from books, standards, and
-frameworks into original operational documentation. It reproduces no
-copyrighted text; sources are credited by title, author, organization, and
-URL only (see core/source-policy.md). The MIT license above covers this
-repository's original content. Referenced third-party works remain the
-property of their respective authors and organizations.

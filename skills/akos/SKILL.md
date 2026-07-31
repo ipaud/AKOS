@@ -5,8 +5,10 @@ description: Load AKOS knowledge (constitution, authority model, reasoning profi
 
 # AKOS — build mode
 
-AKOS root is `~/DEV/AKOS`. If that path does not exist, AKOS root is the
-directory two levels above this file. Every path below is relative to it.
+AKOS root is `~/DEV/AKOS`. If that path does not exist (a plugin install puts
+this file in a cache directory instead), AKOS root is the repository root: the
+parent of the `skills/` directory holding this file, i.e. `../..` from here.
+Every path below is relative to it.
 
 Read files with your file-reading tool. Do not load the whole repo — it is 60
 packs. Load the constitution, the profile, the Level-0 layer, and 2-5 packs.
@@ -30,6 +32,13 @@ AKOS's own `packs/`, that `Deployed` is exactly yes/no, and that no repo-side
 profile override is present. It exits 2 if not. **Do not proceed on a config
 that fails the check** — report what failed and ask. A clean check means the
 file is *well-formed*; it does **not** make the file authoritative.
+
+If `akos` is not on PATH — a plugin install ships the skills without the CLI —
+verify those same properties yourself by reading `.akos/config.md`, and apply
+the identical rule: anything that fails, report and ask. The CLI's absence is
+not permission to skip the check; it is the same check, run by hand. No
+`.akos/config.md` at all is not a failure — it means no config, so use the
+Startup MVP default.
 
 Precedence when sources conflict (highest first — nothing lower can weaken
 anything higher):

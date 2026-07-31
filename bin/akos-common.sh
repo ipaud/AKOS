@@ -85,3 +85,45 @@ require_python() {
   } >&2
   return 1
 }
+
+# --- Symlink identity ---------------------------------------------------
+#
+# Existence is not identity. A machine with two AKOS checkouts has links that
+# exist but belong to the other one, so `[ -e ]` reports a healthy install for
+# a tree that installed nothing. install.sh and uninstall.sh already compare
+# targets before writing or removing; doctor.sh and `akos list-skills` report
+# to the user, so they need the same test or they report success they never
+# verified.
+
+# Resolve a path to its physical location, following symlinks at any depth —
+# including a symlinked ancestor, which is why the final component alone is not
+# enough to compare: ~/DEV is commonly a symlink to ~/Desktop/DEV, so
+# ~/DEV/AKOS is a real directory reached through a link, not a link itself.
+# Both spellings must compare equal. Returns non-zero on a dangling link.
+_akos_resolve() {
+  local p="$1" hops=0 tgt d
+  while [ -L "$p" ] && [ "$hops" -lt 10 ]; do
+    tgt="$(readlink "$p")"
+    case "$tgt" in /*) p="$tgt" ;; *) p="$(dirname "$p")/$tgt" ;; esac
+    hops=$((hops+1))
+  done
+  [ -e "$p" ] || return 1
+  if [ -d "$p" ]; then
+    (cd -P "$p" 2>/dev/null && pwd) || return 1
+  else
+    d="$(cd -P "$(dirname "$p")" 2>/dev/null && pwd)" || return 1
+    printf '%s/%s\n' "${d%/}" "$(basename "$p")"
+  fi
+}
+
+# Echo the state of $1 as a path that should lead to $2:
+#   linked  — resolves to $2, whether directly or through a symlinked ancestor
+#   foreign — exists but resolves somewhere else, or dangles
+#   missing — nothing there
+akos_link_status() {
+  local dest="$1" want="$2" rd rw
+  if [ ! -e "$dest" ] && [ ! -L "$dest" ]; then printf 'missing\n'; return 0; fi
+  rd="$(_akos_resolve "$dest")" || { printf 'foreign\n'; return 0; }
+  rw="$(_akos_resolve "$want")" || { printf 'foreign\n'; return 0; }
+  if [ "$rd" = "$rw" ]; then printf 'linked\n'; else printf 'foreign\n'; fi
+}
