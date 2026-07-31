@@ -3,6 +3,56 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.7] — 2026-07-31
+
+Re-tested the merge algorithm from v1.17.6 the same day it was written —
+written guidance and exercised guidance are different claims, same caution as
+every entry in this run of releases. It mostly held on first exercise; three
+real gaps surfaced and are closed here.
+
+### Confirmed
+
+- **The dedup, ownership, and floor-check rules work when followed, not just
+  when invented.** Third run of the same held-out-repo trial (DKG, five
+  lenses, all five reported): the dedup rule caught 6 genuine cross-lens
+  overlaps and correctly rejected a near-miss (same file, different failure
+  mode); the ownership rule resolved the exact `frontend-reviewer`-scores-UX
+  case named in its own text; the floor-check capped two CRITICAL/HIGH
+  disagreements by checking `core/constitution.md` Article 2's enumerated
+  list rather than by eyeballing severity.
+
+### Fixed
+
+- **No rule for a finding that's a subset of a broader multi-instance
+  finding from another lens.** One lens flags a single instance; another
+  flags the same instance as one of several under a pattern finding. Step 6's
+  dedup rule now says explicitly: merge at the instance level, leave the
+  umbrella finding's other instances untouched — don't merge the whole
+  broader finding just because one instance overlapped.
+- **Capping a CRITICAL to HIGH left the owning lens's dimension score
+  un-recomputed, with no rule saying what to do about it.** The merge step
+  now states explicitly that the merger never recomputes another lens's
+  rubric arithmetic — that's the owning lens's job, run against evidence the
+  merger doesn't have — and requires the resulting mismatch to be stated next
+  to the Scores-block line or in Tradeoffs rather than silently resolved
+  either way.
+- **The floor-check read as conditional on active cross-lens disagreement**,
+  so an uncontested CRITICAL from a single lens seemed to skip it. Now
+  explicit: every CRITICAL in the merged report gets the same check
+  regardless of whether any other lens weighed in, because a CRITICAL blocks
+  in every profile at any coverage level — that's exactly the tier most worth
+  verifying. Also now explicit that non-CRITICAL disagreements (MEDIUM vs.
+  HIGH) need no floor-check at all — that's just Rule 1's plain "keep the
+  higher severity."
+
+### Noted, not fixed
+
+The re-test's own honesty check: the copy lens's compliant behavior (no
+standalone score returned) isn't clean evidence the ownership rule works
+unprompted — the tester's dispatch prompt cited the rule to it before it ran.
+Worth a cleaner re-test at some point; not urgent enough to block this
+release.
+
 ## [1.17.6] — 2026-07-31
 
 The last open item from the v1.17.4/v1.17.5 dry runs that didn't need another

@@ -120,6 +120,32 @@ every audit pass.
 
 ## Recently shipped (context for what's *not* on this list anymore)
 
+- **The merge algorithm was re-tested against a live run, and mostly held
+  (2026-07-31, same day it was written).** Third run of the same held-out-repo
+  trial: dispatched five lenses on DKG, all five reported, and the merger
+  followed step 6 as written rather than inventing rules from scratch. Real
+  signal, not a rubber stamp — the dedup rule correctly caught 6 genuine
+  cross-lens overlaps *and* correctly rejected a near-miss (same file,
+  different failure mode); the ownership rule resolved the exact
+  `frontend-reviewer`-scores-UX case named in its own text; the floor-check
+  capped two CRITICAL/HIGH disagreements by checking Article 2's list rather
+  than by eyeballing severity. Three real gaps surfaced and were closed the
+  same day: (1) no rule for a finding that's a *subset* of a broader
+  multi-instance finding from another lens — now merges at the instance
+  level, leaving the umbrella finding's other instances untouched; (2) capping
+  a CRITICAL to HIGH left the owning lens's own dimension score
+  un-recomputed, with nothing telling the merger whether to fix that — now
+  explicit that the merger never recomputes another lens's rubric arithmetic,
+  and states the resulting mismatch rather than silently resolving it; (3) the
+  floor-check read as conditional on active disagreement, so an uncontested
+  CRITICAL from a single lens seemed to skip it — now explicit that every
+  CRITICAL gets the same check regardless of coverage, and non-CRITICAL
+  disagreements (MEDIUM vs. HIGH) are just Rule 1's plain "keep the higher
+  severity," no floor-check involved. One honest caveat from the run itself:
+  the copy-lens's compliant behavior (returning no standalone score) isn't
+  clean evidence the rule works unprompted — the tester's own dispatch prompt
+  cited the rule to it first.
+
 - **The merge algorithm is written down (2026-07-31).** `skills/akos-review/
   SKILL.md` spent one sentence on the hardest step in the pipeline —
   "merge every returned summary into **one** Review Summary" — and the

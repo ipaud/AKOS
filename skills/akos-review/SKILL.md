@@ -263,6 +263,15 @@ lens/pack cited (`ux/steve-krug` found it as a dead end, `frontend/react`
 found it as an uncleared error state — cite both). Do not let it count twice
 against a score: if two rubrics would each deduct for it, deduct once.
 
+One finding is often a **subset** of another rather than an exact match — one
+lens flags a single instance (`SettingsPage.tsx:72`), another flags the same
+instance as one of several under a broader pattern (five silent-catch sites
+across the app, one of which is that line). Merge at the instance level: fold
+the shared instance into one entry citing both lenses, and leave the rest of
+the broader finding's other instances exactly as that lens reported them —
+don't merge the whole umbrella finding just because one of its instances
+overlapped.
+
 **2. Same-dimension ownership.** Step 2's lens table maps each scored
 dimension to exactly one owning lens (UX → lens 2, Accessibility → lens 3, and
 so on). If a second lens also returns a number for a dimension it doesn't own
@@ -277,18 +286,39 @@ into the UX line via the rubric it already cites (Krug/NN·g copy deductions);
 never give it a sibling line or an addendum. `overall-score.md`'s weight
 table has no copy row, and inventing one double-counts against UX.
 
-**3. Cross-lens severity disagreement.** Two lenses sometimes assign different
-severity to the identical defect — mobile calling a reflow failure CRITICAL,
-accessibility calling the same code HIGH. Resolve by the constitution's
-**enumerated** safety floor (`core/constitution.md` Article 2): only security,
+**3. The CRITICAL floor-check.** Every finding that lands in the merged report
+as CRITICAL — whether one lens called it that or several disagreed and one of
+them did — gets checked against the constitution's **enumerated** safety floor
+(`core/constitution.md` Article 2) before it's allowed to stand: only security,
 accessibility basics (keyboard reachability, accessible names, contrast,
-honest labels), and data integrity are CRITICAL in every profile. A defect
-outside that list is capped at HIGH regardless of which lens flagged it or
-how severe it reads — severity within a profile's weight is real, but it is
-not floor authority. State the adjudication in **Tradeoffs**, naming both
-lenses and both severities, so a reader can overrule it; this is a judgment
-call, not an automatic downgrade, and burying it would make the merge
-unauditable.
+honest labels), and data integrity are CRITICAL in every profile. This is not
+conditional on disagreement — an uncontested CRITICAL from a single lens gets
+the same check as a disputed one, because a CRITICAL blocks in every profile
+regardless of coverage, so it's the tier most worth verifying before it's
+allowed to do that. A defect outside the enumerated list is capped at HIGH
+regardless of which lens flagged it or how severe it reads — severity within a
+profile's weight is real, but it is not floor authority. State the adjudication
+in **Tradeoffs**, naming the lens(es) and the original severity, so a reader
+can overrule it; this is a judgment call, not an automatic downgrade, and
+burying it would make the merge unauditable.
+
+**Below CRITICAL, disagreement is not a special case** — a lens calling
+something MEDIUM against another lens's HIGH on the identical defect is just
+Rule 1's dedup: keep the higher severity, no floor-check needed. The
+floor-check exists specifically because a wrongly-asserted CRITICAL blocks the
+whole review; a wrongly-asserted HIGH only becomes fix-soon instead of
+scheduled, which is a smaller stake Rule 1 already covers.
+
+**A floor-check that caps a CRITICAL to HIGH changes the finding's severity in
+the merged report. It does not recompute the owning lens's dimension score.**
+Re-deriving another lens's rubric arithmetic is out of scope for the merge
+step — that's the owning lens's job, run against evidence the merger doesn't
+have. Leave the checkpointed score as-is, and say so explicitly next to that
+Scores-block line or in Tradeoffs: e.g. "Accessibility: 34 — reflects
+accessibility-reviewer's own severity call; H1 above was capped from CRITICAL
+to HIGH by the floor-check, and the lens's rubric arithmetic was not
+recomputed against the capped severity." A stated inconsistency is honest; a
+silently "fixed" one is a number nobody actually derived.
 
 **If a lens returns a decision string outside PASS / PASS WITH FIXES /
 BLOCKED / INCOMPLETE**, treat it as ambiguous, not as a synonym to guess at.
