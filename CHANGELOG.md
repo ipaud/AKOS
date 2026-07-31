@@ -3,6 +3,45 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.8] — 2026-08-01
+
+Fourth run of the same held-out-repo trial, this time with an explicit rule
+against coaching any lens's dispatch prompt — run 3's own honesty note had
+flagged its copy-lens dispatch as contaminated evidence, so this run closed
+that hole for every lens, not just copy.
+
+### Confirmed
+
+- **All three v1.17.7 merge fixes hold under an uncoached run.** Subset-dedup,
+  score non-recomputation, and the every-CRITICAL floor-check (including two
+  CRITICALs nobody disputed) all executed as written, not improvised.
+
+### Fixed
+
+- **Subset-dedup didn't cover two already-multi-instance findings that
+  partially overlap.** The written clause's example was single-instance vs.
+  broader-pattern; this run hit two systemic findings (from different lenses)
+  sharing 4 of 8 cited sites — neither a clean subset of the other. Step 6 now
+  states the same merge-shared-leave-the-rest logic applies to that shape too.
+- **A lens transport failure that got resumed from its saved transcript, and
+  failed the same way again, was retried by resuming again — and failed
+  identically both times.** Redispatching fresh (not resuming) succeeded
+  immediately on both stuck lenses. Step 2 now says so: one resume attempt is
+  worth trying, but a resume that fails should be followed by a fresh
+  redispatch, not another resume.
+
+### Noted, deliberately not fixed
+
+`core/constitution.md` Article 2 names "keyboard reachability" as a floor
+item; `agents/accessibility-reviewer.md`'s own CRITICAL example is invisible
+focus — present but not announced, which is narrower than unreachable. The
+run's merger judged them equivalent and flagged the call as overrulable in
+Tradeoffs, which is the correct behavior for a genuine judgment call — but it
+means the wording gap between the two source files is still open. Tracked in
+`ROADMAP.md` Later; needs an actual decision (tighten one file's wording, or
+state explicitly that "basics" is broader than its named examples), not
+another merge-step patch.
+
 ## [1.17.7] — 2026-07-31
 
 Re-tested the merge algorithm from v1.17.6 the same day it was written —

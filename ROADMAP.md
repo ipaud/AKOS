@@ -63,6 +63,15 @@ replaces.
 Real, but needs a decision before it's actionable — not just an implementation
 task.
 
+- **Reconcile Article 2's "keyboard reachability" with
+  `accessibility-reviewer.md`'s "invisible focus" CRITICAL example.** Surfaced
+  2026-08-01: the constitution's floor item is unreachability; the agent
+  file's literal example is a narrower thing (focus present but not visible).
+  A merger currently has to judge whether they mean the same thing — the
+  2026-08-01 run did, correctly, and flagged it as overrulable, but that's a
+  workaround, not a fix. Needs a decision: tighten Article 2's wording, narrow
+  the agent file's example, or state explicitly in `core/constitution.md`
+  that "basics" is intentionally broader than its four named examples.
 - **Define the first-adopter segment and growth hypothesis.** README targets
   "any AI coding agent"; CONTRIBUTING frames it as a personal system. Needs an
   explicit answer: who adopts first, what behavior changes, how they find it,
@@ -119,6 +128,38 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **Fourth run confirmed v1.17.7's three fixes hold uncoached, and surfaced a
+  real infrastructure lesson for free (2026-08-01).** Same held-out DKG trial,
+  this time with an explicit rule against coaching any lens's dispatch prompt
+  with hints about the merge rules (run 3's own honesty note had flagged that
+  its copy-lens dispatch wasn't clean evidence). All three v1.17.7 clauses
+  exercised correctly: subset-dedup applied cleanly to the textbook case and
+  had to be generalized once more for a shape the wording didn't cover (two
+  already-multi-instance findings partially overlapping, not one single
+  instance inside another's broader pattern — fixed, one more sentence);
+  score non-recomputation held exactly as written (UX score left untouched,
+  the resulting mismatch stated in Tradeoffs rather than silently fixed);
+  every CRITICAL got the floor-check explicitly, including the two nobody
+  disputed — the specific gap v1.17.7 closed. Unplanned bonus finding: two of
+  the five lens subagents failed mid-stream on genuine transport errors
+  (connection closed, 600s stall) — infrastructure, not a pipeline defect.
+  The orchestrator's first instinct, resuming both from their saved
+  transcripts, **failed identically both times**; redispatching fresh instead
+  of resuming succeeded immediately. That's now written into step 2: retry a
+  transport failure once via resume, but redispatch fresh rather than
+  re-attempting a resume that already failed.
+  One open, deliberately unresolved question the run surfaced: `core/
+  constitution.md` Article 2 enumerates "keyboard reachability" as a floor
+  item; `agents/accessibility-reviewer.md` treats invisible focus (narrower
+  than unreachability) as its own literal CRITICAL example. The two files
+  don't use the same words for what's obviously the same intent, and step 6
+  doesn't say which wins when they diverge. The run's own merger handled it
+  correctly — made the call, flagged it as overrulable in Tradeoffs, didn't
+  bury it — which is what a judgment-call clause is supposed to produce. Not
+  fixed here: it's a wording-precision question between two source files, not
+  a merge-algorithm defect, and forcing a resolution under this task would be
+  answering a different question than the one asked.
 
 - **The merge algorithm was re-tested against a live run, and mostly held
   (2026-07-31, same day it was written).** Third run of the same held-out-repo

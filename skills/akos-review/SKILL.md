@@ -135,7 +135,11 @@ being one:
   or fewer.
 
   If a dispatched lens never reports back, that is not a pass — say so, name
-  the lens, and see the INCOMPLETE decision state in step 7.
+  the lens, and see the INCOMPLETE decision state in step 7. A transport-level
+  failure mid-stream is worth one retry, resumed from its transcript if your
+  tooling supports that — but if the resume fails the same way, don't retry
+  the resume again: redispatch that lens fresh instead. A resume replays from
+  a broken stream; a fresh dispatch does not carry that state forward.
 
   No subagents available (Codex, or they aren't installed)? Run the lenses
   inline in order, checkpointing each to a file the same way. Expect to spend
@@ -271,6 +275,15 @@ the shared instance into one entry citing both lenses, and leave the rest of
 the broader finding's other instances exactly as that lens reported them —
 don't merge the whole umbrella finding just because one of its instances
 overlapped.
+
+The same logic applies when **both** findings are already multi-instance and
+only partially overlap — two lenses each reporting a systemic pattern (e.g.
+swallowed fetch errors) that shares 4 of 8 cited sites. Don't merge the two
+umbrella findings into one bloated entry, and don't skip merging because
+neither side is a clean single-instance subset of the other: merge the shared
+instances into one entry citing both lenses, and leave each lens's
+non-overlapping instances attributed to that lens alone, exactly as in the
+single-instance case above.
 
 **2. Same-dimension ownership.** Step 2's lens table maps each scored
 dimension to exactly one owning lens (UX → lens 2, Accessibility → lens 3, and
