@@ -9,43 +9,56 @@ Last reviewed: 2026-07-31.
 
 ## Now
 
-**Verify the merge step under real context pressure.** The 2026-07-31 dry run
-(see Recently shipped) fixed the pipeline's blind spots by writing instructions
-— checkpoint each lens to a file, dispatch in waves, `INCOMPLETE` when a lens
-does not report. None of that has been executed since. The next full run on a
-real project is the test, and the thing to watch is whether the orchestrator
-now reaches the merge at all. If it does not, the fix is structural rather than
-textual: the subagent contract has to shrink from "return a Review Summary" to
-"return a findings table", so five returns cost a fifth of the context.
+Nothing queued — see Next. The merge-step question that sat here is answered:
+the 2026-07-31 re-run reached the merge (see Recently shipped).
 
 ## Next
 
-The knowledge-pack batch is closed and the CI backlog is validated. What the
-dry run left open, plus one standing constraint.
-
 - **Write the merge algorithm down.** `skills/akos-review/SKILL.md` spends one
   sentence on the hardest step in the pipeline — "merge every returned summary
-  into **one** Review Summary". Missing: the dedup rule, what happens when two
-  lenses fill the same score dimension (`frontend-reviewer` and `ux-reviewer`
-  both fill UX; nothing says who wins), and how to reconcile two lenses that
-  disagree. Four of the five lenses in the dry run scored overlapping
-  dimensions and there is no stated way to combine them.
+  into **one** Review Summary". The 2026-07-31 re-run had to invent, unguided:
+  a dedup rule (4 of 5 lens pairs found overlapping defects), which lens owns a
+  score dimension when two fill it (`frontend-reviewer` returned its own UX
+  number alongside `ux-reviewer`'s), and how to resolve a severity
+  disagreement between lenses on the identical defect (mobile said CRITICAL,
+  accessibility said HIGH, same code). A different merger would have produced
+  a different score block from the same five lens reports.
 - **Give §1 a configless default block.** `akos check-config` exits 0 on a
   missing `.akos/config.md`, which is by definition every new user's first run,
   and the skill documents only the malformed case. `Deployed`, `Primary
   surface` and `Style direction` need stated fallbacks — the frontend lens's
   primary instruction ("judge consistency against the committed style
-  direction") is literally unexecutable without one.
+  direction") is literally unexecutable without one. Confirmed still open in
+  the 2026-07-31 re-run; the orchestrator improvised all three.
 - **Resolve the profile-inference contradiction.** `core/reasoning-profiles.md`
   defaults to Startup MVP; `packs/personal/pau-avila/project-patterns.md` maps
-  never-deployed to Prototype. Both apply to an undeployed local project and
-  `core/conflict-resolution.md` does not cover it — it resolves conflicts
-  between guidance sources, not between config inferences. This moves UX from
-  weight 2 to 3, which is the boundary between a HIGH blocking and not.
+  never-deployed to Prototype — Level 0, so a literal authority reading picks
+  Prototype over the skill's own default. `core/conflict-resolution.md` does
+  not cover it (it resolves conflicts between guidance sources, not between
+  config inferences), and the gap is a real lever: it lowers the profile via a
+  *pack* rather than a repo config, which §1's tamper-check only guards
+  against from the latter. Moves UX from weight 2 to 3 — the boundary between
+  a HIGH blocking and not.
+- **Propagate the `INCOMPLETE` decision state.** Added to
+  `skills/akos-review/SKILL.md` only (v1.17.4); 13 other files enumerate
+  PASS/PASS WITH FIXES/BLOCKED without it — `core/review-pipeline.md` (the file
+  `core/constitution.md` names as canonical), `core/constitution.md`,
+  `core/scoring-model.md`, `agents/ux-reviewer.md`, `scoring/overall-score.md`,
+  `docs/scoring/evidence-confidence-coverage.md`, `workflows/new-feature.md`,
+  `workflows/ui-screen-review.md`, `docs/architecture/current-system.md`,
+  `docs/migration/v1.1-to-next.md`, three `templates/*.md` files.
+- **Route confirmed detector gaps back to the rule.** The 2026-07-31 run's
+  deterministic pass flagged 5 `A11Y_INPUT_NO_LABEL` inputs — all 5 confirmed
+  by the accessibility lens — but the lens also found 2 unlabeled `<select>`
+  elements the detector's `<input>`-only pattern cannot catch, which are
+  strictly worse (no placeholder fallback, no accessible name in any
+  modality). Nothing in the pipeline routes a lens's confirmed false-negative
+  back into a rule-improvement item; it currently just gets absorbed into that
+  one report and lost.
 - **Add a "scope the target" step before lens dispatch.** Nothing instructs the
-  orchestrator to look at the project before choosing lenses. In the dry run
-  the file inventory, line counts and CI read were the participant's own
-  initiative — and the only evidence that survived the run.
+  orchestrator to look at the project before choosing lenses. In the first dry
+  run the file inventory, line counts and CI read were the participant's own
+  initiative.
 
 **The routing table is full.** 60 packs, against a stated operating ceiling of
 roughly 60 rows — past that, selection precision degrades faster than coverage

@@ -115,17 +115,24 @@ being one:
   summary into **one** Review Summary — do not emit thirteen of them.
 
   **Write each lens summary to a file the moment it returns**, before
-  dispatching more work, and merge in step 5 by reading those files back — not
-  from memory. A lens's report is the expensive part of the run and the
-  orchestrator is the context most likely to fill up; a summary held only in
-  your context is lost if you run out of room mid-merge, taking the subagent's
-  completed work with it. Merging from disk also means an interrupted run can
-  be resumed instead of re-run.
+  dispatching more work. Lens subagents hold `tools: Read, Grep, Glob` — no
+  Write — so this write is necessarily done by you, the orchestrator, from the
+  copy of the summary already in your context; it is a durability step, not a
+  context-saving one, and does not by itself protect you from running out of
+  room before the merge. What it buys: a session that is killed or restarted
+  mid-run resumes from the checkpointed lenses instead of re-dispatching
+  everything, and a completed lens's work is never silently lost to a later
+  failure. Merge in step 5 by reading these files back so the merge step
+  starts from a known-durable set, not from whatever remains in a context that
+  has kept accumulating since.
 
   **Dispatch in waves of three or four, not all at once**, and put the
-  safety-floor lenses (2 accessibility, 3 mobile, 8 security) in the first
-  wave, so a run that dies partway still covered the floor. Between waves,
-  drop what you no longer need from context.
+  safety-floor lenses (3 accessibility, 4 mobile, 8 security) in the first
+  wave, so a run that dies partway still covered the floor. This guidance is
+  sized for a twelve-lens full run; a workflow with fewer lenses (e.g. the
+  five-lens `ui-screen-review.md`) may not have a full wave's worth of
+  floor lenses in scope at all — dispatch what applies, in one wave if five
+  or fewer.
 
   If a dispatched lens never reports back, that is not a pass — say so, name
   the lens, and see the INCOMPLETE decision state in step 6.
@@ -284,6 +291,22 @@ score per `scoring/overall-score.md` — profile-weighted, with its two hard cap
 (any dimension below 60 caps overall at 59; security or accessibility at 60–69
 caps overall at 69).
 
+**Copy has no line of its own in this block.** Per `agents/copy-reviewer.md`,
+lens 5 *feeds the UX score* — its findings are Krug/NN·g rubric deductions
+against the UX dimension, not a separate scored dimension. If lens 5 returns a
+standalone number anyway, do not record it as a sibling score or an addendum:
+fold its deductions into the UX line using the referenced rubric and note in
+the merge that this happened. `overall-score.md`'s weight table has no copy
+row; inventing one double-counts against UX and skews the weighted average.
+
+**If a lens returns a decision string outside PASS / PASS WITH FIXES /
+BLOCKED / INCOMPLETE**, treat it as ambiguous, not as a synonym to guess at.
+Map it only if the lens's own body states the reasoning in AKOS's terms (e.g.
+"a CRITICAL blocks at this weight" is unambiguously BLOCKED); otherwise record
+the verbatim string, your best-guess mapping, and flag it in Coverage so a
+reader can correct it — do not let a subagent's wording quietly become the
+report's decision.
+
 Decision semantics:
 
 - **INCOMPLETE** — a lens that was dispatched did not return, or a lens the
@@ -320,7 +343,10 @@ akos history record --type <lens-or-"full"> --decision "<PASS|PASS WITH FIXES|BL
 using only the score lines you actually filled (omit `n/a` ones from the
 JSON). This writes `.akos/reviews/<timestamp>-<type>/` in the **current
 project**, not in AKOS itself — the same locality as `.akos/config.md`. Skip
-this step only if the user explicitly asked for a one-off, throwaway check;
-otherwise every real review gets recorded, so `akos history compare` has
-something to diff on the next run. See
+this step only if the user explicitly asked for a one-off, throwaway check, **or
+if the review is read-only on a project you don't own or weren't asked to
+modify** (a held-out repo, someone else's checkout) — writing into it violates
+that constraint regardless of how the check was framed. Say plainly in the
+report that history was not recorded and why. Otherwise every real review gets
+recorded, so `akos history compare` has something to diff on the next run. See
 [docs/reviews/history-and-comparison.md](../../docs/reviews/history-and-comparison.md).

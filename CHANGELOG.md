@@ -3,6 +3,77 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.5] — 2026-07-31
+
+The v1.17.4 fixes were instructions, unexecuted since writing them. Re-ran the
+same task — full frontend review on the same held-out repo, through nothing
+but the revised `skills/akos-review/SKILL.md` — to find out whether they
+worked.
+
+### Confirmed
+
+- **The pipeline reaches the merge step and produces a decided report.** Five
+  lenses dispatched, five reported, one merged Review Summary with a single
+  BLOCKED decision — four real CRITICALs found in the target (a keyboard-
+  unreachable graph canvas, an unexitable first-run onboarding trap, errors
+  swallowed and rendered as false success, a privacy badge that read "local"
+  while sending data to OpenAI). The previous run's failure mode — five
+  subagents completing work that never reached the orchestrator — did not
+  recur.
+
+### Fixed
+
+Root-caused why the run succeeded, which was not fully the reason the v1.17.4
+fix targeted — and fixed what that surfaced:
+
+- **The checkpoint-to-file instruction was circular, and cost tokens for no
+  benefit.** Lens subagents hold `tools: Read, Grep, Glob` — no Write — so a
+  lens cannot checkpoint its own summary; the orchestrator has to receive the
+  full text into context before it can write it anywhere, which means the
+  "protects the orchestrator from running out of room" rationale was false.
+  Considered giving reviewer subagents Write so they could checkpoint
+  themselves — declined; read-only reviewers that cannot touch the project
+  under review, or anything else, is the correct security posture and stays.
+  `SKILL.md` now states the honest benefit — crash/resume durability across a
+  killed session, not context economy within one run.
+- **Wave-dispatch guidance named the wrong lens numbers.** "(2 accessibility, 3
+  mobile, 8 security)" against the file's own table two paragraphs up (2=UX,
+  3=Accessibility, 4=Mobile, 8=Security). Also scoped for a twelve-lens run
+  regardless of how many lenses the actual workflow contains; now says so and
+  gives the smaller-workflow case an explicit answer (one wave, five lenses or
+  fewer).
+- **Step 7 (`akos history record`) had no exemption for a read-only review of
+  a project you don't own.** It writes `.akos/reviews/` into the reviewed
+  project; the only stated exemption was "explicitly asked for a one-off,
+  throwaway check", which doesn't cover a read-only audit of someone else's
+  repo. The re-run skipped it on that basis and said so — now an explicit rule
+  rather than an inference.
+- **A lens returning a decision string outside the four canonical ones had no
+  handling.** The frontend lens returned `"CHANGES REQUESTED — one blocking
+  issue"`; the orchestrator mapped it to BLOCKED from the lens's own stated
+  reasoning and recorded both strings. That judgment call is now the written
+  rule — map only when the lens states its reasoning in AKOS's terms,
+  otherwise report the mismatch rather than silently absorb it.
+- **The copy lens's score had no home in the merged report.** `agents/
+  copy-reviewer.md` already says lens 5 "feeds the UX score" — it isn't meant
+  to be a standalone dimension — but nothing told the merger what to do when
+  the lens returns one anyway (it did: "Interface copy: 55"). Rather than add
+  a Copy row to `scoring/overall-score.md`'s weight table (which has none, by
+  design, and would double-count against UX), `SKILL.md` now tells the merger
+  to fold a standalone copy score into UX via the rubric copy-reviewer.md
+  already cites, not record it as a sibling or an addendum.
+
+### Still open (tracked in `ROADMAP.md`)
+
+The merge algorithm remains one sentence for the hardest step in the pipeline
+— the re-run still had to invent a dedup rule, a same-dimension tiebreak, and
+a cross-lens severity adjudication, unguided. Configless defaults for
+`Deployed`/`Primary surface`/`Style direction`, the Startup-MVP-vs-Prototype
+profile contradiction, `INCOMPLETE` not yet propagated past `skills/
+akos-review/SKILL.md` to the 13 other files enumerating decision states, no
+route from a lens's confirmed detector false-negative back to the rule, and no
+"scope the target" step before lens dispatch.
+
 ## [1.17.4] — 2026-07-31
 
 Onboarding dry run, prompted by the repo going public. Two agents ran first —
