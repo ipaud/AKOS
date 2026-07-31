@@ -3,6 +3,51 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.6] — 2026-07-31
+
+The last open item from the v1.17.4/v1.17.5 dry runs that didn't need another
+run to fix — it needed writing down.
+
+### Added
+
+- **`skills/akos-review/SKILL.md` gets a new step 6, "Merge the lens
+  reports."** One sentence — "merge every returned summary into one Review
+  Summary" — used to stand in for the hardest step in the pipeline. The
+  2026-07-31 re-run (v1.17.5) had to invent all three of the following
+  unguided, and a different merger would have produced a different score
+  block from the identical five lens reports:
+  - **Dedup rule.** Two findings are the same defect, not two, when they cite
+    overlapping file:line ranges *and* the same failure mode. Keep the higher
+    severity, union the fix guidance, cite every contributing lens, deduct
+    once even if two rubrics would each deduct.
+  - **Same-dimension ownership.** The step-2 lens table already maps each
+    scored dimension to one owning lens; a second lens's number for that
+    dimension becomes a named sub-score inside the finding, never a sibling
+    or an addendum. Copy is stated as a specific case of this rather than a
+    separate rule, since `agents/copy-reviewer.md` already says lens 5 feeds
+    UX rather than owning a dimension.
+  - **Cross-lens severity disagreement**, resolved by citing
+    `core/constitution.md` Article 2's *enumerated* safety floor — security,
+    accessibility basics, data integrity — rather than by either lens's
+    unaided judgment. A defect outside that list caps at HIGH no matter which
+    lens raised it or how it reads; the adjudication is recorded in
+    Tradeoffs, naming both lenses and both severities, so a reader can
+    overrule it.
+  - The non-canonical-decision-string rule (a lens returning something other
+    than PASS/PASS WITH FIXES/BLOCKED/INCOMPLETE) moved here from the Scores
+    block description, where it was stranded next to output formatting
+    instead of merge instructions.
+- Steps renumbered 1–8 to fit (`Output` → 7, `Record it` → 8); two stale
+  cross-references to the old numbering (`step 5`, `step 6`) fixed in the
+  same pass.
+
+### Not yet verified
+
+Written guidance and exercised guidance are different claims — the same
+caution v1.17.5 raised about its own fixes applies here unchanged. This has
+not been re-tested against a live multi-lens run yet; that's the next honest
+check, not this release.
+
 ## [1.17.5] — 2026-07-31
 
 The v1.17.4 fixes were instructions, unexecuted since writing them. Re-ran the

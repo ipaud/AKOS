@@ -122,7 +122,7 @@ being one:
   room before the merge. What it buys: a session that is killed or restarted
   mid-run resumes from the checkpointed lenses instead of re-dispatching
   everything, and a completed lens's work is never silently lost to a later
-  failure. Merge in step 5 by reading these files back so the merge step
+  failure. Merge in step 6 by reading these files back so the merge step
   starts from a known-durable set, not from whatever remains in a context that
   has kept accumulating since.
 
@@ -135,7 +135,7 @@ being one:
   or fewer.
 
   If a dispatched lens never reports back, that is not a pass — say so, name
-  the lens, and see the INCOMPLETE decision state in step 6.
+  the lens, and see the INCOMPLETE decision state in step 7.
 
   No subagents available (Codex, or they aren't installed)? Run the lenses
   inline in order, checkpointing each to a file the same way. Expect to spend
@@ -248,7 +248,57 @@ directly.
 Every finding names the element, the concrete problem, the pack it came from,
 and the smallest fix. "Consider improving UX" is not a finding (Article 10).
 
-## 6. Output — the unified Review Summary
+## 6. Merge the lens reports
+
+Do this before assembling the output in step 7. On a single-lens run there is
+nothing to merge — skip to step 7. On a multi-lens run, work from the
+checkpointed files (step 2), not from whatever you still remember, and apply
+these three rules in order.
+
+**1. Dedup.** Two findings from different lenses are **the same defect**, not
+two, when they cite overlapping file:line ranges *and* describe the same
+failure mode — not merely the same file. Keep one finding: the higher of the
+two severities, the union of the fix guidance, and every contributing
+lens/pack cited (`ux/steve-krug` found it as a dead end, `frontend/react`
+found it as an uncleared error state — cite both). Do not let it count twice
+against a score: if two rubrics would each deduct for it, deduct once.
+
+**2. Same-dimension ownership.** Step 2's lens table maps each scored
+dimension to exactly one owning lens (UX → lens 2, Accessibility → lens 3, and
+so on). If a second lens also returns a number for a dimension it doesn't own
+— `frontend-reviewer` commenting on visual craft is a live example — the
+owning lens's number is the one that goes in the Scores block. Record the
+second number as a named sub-score inside that finding's own section, not as
+a sibling or an addendum, and say in the merge which one you kept and why.
+**Copy is a specific case of this, not an exception:** per
+`agents/copy-reviewer.md`, lens 5 *feeds the UX score* — it has no dimension
+of its own. If it returns a standalone number anyway, fold its deductions
+into the UX line via the rubric it already cites (Krug/NN·g copy deductions);
+never give it a sibling line or an addendum. `overall-score.md`'s weight
+table has no copy row, and inventing one double-counts against UX.
+
+**3. Cross-lens severity disagreement.** Two lenses sometimes assign different
+severity to the identical defect — mobile calling a reflow failure CRITICAL,
+accessibility calling the same code HIGH. Resolve by the constitution's
+**enumerated** safety floor (`core/constitution.md` Article 2): only security,
+accessibility basics (keyboard reachability, accessible names, contrast,
+honest labels), and data integrity are CRITICAL in every profile. A defect
+outside that list is capped at HIGH regardless of which lens flagged it or
+how severe it reads — severity within a profile's weight is real, but it is
+not floor authority. State the adjudication in **Tradeoffs**, naming both
+lenses and both severities, so a reader can overrule it; this is a judgment
+call, not an automatic downgrade, and burying it would make the merge
+unauditable.
+
+**If a lens returns a decision string outside PASS / PASS WITH FIXES /
+BLOCKED / INCOMPLETE**, treat it as ambiguous, not as a synonym to guess at.
+Map it only if the lens's own body states its reasoning in AKOS's terms (e.g.
+"a CRITICAL blocks at this weight" is unambiguously BLOCKED); otherwise record
+the verbatim string, your best-guess mapping, and flag it in Coverage so a
+reader can correct it — do not let a subagent's wording quietly become the
+report's decision.
+
+## 7. Output — the unified Review Summary
 
 Same format for every lens, every run:
 
@@ -289,23 +339,9 @@ input — a CRITICAL still blocks at any coverage level.
 Fill only the score lines you honestly assessed; the rest are `n/a`. Overall
 score per `scoring/overall-score.md` — profile-weighted, with its two hard caps
 (any dimension below 60 caps overall at 59; security or accessibility at 60–69
-caps overall at 69).
-
-**Copy has no line of its own in this block.** Per `agents/copy-reviewer.md`,
-lens 5 *feeds the UX score* — its findings are Krug/NN·g rubric deductions
-against the UX dimension, not a separate scored dimension. If lens 5 returns a
-standalone number anyway, do not record it as a sibling score or an addendum:
-fold its deductions into the UX line using the referenced rubric and note in
-the merge that this happened. `overall-score.md`'s weight table has no copy
-row; inventing one double-counts against UX and skews the weighted average.
-
-**If a lens returns a decision string outside PASS / PASS WITH FIXES /
-BLOCKED / INCOMPLETE**, treat it as ambiguous, not as a synonym to guess at.
-Map it only if the lens's own body states the reasoning in AKOS's terms (e.g.
-"a CRITICAL blocks at this weight" is unambiguously BLOCKED); otherwise record
-the verbatim string, your best-guess mapping, and flag it in Coverage so a
-reader can correct it — do not let a subagent's wording quietly become the
-report's decision.
+caps overall at 69). Same-dimension conflicts, a standalone copy score, and a
+non-canonical decision string from a lens are all resolved in step 6, before
+you get here — this section assumes that merge already happened.
 
 Decision semantics:
 
@@ -330,7 +366,7 @@ from a review that did not happen is worse than no review, because it launders
 absence of evidence into evidence of absence. Silence from a lens is not a
 pass. Say the review did not happen and say which part.
 
-## 7. Record it
+## 8. Record it
 
 After emitting the Review Summary, save it to a file and call:
 

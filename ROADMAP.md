@@ -14,15 +14,6 @@ the 2026-07-31 re-run reached the merge (see Recently shipped).
 
 ## Next
 
-- **Write the merge algorithm down.** `skills/akos-review/SKILL.md` spends one
-  sentence on the hardest step in the pipeline — "merge every returned summary
-  into **one** Review Summary". The 2026-07-31 re-run had to invent, unguided:
-  a dedup rule (4 of 5 lens pairs found overlapping defects), which lens owns a
-  score dimension when two fill it (`frontend-reviewer` returned its own UX
-  number alongside `ux-reviewer`'s), and how to resolve a severity
-  disagreement between lenses on the identical defect (mobile said CRITICAL,
-  accessibility said HIGH, same code). A different merger would have produced
-  a different score block from the same five lens reports.
 - **Give §1 a configless default block.** `akos check-config` exits 0 on a
   missing `.akos/config.md`, which is by definition every new user's first run,
   and the skill documents only the malformed case. `Deployed`, `Primary
@@ -128,6 +119,26 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **The merge algorithm is written down (2026-07-31).** `skills/akos-review/
+  SKILL.md` spent one sentence on the hardest step in the pipeline —
+  "merge every returned summary into **one** Review Summary" — and the
+  2026-07-31 re-run had to invent, unguided, exactly the three decisions a
+  merge needs: a dedup rule (4 of 5 lens pairs found overlapping defects that
+  run), which lens owns a score dimension when two fill it
+  (`frontend-reviewer` returned its own UX number alongside `ux-reviewer`'s),
+  and how to resolve a severity disagreement between lenses on the identical
+  defect (mobile said CRITICAL, accessibility said HIGH, same code — resolved
+  by `core/constitution.md` Article 2's *enumerated* floor: only security,
+  accessibility basics, and data integrity are CRITICAL in every profile, so
+  a reflow failure caps at HIGH regardless of which lens raised it). New
+  step 6 in `SKILL.md` states all three as rules instead of leaving each
+  merger to reinvent them, plus the copy-folds-into-UX and
+  non-canonical-decision-string rules that were previously stuffed into the
+  Scores block description rather than the merge step where they belong.
+  Untested since writing — the same caution applies as to the v1.17.4/v1.17.5
+  pipeline fixes: written guidance and exercised guidance are different
+  claims, and only a re-run confirms the second one.
 
 - **Onboarding dry run before the activation study, and it was worth doing
   (2026-07-31).** The five-participant study is a one-shot resource: if the

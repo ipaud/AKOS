@@ -32,3 +32,4 @@ __pycache__/
 # update.sh's concurrency lock — if a crashed run's trap never fired, this
 # would otherwise show up as untracked noise (or worse, get committed).
 /.akos-update.lock
+.gstack/
