@@ -3,6 +3,35 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.14] — 2026-08-01
+
+The `ROADMAP.md` Later item this whole release cycle left standing: define
+the first-adopter segment.
+
+### Added
+
+- **New `docs/product/first-adopter-segment.md`.** README's "any AI coding
+  agent" and CONTRIBUTING's personal-system framing were read as a
+  contradiction on the roadmap; checked against evidence instead of argued
+  from the two texts alone, they weren't one. Segment: a solo developer, on
+  a personal or small project, already using Claude Code or Codex CLI —
+  matches the install model (one machine, no team config), the corpus
+  weight (Prototype/Startup MVP lightest ceremony of six profiles), and
+  which two integrations carry real skills versus template fallback
+  (Cursor/Gemini/generic). States the four things the roadmap item asked
+  for: who, what behavior changes, how they're found, what evidence would
+  kill the hypothesis (the activation baseline's own bar, now recruited
+  against this segment by name). Cross-linked from
+  `docs/product/activation-baseline.md`.
+- Doesn't touch README's tool-agnostic architecture claim, which stays
+  true — narrows only whose activation is measured and optimized for first.
+
+### Still open
+
+Running the activation baseline itself needs five real people — that's the
+maintainer's task, not something a decision or a doc closes. Tracked in
+`ROADMAP.md` Later.
+
 ## [1.17.13] — 2026-08-01
 
 Phase 4 of 4 — closes the pipeline-fix backlog opened by the 2026-07-31 dry

@@ -40,14 +40,13 @@ task.
   workaround, not a fix. Needs a decision: tighten Article 2's wording, narrow
   the agent file's example, or state explicitly in `core/constitution.md`
   that "basics" is intentionally broader than its four named examples.
-- **Define the first-adopter segment and growth hypothesis.** README targets
-  "any AI coding agent"; CONTRIBUTING frames it as a personal system. Needs an
-  explicit answer: who adopts first, what behavior changes, how they find it,
-  what evidence would kill the hypothesis.
 - **Run the activation baseline for real.** `docs/product/activation-baseline.md`
   defines the study (median time-to-first-review, 4/5 solo devs succeeding)
   but it hasn't been run blind against held-out repos yet. The README already
-  states the target isn't measured — don't claim it until this runs.
+  states the target isn't measured — don't claim it until this runs. The
+  segment to recruit from is now decided (below) — this is the one item left
+  that a decision or a written doc can't close; it needs five real people,
+  which is the maintainer's task.
 - **Packs waiting on a stack trigger, not on a decision.** Each is a real gap
   with a real source; none is worth a routing-table row until the trigger
   fires. `frontend/tailwind` (L2) — only if `frontend/css` + `design-systems`
@@ -96,6 +95,21 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **First-adopter segment decided — solo developer, Claude Code or Codex CLI
+  (2026-08-01).** README's "any AI coding agent" and CONTRIBUTING's personal-
+  system framing weren't actually in conflict once checked against evidence
+  rather than argued from the two texts alone: distribution assumes one
+  person on one machine (no team config, no account), the corpus weight
+  favors Prototype/Startup MVP, and Claude Code/Codex CLI are the only two
+  integrations with real skills rather than template fallback. Written to
+  `docs/product/first-adopter-segment.md` with the four things the roadmap
+  item asked for — who, what behavior changes, how they find it, and what
+  evidence would kill the hypothesis (the activation baseline's own 4/5-in-10-
+  minutes bar, recruited from this segment specifically). Doesn't touch
+  README's tool-agnostic architecture claim, which stays true — narrows only
+  whose activation gets measured first. Unblocks the activation-baseline
+  item below by giving it a population to recruit from; does not run it.
 
 - **Lens dispatch gained a scoping step, closing the four-phase backlog
   (2026-08-01, phase 4 of 4).** Every prior trial run had done its own file

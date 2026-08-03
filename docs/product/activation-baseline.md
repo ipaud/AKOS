@@ -24,7 +24,9 @@ baseline and records the observed failure points.
 
 ## Success threshold
 
-Run the study with 5 solo developers who already use Codex or Claude Code:
+Run the study with 5 solo developers who already use Codex or Claude Code —
+the segment this study recruits from, and why, is decided in
+[first-adopter-segment.md](first-adopter-segment.md):
 
 - At least 4 of 5 complete a review without maintainer intervention.
 - Median time from starting the install path to receiving the first complete
