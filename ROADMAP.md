@@ -13,10 +13,11 @@ Nothing queued — see Next.
 
 ## Next
 
-- **Add a "scope the target" step before lens dispatch.** Nothing instructs the
-  orchestrator to look at the project before choosing lenses. In the first dry
-  run the file inventory, line counts and CI read were the participant's own
-  initiative.
+Empty — the four-phase pipeline-fix backlog (merge algorithm, INCOMPLETE
+propagation, the detector gap, target scoping) is closed. Pull from Later,
+or wait for the next real defect a live run surfaces; this file's own
+history so far is that the honest items came from running the pipeline, not
+from staring at it.
 
 **The routing table is full.** 60 packs, against a stated operating ceiling of
 roughly 60 rows — past that, selection precision degrades faster than coverage
@@ -95,6 +96,22 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **Lens dispatch gained a scoping step, closing the four-phase backlog
+  (2026-08-01, phase 4 of 4).** Every prior trial run had done its own file
+  inventory, line count, and CI check before dispatching lenses — never
+  instructed to, and in one run it was explicitly named as the only evidence
+  about the target that survived when every lens later failed. New opening
+  to step 2: a handful of read-only commands (tech/file inventory, test
+  presence, CI config presence, README/CLAUDE.md) run once before lens
+  resolution, feeding the Primary-surface/Deployed defaults from v1.17.9 and
+  the lens-selection choice itself — dispatching lenses 2–6 against a
+  project with no frontend code produces an empty or fabricated report
+  instead of a correctly-skipped one. Framed explicitly as reconnaissance,
+  not review: no findings written from it, and it doesn't substitute for the
+  deterministic pass or per-lens reading. No renumbering needed — folded
+  into the existing step 2 heading rather than added as a new step, so no
+  downstream cross-references broke.
 
 - **The confirmed detector gap got a real rule, not just a routing note
   (2026-08-01, phase 3 of 4).** Two independent runs (2026-07-31, 2026-08-01)

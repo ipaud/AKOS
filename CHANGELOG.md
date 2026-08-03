@@ -3,6 +3,30 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.13] — 2026-08-01
+
+Phase 4 of 4 — closes the pipeline-fix backlog opened by the 2026-07-31 dry
+run: merge algorithm (v1.17.6–8), configless defaults (v1.17.9), the
+profile-inference contradiction (v1.17.10), `INCOMPLETE` propagation
+(v1.17.11), the confirmed detector gap (v1.17.12), and now target scoping.
+
+### Added
+
+- **Step 2 opens with a scoping pass before lens resolution.** Every prior
+  trial run inventoried the target's files, tests, and CI config before
+  dispatching lenses — never instructed to. One run named it explicitly as
+  the only evidence about the target that survived when every lens later
+  failed. Now written in: tech/file inventory, test presence, CI config
+  presence, README/CLAUDE.md — feeding the v1.17.9 Primary-surface/Deployed
+  defaults and the lens-selection choice itself, so dispatching lenses 2–6
+  against a project with no frontend code produces a correctly-skipped
+  report instead of an empty or fabricated one. Explicitly framed as
+  reconnaissance, not review — no findings from it, doesn't substitute for
+  the deterministic pass or per-lens reading.
+
+Folded into the existing step 2 heading rather than inserted as a new step,
+so nothing downstream needed renumbering.
+
 ## [1.17.12] — 2026-08-01
 
 Phase 3 of 4: the confirmed detector gap became a rule, not just a note.
