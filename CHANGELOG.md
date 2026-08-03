@@ -3,6 +3,37 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.15] — 2026-08-01
+
+The last Later item that a decision alone could close.
+
+### Fixed
+
+- **`core/constitution.md` Article 2's "keyboard reachability" caught up to
+  what three other files already assumed.** `agents/accessibility-reviewer.md`'s
+  own CRITICAL example is invisible focus (WCAG 2.4.7) — narrower than and
+  distinct from unreachability (2.1.1) — leaving a merger to infer they
+  belonged to the same floor category rather than reading it directly.
+  Checked wider before resolving: `workflows/accessibility-review.md` already
+  says "no traps," `packs/ux/wcag/README.md` already says "no keyboard
+  traps," and the owner's own Level 0 `packs/personal/pau-avila/
+  ux-preferences.md` already says "visible focus" as part of "accessibility
+  basics... treated as part of working, not polish." Article 2 was the
+  outlier. Broadened to "keyboard operability (reachable, visibly focused,
+  never trapped)," folding in the three keyboard-operability failure modes
+  the agent file already used, plus a sentence stating the four named
+  examples are representative of their category, not an exhaustive
+  enumeration — closing the general shape of this gap, not just this one
+  instance. `skills/akos-review/SKILL.md`'s floor-check quote (v1.17.6)
+  updated to match; its "outside the enumerated list" line clarified to mean
+  outside the three top-level categories, which stay an exhaustive boundary,
+  not outside each category's specific examples, which don't.
+
+### Roadmap
+
+`Later` now holds one item: running the activation baseline, which needs
+five real people and can't be closed by a decision or a commit.
+
 ## [1.17.14] — 2026-08-01
 
 The `ROADMAP.md` Later item this whole release cycle left standing: define

@@ -373,16 +373,23 @@ table has no copy row, and inventing one double-counts against UX.
 
 **3. The CRITICAL floor-check.** Every finding that lands in the merged report
 as CRITICAL — whether one lens called it that or several disagreed and one of
-them did — gets checked against the constitution's **enumerated** safety floor
+them did — gets checked against the constitution's safety floor
 (`core/constitution.md` Article 2) before it's allowed to stand: only security,
-accessibility basics (keyboard reachability, accessible names, contrast,
-honest labels), and data integrity are CRITICAL in every profile. This is not
-conditional on disagreement — an uncontested CRITICAL from a single lens gets
-the same check as a disputed one, because a CRITICAL blocks in every profile
-regardless of coverage, so it's the tier most worth verifying before it's
-allowed to do that. A defect outside the enumerated list is capped at HIGH
-regardless of which lens flagged it or how severe it reads — severity within a
-profile's weight is real, but it is not floor authority. State the adjudication
+accessibility basics (keyboard operability — reachable, visibly focused,
+never trapped; accessible names; contrast; honest labels), and data integrity
+are CRITICAL in every profile. The three categories are the exhaustive
+boundary — nothing outside them is floor-tier — but each category's named
+examples are representative of it, not the only specific defects that count;
+Article 2 says so directly. This is not conditional on disagreement — an
+uncontested CRITICAL from a single lens gets the same check as a disputed one,
+because a CRITICAL blocks in every profile regardless of coverage, so it's the
+tier most worth verifying before it's
+allowed to do that. A defect that doesn't fit any of the three categories —
+reflow is the worked example: not keyboard operability, accessible names,
+contrast, or honest labels, and not security or data integrity either — is
+capped at HIGH regardless of which lens flagged it or how severe it reads;
+severity within a profile's weight is real, but it is not floor authority.
+State the adjudication
 in **Tradeoffs**, naming the lens(es) and the original severity, so a reader
 can overrule it; this is a judgment call, not an automatic downgrade, and
 burying it would make the merge unauditable.

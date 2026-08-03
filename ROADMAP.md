@@ -31,15 +31,6 @@ replaces.
 Real, but needs a decision before it's actionable — not just an implementation
 task.
 
-- **Reconcile Article 2's "keyboard reachability" with
-  `accessibility-reviewer.md`'s "invisible focus" CRITICAL example.** Surfaced
-  2026-08-01: the constitution's floor item is unreachability; the agent
-  file's literal example is a narrower thing (focus present but not visible).
-  A merger currently has to judge whether they mean the same thing — the
-  2026-08-01 run did, correctly, and flagged it as overrulable, but that's a
-  workaround, not a fix. Needs a decision: tighten Article 2's wording, narrow
-  the agent file's example, or state explicitly in `core/constitution.md`
-  that "basics" is intentionally broader than its four named examples.
 - **Run the activation baseline for real.** `docs/product/activation-baseline.md`
   defines the study (median time-to-first-review, 4/5 solo devs succeeding)
   but it hasn't been run blind against held-out repos yet. The README already
@@ -95,6 +86,30 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **Article 2's wording caught up to what three other files already assumed
+  (2026-08-01).** The constitution's floor listed "keyboard reachability";
+  `accessibility-reviewer.md`'s own CRITICAL example is invisible focus — a
+  narrower, distinct WCAG concern (2.4.7, not 2.1.1) that a merger had to
+  judge as in-scope rather than read directly from the text. Checking wider
+  before picking one of the roadmap's three named options: `workflows/
+  accessibility-review.md` already says "no traps," `packs/ux/wcag/README.md`
+  already says "no keyboard traps, honest error identification," and — most
+  load-bearing — the owner's own Level 0 `packs/personal/pau-avila/
+  ux-preferences.md` already says "visible focus" as part of "accessibility
+  basics... treated as part of working, not polish." Article 2 was the
+  outlier, not the other three. Fixed by broadening its wording to "keyboard
+  operability (reachable, visibly focused, never trapped)" — folding the
+  three related keyboard-operability failure modes the agent file already
+  used into the constitution's own list — plus one added sentence stating
+  the four named examples are representative of their category, not an
+  exhaustive enumeration, closing the general form of this gap for future
+  cases too. The floor-check's cited quote in `skills/akos-review/SKILL.md`
+  (v1.17.6) updated to match, with its "outside the enumerated list" line
+  clarified to mean outside the three top-level categories (security /
+  accessibility basics / data integrity) — which stays a closed, exhaustive
+  boundary — not outside each category's specific named examples, which
+  isn't.
 
 - **First-adopter segment decided — solo developer, Claude Code or Codex CLI
   (2026-08-01).** README's "any AI coding agent" and CONTRIBUTING's personal-

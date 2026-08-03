@@ -11,8 +11,15 @@ Software exists so a human can accomplish something. Usability, clarity, and saf
 Three things are never traded away, in any reasoning profile, at any authority level:
 
 1. **Security** — no known vulnerability ships knowingly; no secrets in code; no auth bypasses "for now" on anything network-exposed.
-2. **Accessibility basics** — keyboard reachability, accessible names, readable contrast, and honest form labels are baseline, not polish.
+2. **Accessibility basics** — keyboard operability (reachable, visibly focused, never trapped), accessible names, readable contrast, and honest form labels are baseline, not polish.
 3. **Data integrity** — user data is not silently lost, corrupted, or exposed.
+
+These four are the load-bearing examples, not an exhaustive enumeration — a
+defect squarely in the same category (a keyboard-operability failure, for
+instance, whether that's unreachable, invisibly focused, or trapped) is
+floor-tier even when it isn't the literal word above. The test is whether a
+keyboard-only or screen-reader user can complete the primary task at all, not
+whether the exact phrase appears in this list.
 
 Personal rules (Level 0) sit above every external source, but below this floor. "It's just a prototype" relaxes ceremony (Article 6), never the floor.
 
