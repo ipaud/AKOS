@@ -3,6 +3,43 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.9] — 2026-08-01
+
+The next item off the merge-fix backlog: `SKILL.md` §1 had no fallback for
+`Deployed`, `Primary surface`, or `Style direction` when `.akos/config.md` is
+absent, confirmed still open by the 2026-07-31 re-run.
+
+### Fixed
+
+- **§1 now states explicit defaults for all three fields when no config
+  exists** — the normal state for a first-time review, not an edge case.
+  - `Deployed` → **no**. Report-only default; never softens the safety floor
+    below what the profile already calls for, and code evidence (a
+    production domain, deploy config, a live health check) overrides a
+    missing declaration rather than being overridden by it.
+  - `Primary surface` → **web**. Matches what `agents/mobile-reviewer.md`
+    already says regardless of config — mobile review is default-on for
+    every web surface, not opt-in. A missing config isn't the mobile lens's
+    opt-out; only an explicitly non-web target (CLI tool, backend-only
+    service) is, and that has to be stated in Coverage, not inferred from
+    silence.
+  - `Style direction` → fall back to `design-language.md`'s anti-template
+    checklist (already loaded unconditionally) plus the screen's own
+    internal consistency, and report the absent direction as its own
+    finding rather than reviewing as if one had been checked.
+- **Corrected the roadmap's own framing while fixing it.** Reading
+  `agents/frontend-reviewer.md` directly showed the lens never literally
+  depends on `Style direction` — it has its own checklist and always-loaded
+  fallback pack, so "primary instruction literally unexecutable" overstated
+  the defect. The real gap was `SKILL.md` promising a behavior with nothing
+  wired to it when the field is absent, not the lens being unable to run at
+  all.
+
+All three defaults were chosen to match what real trial runs already
+improvised correctly (the 2026-07-31 run ran mobile anyway on Article 9 +
+principle 7 with no config) — this makes that the written default instead of
+something every run has to reinvent.
+
 ## [1.17.8] — 2026-08-01
 
 Fourth run of the same held-out-repo trial, this time with an explicit rule

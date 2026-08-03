@@ -65,6 +65,31 @@ a hint, not an order:
   not against generic taste. A screen that ignores the committed direction is a
   finding.
 
+**No `.akos/config.md` at all is every new user's first run, not an edge
+case** — the three fields above have no fallback stated anywhere else, so use
+these when the file is absent:
+
+- **`Deployed`** — treat as **no**. This is a default to report, not a
+  security downgrade: it only controls whether Article 2's floor gets *extra*
+  scrutiny on top of the profile weight, never less than the profile calls
+  for. If the code itself contradicts the default — a production domain, a
+  deploy config, a live health-check endpoint — deploy status is what the
+  evidence says, not what's missing from a file that was never written.
+- **`Primary surface`** — treat as **web**. Mobile review is default-on for
+  every web surface regardless of config ([agents/mobile-reviewer.md](../../agents/mobile-reviewer.md),
+  personal principle 7) — a missing config is not the opt-out, only an
+  explicit non-web surface (a CLI tool, a backend-only service with no UI) is.
+  If the target is obviously not a web surface, say so in Coverage and skip
+  the mobile lens on that stated basis, not on the config's silence.
+- **`Style direction`** — there is nothing to be consistent *against*, so the
+  frontend lens falls back to two things it already has regardless of config:
+  `packs/personal/<personal_profile>/design-language.md`'s anti-template
+  checklist (loaded unconditionally below), and the screen's own internal
+  consistency — does it agree with itself, not with an external declaration
+  that was never written. Report the absence of a documented direction as its
+  own finding (typically MEDIUM: nothing anchors the *next* screen either)
+  rather than silently reviewing as if one had been checked.
+
 Read `packs/personal/<personal_profile>/` — Level 0, always applies (pipeline
 step 11).
 

@@ -5,22 +5,14 @@ Source of truth for *why* an item exists: `.akos/audit-2026-07-23.md` (full
 integral audit) and `CHANGELOG.md` (what already shipped). This file only
 tracks what's still open.
 
-Last reviewed: 2026-07-31.
+Last reviewed: 2026-08-01.
 
 ## Now
 
-Nothing queued — see Next. The merge-step question that sat here is answered:
-the 2026-07-31 re-run reached the merge (see Recently shipped).
+Nothing queued — see Next.
 
 ## Next
 
-- **Give §1 a configless default block.** `akos check-config` exits 0 on a
-  missing `.akos/config.md`, which is by definition every new user's first run,
-  and the skill documents only the malformed case. `Deployed`, `Primary
-  surface` and `Style direction` need stated fallbacks — the frontend lens's
-  primary instruction ("judge consistency against the committed style
-  direction") is literally unexecutable without one. Confirmed still open in
-  the 2026-07-31 re-run; the orchestrator improvised all three.
 - **Resolve the profile-inference contradiction.** `core/reasoning-profiles.md`
   defaults to Startup MVP; `packs/personal/pau-avila/project-patterns.md` maps
   never-deployed to Prototype — Level 0, so a literal authority reading picks
@@ -128,6 +120,26 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **§1 gained a configless default block (2026-08-01).** `Deployed`,
+  `Primary surface`, and `Style direction` had no stated fallback when
+  `.akos/config.md` is absent — which is every new user's first run, not an
+  edge case, and the 2026-07-31 re-run confirmed the orchestrator had to
+  improvise all three. Reading the actual agent files first changed the fix:
+  `agents/frontend-reviewer.md` never literally depends on `Style direction`
+  — it already has its own anti-template checklist and always-loaded
+  `design-language.md` fallback — so "literally unexecutable" overstated the
+  gap; the real defect was `SKILL.md` promising a behavior with no fallback
+  wired to it. Defaults now stated: `Deployed` → no (report-only, never
+  softens the floor below profile weight; code evidence overrides a missing
+  declaration); `Primary surface` → web (mobile is already default-on per
+  `agents/mobile-reviewer.md` and personal principle 7 — a missing config
+  isn't the opt-out, an explicitly non-web target is); `Style direction` →
+  fall back to the design-language checklist plus the screen's own internal
+  consistency, and report the absence itself as a finding rather than
+  reviewing as if a direction had been checked. All three defaults matched
+  what real trial runs already improvised correctly — this made it written
+  policy instead of per-run reinvention.
 
 - **Fourth run confirmed v1.17.7's three fixes hold uncoached, and surfaced a
   real infrastructure lesson for free (2026-08-01).** Same held-out DKG trial,
