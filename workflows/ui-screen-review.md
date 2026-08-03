@@ -36,5 +36,6 @@ Combine per-agent findings into one [unified Review Summary](../core/review-pipe
 ## Exit criteria
 
 Unified summary with severity-ranked findings, scores (UX, Accessibility,
-Mobile when runtime evidence supports it), and a PASS / PASS WITH FIXES /
-BLOCKED decision. No screen passes without its empty/loading/error states.
+Mobile when runtime evidence supports it), and an INCOMPLETE / PASS / PASS
+WITH FIXES / BLOCKED decision — INCOMPLETE if any of the five lenses above
+didn't report. No screen passes without its empty/loading/error states.

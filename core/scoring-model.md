@@ -29,6 +29,9 @@ Weighted average of assessed dimensions, weights set by the active [reasoning pr
 
 ## Relationship to verdicts
 
+- A lens that didn't report doesn't get a score for the dimension it owned,
+  and the run is **INCOMPLETE** for that dimension regardless of what the
+  others scored — checked before the rules below.
 - All assessed dimensions ≥ 80 and no HIGH open → **PASS**
 - HIGHs open but nothing Blocked, profile permits → **PASS WITH FIXES**
 - Any Blocked-band dimension or open CRITICAL → **BLOCKED**

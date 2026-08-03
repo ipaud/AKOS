@@ -46,7 +46,7 @@ Responsive behavior and touch ergonomics are reviewed by default for web surface
 
 ## Article 10 — Findings must be actionable
 
-Review output follows the unified format (see [review-pipeline.md](review-pipeline.md)): severity-ranked findings, concrete fixes, scores, and a PASS / PASS WITH FIXES / BLOCKED decision. Vague advice ("consider improving UX") is not a finding.
+Review output follows the unified format (see [review-pipeline.md](review-pipeline.md)): severity-ranked findings, concrete fixes, scores, and an INCOMPLETE / PASS / PASS WITH FIXES / BLOCKED decision. Vague advice ("consider improving UX") is not a finding, and a lens that never reported is not a PASS.
 
 ## Article 11 — The system is alive
 

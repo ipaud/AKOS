@@ -20,7 +20,7 @@ Before non-trivial work, read in order:
 ## Applying
 
 - **Building:** pack principles/engineering-rules are constraints and defaults. Surface conflicts, tradeoffs, and deliberate profile-based skips.
-- **Reviewing:** use `~/DEV/AKOS/agents/*.md`; output the unified Review Summary (Context → Strengths → Critical → High → Medium → Low → Tradeoffs → Packs Used → Scores → Next Iteration → PASS / PASS WITH FIXES / BLOCKED).
+- **Reviewing:** use `~/DEV/AKOS/agents/*.md`; output the unified Review Summary (Context → Strengths → Critical → High → Medium → Low → Tradeoffs → Packs Used → Scores → Next Iteration → INCOMPLETE / PASS / PASS WITH FIXES / BLOCKED — INCOMPLETE if a required lens didn't run; check it first).
 - Cite authority level for load-bearing guidance; give a tradeoff statement on any conflict; back CRITICAL/HIGH findings with high confidence.
 
 ## Never waive

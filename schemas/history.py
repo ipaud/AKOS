@@ -7,7 +7,7 @@ script-driven, so history capture is a bridge: the skill's last step calls
 module is what turns that into structured, diffable storage.
 
 Usage:
-    python3 schemas/history.py record --type TYPE --decision PASS|"PASS WITH FIXES"|BLOCKED
+    python3 schemas/history.py record --type TYPE --decision INCOMPLETE|PASS|"PASS WITH FIXES"|BLOCKED
                                        --profile NAME --report PATH
                                        [--scores-json JSON] [--packs-json JSON] [--dir PROJECT_DIR]
     python3 schemas/history.py list [--dir PROJECT_DIR]

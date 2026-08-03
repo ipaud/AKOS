@@ -39,6 +39,9 @@ dedicated review agent — it is scored across the code-review pass per
 
 ## Verdict linkage
 
+- A lens that didn't report doesn't get a score for the dimension it owned,
+  and the run is **INCOMPLETE** for that dimension — checked before the rules
+  below.
 - All assessed ≥ 80 and no HIGH open → **PASS**
 - HIGHs open, nothing Blocked, profile permits → **PASS WITH FIXES**
 - Any Blocked-band dimension or open CRITICAL → **BLOCKED**

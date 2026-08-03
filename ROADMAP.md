@@ -13,14 +13,6 @@ Nothing queued — see Next.
 
 ## Next
 
-- **Propagate the `INCOMPLETE` decision state.** Added to
-  `skills/akos-review/SKILL.md` only (v1.17.4); 13 other files enumerate
-  PASS/PASS WITH FIXES/BLOCKED without it — `core/review-pipeline.md` (the file
-  `core/constitution.md` names as canonical), `core/constitution.md`,
-  `core/scoring-model.md`, `agents/ux-reviewer.md`, `scoring/overall-score.md`,
-  `docs/scoring/evidence-confidence-coverage.md`, `workflows/new-feature.md`,
-  `workflows/ui-screen-review.md`, `docs/architecture/current-system.md`,
-  `docs/migration/v1.1-to-next.md`, three `templates/*.md` files.
 - **Route confirmed detector gaps back to the rule.** The 2026-07-31 run's
   deterministic pass flagged 5 `A11Y_INPUT_NO_LABEL` inputs — all 5 confirmed
   by the accessibility lens — but the lens also found 2 unlabeled `<select>`
@@ -111,6 +103,33 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **`INCOMPLETE` propagated to every live file that enumerates decision
+  states (2026-08-01, phase 2 of 4).** Re-swept fresh rather than trusting
+  the v1.17.4 count: 17 files matched, not 13 — the original tally was itself
+  a small instance of the exact problem this item exists to prevent, an
+  enumeration nobody re-checked. Of those, `CHANGELOG.md`/`README.md`/
+  `ROADMAP.md` are narrative (excluded) and `skills/akos-review/SKILL.md`
+  already had it, leaving 13 live files updated: `core/review-pipeline.md`
+  (canonical — gained the full INCOMPLETE-vs-coverage explanation, not just
+  the state name), `core/constitution.md`, `core/scoring-model.md`,
+  `agents/ux-reviewer.md`, `scoring/overall-score.md`,
+  `docs/scoring/evidence-confidence-coverage.md` (gained a dedicated section
+  distinguishing "review happened at low depth" from "review didn't happen"
+  — the two are easy to conflate and the file's whole subject is coverage),
+  `workflows/new-feature.md`, `workflows/ui-screen-review.md`,
+  `docs/reviews/history-and-comparison.md`, `schemas/history.py` (the actual
+  CLI docstring, found by checking whether `--decision` is validated —
+  it isn't, so this was always a real accepted value, just undocumented),
+  `prompts/run-full-review.md`, and both `templates/*.md` files. Two files
+  were found and deliberately **not** touched: `docs/architecture/
+  current-system.md` and `docs/migration/v1.1-to-next.md` are both
+  self-declared historical snapshots (the former already carries a
+  "kept as history" note from an earlier audit; the latter is a
+  version-scoped migration doc describing what changed *at* v1.1→v1.4) —
+  editing either to retroactively insert a v1.17.4 concept would misrepresent
+  what was true at the time, the same reasoning that already keeps shipped
+  CHANGELOG entries uncorrected in place rather than rewritten.
 
 - **The profile-inference contradiction is resolved — canonical ruling R14
   (2026-08-01, phase 1 of 4).** `core/reasoning-profiles.md` defaults unknown

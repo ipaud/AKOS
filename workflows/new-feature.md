@@ -32,4 +32,4 @@ Adding a feature to an existing project.
 
 ## Exit criteria
 
-Feature works, all four states present, relevant reviews PASS or PASS WITH FIXES with the fixes enumerated.
+Feature works, all four states present, relevant reviews PASS or PASS WITH FIXES with the fixes enumerated. INCOMPLETE doesn't satisfy this — re-run the lens that didn't report rather than treating its silence as done.

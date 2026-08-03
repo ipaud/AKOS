@@ -80,7 +80,7 @@ Before writing a finding into Critical/High/Medium/Low (full rationale: [review-
 - Overall:
 ## Recommended Next Iteration
 ## Final Decision
-PASS / PASS WITH FIXES / BLOCKED
+INCOMPLETE / PASS / PASS WITH FIXES / BLOCKED
 ```
 
 Every finding in Critical/High/Medium/Low ends with a confidence tag —
@@ -94,6 +94,9 @@ score doesn't imply more certainty than the review actually earned. Coverage
 is a reporting addition: it does not change `core/review-pipeline.md`'s
 severity-based PASS/PASS WITH FIXES/BLOCKED decision. A CRITICAL still
 blocks at any coverage level; low coverage is a reason to say so, never a
-reason to soften a finding you did make.
+reason to soften a finding you did make. That's distinct from INCOMPLETE,
+which isn't about how much a lens covered but whether it reported at all —
+a lens that never returned isn't a thin review to note in Coverage, it's a
+review that didn't happen for that dimension.
 
 Fill only the scores you assessed (UX here); others `n/a`. Every finding names its pack + the concrete smallest fix ("do the least you can do").

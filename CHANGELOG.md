@@ -3,6 +3,34 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.11] — 2026-08-01
+
+Phase 2 of 4: propagate `INCOMPLETE` everywhere the three-state decision
+enumeration was still live.
+
+### Fixed
+
+- **`INCOMPLETE` (added to `skills/akos-review/SKILL.md` in v1.17.4) reached
+  every other live file that enumerates decision states.** A fresh sweep
+  found 17 matches, not the 13 originally counted — the miscount was itself
+  a small case of the exact problem this item fixes. 13 live files updated:
+  `core/review-pipeline.md` (canonical — gained the full
+  INCOMPLETE-vs-coverage explanation, not just the state name),
+  `core/constitution.md`, `core/scoring-model.md`, `agents/ux-reviewer.md`,
+  `scoring/overall-score.md`, `docs/scoring/evidence-confidence-coverage.md`
+  (new section distinguishing "reviewed at low depth" from "didn't review"),
+  `workflows/new-feature.md`, `workflows/ui-screen-review.md`,
+  `docs/reviews/history-and-comparison.md`, `schemas/history.py`'s docstring
+  (checked first: `--decision` has no `choices=` validation, so this was
+  always accepted, just undocumented), `prompts/run-full-review.md`, and
+  both `templates/*.md` files.
+- **Two files were found and deliberately left alone.**
+  `docs/architecture/current-system.md` and `docs/migration/v1.1-to-next.md`
+  are self-declared historical snapshots — inserting a v1.17.4 concept into
+  either would misrepresent what was true at the time they describe, same
+  reasoning that keeps shipped CHANGELOG entries uncorrected rather than
+  rewritten.
+
 ## [1.17.10] — 2026-08-01
 
 Phase 1 of 4 on the remaining roadmap backlog: the profile-inference

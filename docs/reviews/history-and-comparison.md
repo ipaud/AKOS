@@ -24,7 +24,7 @@ Same reasoning as `.akos/config.md`: review history is state about *a project*, 
 ## Commands
 
 ```bash
-akos history record --type <lens-or-full> --decision "<PASS|PASS WITH FIXES|BLOCKED>" \
+akos history record --type <lens-or-full> --decision "<INCOMPLETE|PASS|PASS WITH FIXES|BLOCKED>" \
   --profile <name> --report <path> [--scores-json '{"ux": 72, ...}'] [--packs-json '["ux/wcag", ...]']
 akos history list
 akos history show <review-id>

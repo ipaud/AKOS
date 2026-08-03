@@ -25,8 +25,10 @@ Produce ONE aggregate Review Summary in the standard format:
 ## Coverage
 ## Scores (UX / Accessibility / Mobile / Architecture / Security / Performance / Product / Maintainability / Overall)
 ## Recommended Next Iteration
-## Final Decision — PASS / PASS WITH FIXES / BLOCKED
+## Final Decision — INCOMPLETE / PASS / PASS WITH FIXES / BLOCKED
 ```
+
+INCOMPLETE if any required lens didn't return — check that before the severity rules; it outranks all of them.
 
 Before the security and other deterministic-detector lenses, run the executable
 checks rather than grepping by hand: `akos rules run <project-dir>`. A detector

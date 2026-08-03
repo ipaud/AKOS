@@ -74,7 +74,7 @@ Every agent, every step, same output:
 - Overall:
 ## Recommended Next Iteration
 ## Final Decision
-PASS / PASS WITH FIXES / BLOCKED
+INCOMPLETE / PASS / PASS WITH FIXES / BLOCKED
 ```
 
 Scoring rules: [scoring-model.md](scoring-model.md). Agents fill only the score lines they can honestly assess; others get `n/a`.
@@ -101,8 +101,20 @@ This operationalizes [confidence-model.md](confidence-model.md) rule 2 ("verify 
 
 ## Decision semantics
 
-- **PASS** — no CRITICAL/HIGH open.
+- **INCOMPLETE** — a lens that was dispatched did not return, or a lens the
+  workflow requires was never run. Check this *before* the rules below; it
+  outranks all of them. Name every lens that didn't report, and don't emit a
+  score for the dimension it owned.
+- **PASS** — every lens in scope reported, and no CRITICAL/HIGH is open.
 - **PASS WITH FIXES** — HIGH findings exist, are enumerated, and the profile permits shipping with a fix commitment.
 - **BLOCKED** — CRITICAL open, or HIGH open at weight 3.
 
 A multi-step run's final decision is the worst individual decision.
+
+INCOMPLETE and low coverage pull in opposite directions on purpose. Coverage
+never *lowers* severity — a CRITICAL blocks at any coverage level, so a thin
+review can't argue its way past a real defect. But absence of coverage must
+never read as a clean result either: a run where every lens silently failed
+would otherwise emit the same PASS/BLOCKED string as a run where every lens
+passed, laundering absence of evidence into evidence of absence. Silence from
+a lens is not a pass. Say the review didn't happen, and say which part.
