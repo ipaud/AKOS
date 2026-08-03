@@ -3,6 +3,56 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.12] — 2026-08-01
+
+Phase 3 of 4: the confirmed detector gap became a rule, not just a note.
+
+### Added
+
+- **`A11Y_SELECT_NO_LABEL`** — new Level B detector for unlabeled `<select>`
+  elements, worse than an unlabeled `<input>` when true (no placeholder
+  fallback, zero accessible name in any modality). Found as a real gap by
+  two independent runs (2026-07-31, 2026-08-01): the accessibility lens
+  confirmed all 5 `A11Y_INPUT_NO_LABEL` leads both times, then independently
+  flagged unlabeled selects the input-only pattern structurally can't catch.
+  New `schemas/a11y_dom_utils.py` holds the shared tag-scanning logic both
+  detectors now use — the existing input detector had ~150 lines hardened
+  against specific real bugs (JSX `htmlFor`, brace-aware tag spans, comment
+  masking); a second copy-pasted copy would eventually drift from it.
+  Verified against DKG, the repo that surfaced this gap: fires on exactly
+  the two `<select>` elements the lens found by hand.
+
+### Fixed
+
+- **`skills/akos-review/SKILL.md`** gained the process half of this item — a
+  lens confirming a detector-domain defect the detector's pattern misses now
+  gets named explicitly in Recommended Next Iteration as a detector-coverage
+  gap, not silently absorbed into one report. Detector count 8 → 9
+  throughout.
+- **`rules/README.md`'s rule table was stale** (still said 8, present
+  tense) — fixed alongside. A "the 8 shipped detectors'" line in
+  `docs/rules/authoring-rules.md` was made timeless instead of re-numbered,
+  since the count was never the point of that sentence.
+
+### Noted, deliberately not touched
+
+`docs/architecture/target-system.md`'s "eight rules" reference documents the
+reasoning *at the time* `A11Y_INPUT_NO_LABEL` shipped as Level B — a
+decision record, same historical-snapshot judgment as the two files skipped
+in v1.17.11. Evals (hand-verified LLM-judgment tier, distinct from
+benchmarks) weren't added for this rule — out of scope for a detector-level
+fix; would need an actual lens run hand-verified against a fixture, not
+manufactured to pad coverage.
+
+### Verified
+
+Refactor of the existing input detector confirmed behavior-preserving before
+anything new was added (all 8 pre-existing tests + all 4 pre-existing
+benchmark cases passed unmodified). New detector: 7 unit tests, 2 benchmark
+cases, one sabotage check (broke `run()`, confirmed the right test failed,
+restored, confirmed clean). Unit suite 461 → 468 tests, benchmarks 30 → 32
+cases, all green.
+
 ## [1.17.11] — 2026-08-01
 
 Phase 2 of 4: propagate `INCOMPLETE` everywhere the three-state decision

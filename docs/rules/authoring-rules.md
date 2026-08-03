@@ -53,7 +53,7 @@ That's the whole contract: `run(files) -> list[dict]`, each dict at least `evide
 
 ## 4. Test the true positive AND the near-miss — before trusting either
 
-This is the step every one of the 8 shipped detectors' construction skipped at first, and every one of them had a real bug caught by doing it anyway:
+This is the step every shipped detector's construction skipped at first, and every one of them had a real bug caught by doing it anyway:
 
 - `SUPABASE_RLS_DISABLED` — scanning file-by-file instead of across all matched files together would have false-positived on the normal "table created in one migration, RLS added in a later one" pattern.
 - `A11Y_INPUT_NO_LABEL` — only recognizing HTML's `for` attribute, not JSX's `htmlFor`, flagged every correctly-labeled React input.

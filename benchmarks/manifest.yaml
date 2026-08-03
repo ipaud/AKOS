@@ -32,6 +32,10 @@ cases:
     path: cases/a11y-input-unlabeled-flagged
   - id: a11y-input-aria-label-not-flagged
     path: cases/a11y-input-aria-label-not-flagged
+  - id: a11y-select-unlabeled-flagged
+    path: cases/a11y-select-unlabeled-flagged
+  - id: a11y-select-labeled-not-flagged
+    path: cases/a11y-select-labeled-not-flagged
   - id: migration-no-convention-adopted
     path: cases/migration-no-convention-adopted
   - id: migration-missing-down-file

@@ -1,4 +1,4 @@
-"""Unit tests for the 8 rule detectors, each with a temp-dir fixture. These
+"""Unit tests for the 9 rule detectors, each with a temp-dir fixture. These
 duplicate some ground already covered by benchmarks/, deliberately — the
 benchmark suite is an integration-level regression guard; these are fast,
 isolated tests for the detector logic itself, and each one locks down a
@@ -56,6 +56,7 @@ class TestDetectorReadFailuresAreNotSuppressed(TempDirCase):
 
     DETECTORS = (
         "rules/accessibility/a11y-input-no-label.py",
+        "rules/accessibility/a11y-select-no-label.py",
         "rules/devops/destructive-migration-no-guard.py",
         "rules/devops/migration-no-down-file.py",
         "rules/security/secret-in-source.py",
@@ -183,6 +184,63 @@ class TestA11yInputNoLabel(TempDirCase):
         f = write(self.tmp, "Form.tsx", '<input type="hidden" value="x" />\n')
         findings = self.mod.run([f])
         self.assertEqual(findings, [])
+
+
+class TestA11ySelectNoLabel(TempDirCase):
+    """Found as a real gap: two AKOS review runs confirmed A11Y_INPUT_NO_LABEL's
+    5 leads, then independently flagged unlabeled <select> elements the
+    input-only pattern couldn't catch. Shares helpers with
+    A11Y_INPUT_NO_LABEL — these tests focus on what's actually different
+    (no type= skip list) rather than re-proving the shared logic already
+    locked down above."""
+
+    def setUp(self):
+        super().setUp()
+        self.mod = load_detector("rules/accessibility/a11y-select-no-label.py")
+
+    def test_unlabeled_select_is_flagged(self):
+        f = write(self.tmp, "Form.tsx", '<select><option value="a">A</option></select>\n')
+        findings = self.mod.run([f])
+        self.assertEqual(len(findings), 1)
+
+    def test_jsx_htmlfor_label_is_recognized(self):
+        f = write(
+            self.tmp, "Form.tsx",
+            '<label htmlFor="c">Country</label>\n<select id="c"><option value="es">ES</option></select>\n')
+        findings = self.mod.run([f])
+        self.assertEqual(findings, [], "htmlFor (JSX convention) must be recognized, not just plain HTML 'for'")
+
+    def test_aria_label_suffices(self):
+        f = write(self.tmp, "Form.tsx", '<select aria-label="Country"><option value="es">ES</option></select>\n')
+        findings = self.mod.run([f])
+        self.assertEqual(findings, [])
+
+    def test_wrapping_label_suffices(self):
+        f = write(self.tmp, "Form.tsx", '<label>Country <select><option value="es">ES</option></select></label>\n')
+        findings = self.mod.run([f])
+        self.assertEqual(findings, [])
+
+    def test_capitalized_select_component_is_not_matched(self):
+        # <Select> is a React component; its label almost always comes from
+        # its own wrapper, same reasoning as the input detector's case-sensitivity.
+        f = write(self.tmp, "Form.tsx", '<Select options={countries} />\n')
+        findings = self.mod.run([f])
+        self.assertEqual(findings, [])
+
+    def test_select_inside_source_comments_is_ignored(self):
+        f = write(self.tmp, "Form.tsx", '{/* <select><option value="a">A</option></select> */}\n')
+        findings = self.mod.run([f])
+        self.assertEqual(findings, [], "commented-out markup is not a rendered select")
+
+    def test_bracket_in_onchange_does_not_truncate_the_tag(self):
+        # Regression proof for the shared tag_span() brace-aware scan: a `>`
+        # inside a JSX expression must not truncate the tag before aria-label.
+        f = write(
+            self.tmp, "Form.tsx",
+            '<select aria-label="Country" onChange={(e) => setC(e.target.value)}>'
+            '<option value="es">ES</option></select>\n')
+        findings = self.mod.run([f])
+        self.assertEqual(findings, [], "aria-label after a JSX expression prop must still be seen")
 
 
 class TestSecretInSource(TempDirCase):

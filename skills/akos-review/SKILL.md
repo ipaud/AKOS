@@ -194,16 +194,18 @@ Before dispatching any lens, run:
 akos rules run <project-dir> --profile "<active profile>" --format json
 ```
 
-Eight executable detectors cover checks the lenses would otherwise perform by
+Nine executable detectors cover checks the lenses would otherwise perform by
 reading: hardcoded secrets (`SECRET_IN_SOURCE`), `service_role` reachable from
 client code (`SERVICE_ROLE_IN_CLIENT`), Supabase tables created without RLS
 (`SUPABASE_RLS_DISABLED`), always-true RLS policies
 (`SUPABASE_POLICY_TOO_PERMISSIVE`), migrations with no rollback
 (`MIGRATION_NO_DOWN_FILE`), unguarded destructive SQL
 (`DESTRUCTIVE_MIGRATION_NO_GUARD`), inputs with no accessible name
-(`A11Y_INPUT_NO_LABEL`), and knowledge packs past their review date
-(`PACK_EXPIRED`). A regex that runs is more reliable than a model asked to
-grep, and it costs one command.
+(`A11Y_INPUT_NO_LABEL`), selects with no accessible name
+(`A11Y_SELECT_NO_LABEL` — worse than an unlabeled input: no placeholder
+fallback, so zero accessible name in any modality), and knowledge packs past
+their review date (`PACK_EXPIRED`). A regex that runs is more reliable than a
+model asked to grep, and it costs one command.
 
 **You must run this yourself, in this thread.** The lens subagents hold
 `tools: Read, Grep, Glob` — no Bash — so none of them can invoke it. A
@@ -235,8 +237,22 @@ Findings arrive with `rule_id`, `severity`, `evidence[]` and a
 `recommendation`; carry the `rule_id` into the Review Summary so a reader can
 re-run the single rule.
 
-`A11Y_INPUT_NO_LABEL` is Level B (heuristic) and capped at MEDIUM — treat it
-as a lead to verify, not a confirmed finding. The rest are Level A.
+`A11Y_INPUT_NO_LABEL` and `A11Y_SELECT_NO_LABEL` are Level B (heuristic) and
+capped at MEDIUM — treat them as leads to verify, not confirmed findings. The
+rest are Level A.
+
+**If a lens confirms a defect a detector's own pattern can't catch, route it
+back, don't let it end at that one report.** This happened for real: two
+independent runs had the accessibility lens confirm every
+`A11Y_INPUT_NO_LABEL` lead, then find unlabeled `<select>` elements the
+`<input>`-only pattern structurally couldn't see — a rules-improvement gap,
+not a one-off finding, and it now has its own detector
+(`A11Y_SELECT_NO_LABEL`) because of exactly this path. When it happens again
+— any lens confirming something squarely in a detector's stated domain that
+the detector's pattern doesn't cover — name it explicitly in **Recommended
+Next Iteration** as a detector-coverage gap (not just a finding against the
+project), so it has a chance to become a rule instead of getting absorbed
+into one report and forgotten.
 
 ## 4. Run each lens
 

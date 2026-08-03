@@ -1,0 +1,19 @@
+id: A11Y_SELECT_NO_LABEL
+title: Select with no detectable accessible name
+domain: accessibility
+level: B
+severity:
+  default: MEDIUM
+confidence: Moderate
+related_packs:
+  - ux/wcag
+  - frontend/html
+detector: rules/accessibility/a11y-select-no-label.py
+applies_to:
+  glob: ["**/*.tsx", "**/*.jsx", "**/*.html"]
+  target: project-source
+recommendation: Add a visible <label htmlFor="..."> tied to this select's id, or an aria-label/aria-labelledby, before shipping. Worse than an unlabeled input by default — a select has no placeholder fallback, so this is zero accessible name in any modality until fixed. This is a heuristic text match, not a DOM-structural check — a wrapping custom component or a spread-props pattern can produce a false positive here; verify by inspecting the rendered DOM.
+references:
+  - packs/ux/wcag/engineering-rules.md
+version: 1
+status: stable

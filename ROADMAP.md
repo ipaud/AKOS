@@ -13,14 +13,6 @@ Nothing queued — see Next.
 
 ## Next
 
-- **Route confirmed detector gaps back to the rule.** The 2026-07-31 run's
-  deterministic pass flagged 5 `A11Y_INPUT_NO_LABEL` inputs — all 5 confirmed
-  by the accessibility lens — but the lens also found 2 unlabeled `<select>`
-  elements the detector's `<input>`-only pattern cannot catch, which are
-  strictly worse (no placeholder fallback, no accessible name in any
-  modality). Nothing in the pipeline routes a lens's confirmed false-negative
-  back into a rule-improvement item; it currently just gets absorbed into that
-  one report and lost.
 - **Add a "scope the target" step before lens dispatch.** Nothing instructs the
   orchestrator to look at the project before choosing lenses. In the first dry
   run the file inventory, line counts and CI read were the participant's own
@@ -103,6 +95,44 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **The confirmed detector gap got a real rule, not just a routing note
+  (2026-08-01, phase 3 of 4).** Two independent runs (2026-07-31, 2026-08-01)
+  had the accessibility lens confirm all 5 `A11Y_INPUT_NO_LABEL` leads, then
+  independently find 2 unlabeled `<select>` elements the `<input>`-only
+  pattern structurally cannot catch — strictly worse when true, since a
+  select has no placeholder fallback (zero accessible name in any modality).
+  Shipped as new `A11Y_SELECT_NO_LABEL`, sharing its tag-scanning logic with
+  the input rule via new `schemas/a11y_dom_utils.py` rather than duplicated
+  by copy-paste — the existing detector had ~150 lines of heuristic hardened
+  against specific real bugs (JSX `htmlFor` vs HTML `for`, brace-aware tag
+  spans so a JSX prop's `>` doesn't truncate the tag, comment masking) that a
+  second unmaintained copy would eventually drift out of sync with. Refactor
+  verified behavior-preserving before adding anything new (all 8 existing
+  tests + all 4 existing benchmark cases passed unmodified against the
+  refactored file). New detector got 7 unit tests, 2 benchmark cases, and a
+  sabotage check confirming the tests actually catch the regression they
+  claim to (temporarily broke `run()`, watched the right assertion fail,
+  restored, confirmed clean) — then verified against the real target that
+  found this gap in the first place: run against DKG, it fires on exactly
+  the two `<select>` elements the lens found by hand and still confirms all
+  five original inputs. Unit suite 461 → 468, benchmarks 30 → 32.
+  `skills/akos-review/SKILL.md` also gained the process half of this item —
+  a lens confirming a detector-domain defect the detector's pattern can't
+  catch now gets named explicitly in Recommended Next Iteration as a
+  detector-coverage gap, not silently absorbed into one report — because
+  that's the actual mechanism that surfaced this gap twice before anyone
+  acted on it. `rules/README.md`'s rule table and count were stale (still
+  said 8, present tense) and got fixed alongside; a "the 8 shipped
+  detectors'" line in `docs/rules/authoring-rules.md` was made timeless
+  instead of re-numbered, since the number was never the point of that
+  sentence. `docs/architecture/target-system.md`'s "eight rules" reference
+  was found and left alone — it's a decision-record documenting the
+  reasoning *at the time* `A11Y_INPUT_NO_LABEL` shipped as Level B, same
+  historical-snapshot judgment as phase 2's two skipped files. Evals (the
+  hand-verified LLM-judgment tier, distinct from benchmarks) weren't added —
+  out of scope for a detector-level fix; would need an actual lens run
+  hand-verified against a fixture, not manufactured to pad coverage.
 
 - **`INCOMPLETE` propagated to every live file that enumerates decision
   states (2026-08-01, phase 2 of 4).** Re-swept fresh rather than trusting
