@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/akos-logo.png" alt="AKOS — Knowledge Operating System for AI Agents" width="480">
+</p>
+
 # AKOS — AI Knowledge Operating System
 
 AKOS helps a solo developer using Claude Code or Codex turn a plausible code
@@ -27,6 +31,23 @@ AI coding agents write plausible code but make junior decisions: unclear navigat
 5. **Scoring** (`scoring/`) provides 0–100 rubrics per dimension plus an overall score weighted by reasoning profile.
 6. **Graphs** (`graphs/`) cross-link concepts across packs so agents can follow ideas between sources.
 7. **The `akos` CLI** (`bin/akos`) wires AKOS into any project with marker-based, non-destructive file updates.
+
+## See it
+
+AKOS itself has no UI — it's a CLI plus a Markdown knowledge base your agent
+reads. The screenshots below are the companion site
+([akos-ai.lovable.app](https://akos-ai.lovable.app)), kept in sync with this
+repo's corpus, agents, and roadmap.
+
+<p align="center">
+  <img src="docs/assets/screenshot-home.png" alt="AKOS site — homepage" width="800">
+  <br><em>Homepage — corpus stats, the six-step pipeline, a real example run.</em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/screenshot-agentes.png" alt="AKOS site — the 13 reviewer agents" width="800">
+  <br><em>The 13 reviewer agents — same names as <code>agents/*.md</code> in this repo.</em>
+</p>
 
 ## What's in the corpus
 

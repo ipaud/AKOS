@@ -3,6 +3,18 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.16] — 2026-08-03
+
+### Added
+
+- **README got the official logo and two real screenshots.** New
+  `docs/assets/`: `akos-logo.png` (horizontal lockup) at the top of the
+  README; `akos-icon.png` (symbol only, stored as brand asset — not yet
+  referenced anywhere) supplied alongside it. New `## See it` section with
+  screenshots of the companion site's homepage and agents page, captioned to
+  make clear AKOS itself has no UI — it's a CLI plus the Markdown corpus an
+  agent reads; the screenshots are the site, not the tool.
+
 ## [1.17.15] — 2026-08-01
 
 The last Later item that a decision alone could close.
