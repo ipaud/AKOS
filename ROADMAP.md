@@ -13,15 +13,6 @@ Nothing queued — see Next.
 
 ## Next
 
-- **Resolve the profile-inference contradiction.** `core/reasoning-profiles.md`
-  defaults to Startup MVP; `packs/personal/pau-avila/project-patterns.md` maps
-  never-deployed to Prototype — Level 0, so a literal authority reading picks
-  Prototype over the skill's own default. `core/conflict-resolution.md` does
-  not cover it (it resolves conflicts between guidance sources, not between
-  config inferences), and the gap is a real lever: it lowers the profile via a
-  *pack* rather than a repo config, which §1's tamper-check only guards
-  against from the latter. Moves UX from weight 2 to 3 — the boundary between
-  a HIGH blocking and not.
 - **Propagate the `INCOMPLETE` decision state.** Added to
   `skills/akos-review/SKILL.md` only (v1.17.4); 13 other files enumerate
   PASS/PASS WITH FIXES/BLOCKED without it — `core/review-pipeline.md` (the file
@@ -120,6 +111,26 @@ every audit pass.
     Three packs already cite arXiv work that way; none is named after one.
 
 ## Recently shipped (context for what's *not* on this list anymore)
+
+- **The profile-inference contradiction is resolved — canonical ruling R14
+  (2026-08-01, phase 1 of 4).** `core/reasoning-profiles.md` defaults unknown
+  profiles to Startup MVP; `packs/personal/pau-avila/project-patterns.md`
+  maps never-deployed projects to Prototype — both Level 0, so a literal
+  authority reading could pick either. Resolution turned out not to need the
+  full 7-step algorithm: `project-patterns.md`'s trigger is "never-deployed,"
+  a claim about *intent* that the plain `Deployed: yes/no` field (and its
+  v1.17.9 default of `no`) can't carry — not-currently-deployed isn't the
+  same statement as never-will-be, so the trigger's condition isn't actually
+  met by config silence. Backed by a second, independently sufficient reason:
+  `scoring/overall-score.md`'s weight table has Startup MVP ≥ Prototype on
+  every single scored dimension (verified, not assumed), so defaulting to it
+  is the direction that never under-scrutinizes when genuinely unsure.
+  Recorded as R14 in `core/conflict-resolution.md`. Also surfaced and fixed a
+  smaller, adjacent gap while reading the source: `reasoning-profiles.md`
+  itself already says "ask once, then default Startup MVP" when the profile
+  is unset — `SKILL.md`'s bootstrap bullet silently defaulted without ever
+  mentioning the ask, so the two files disagreed on procedure even before
+  getting to this conflict. Now surfaced in `SKILL.md` §1.
 
 - **§1 gained a configless default block (2026-08-01).** `Deployed`,
   `Primary surface`, and `Style direction` had no stated fallback when

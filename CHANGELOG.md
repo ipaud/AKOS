@@ -3,6 +3,31 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.10] — 2026-08-01
+
+Phase 1 of 4 on the remaining roadmap backlog: the profile-inference
+contradiction.
+
+### Fixed
+
+- **`core/reasoning-profiles.md`'s Startup MVP default vs
+  `packs/personal/pau-avila/project-patterns.md`'s never-deployed→Prototype
+  mapping — resolved as canonical ruling R14 in
+  `core/conflict-resolution.md`.** Both Level 0, so a literal authority
+  reading could pick either when the profile is unknown. Turned out not to
+  need the full 7-step algorithm: `project-patterns.md`'s trigger is a claim
+  about *intent* ("never-deployed") that a plain `Deployed: yes/no` field
+  can't carry — not-currently-deployed isn't never-will-be, so the trigger's
+  own condition isn't met by config silence. Independently backed by
+  `scoring/overall-score.md`'s weight table: Startup MVP ≥ Prototype on every
+  scored dimension, verified directly rather than assumed, so it's the
+  direction that never under-scrutinizes when genuinely unsure.
+- **`SKILL.md`'s bootstrap silently defaulted the profile; its own cited
+  source doesn't.** `core/reasoning-profiles.md` already says "ask once, then
+  default Startup MVP" when the profile is unset — `skills/akos-review/
+  SKILL.md` §1 never surfaced the ask, so the two files disagreed on
+  procedure before the R14 conflict was even reached. Fixed in the same pass.
+
 ## [1.17.9] — 2026-08-01
 
 The next item off the merge-fix backlog: `SKILL.md` §1 had no fallback for
