@@ -1,2 +1,2 @@
 # CI/development only. AKOS itself still has no runtime Python package dependency.
-coverage==7.16.0
+coverage==7.16.1
