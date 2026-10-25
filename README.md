@@ -36,8 +36,8 @@ AI coding agents write plausible code but make junior decisions: unclear navigat
 
 AKOS itself has no UI — it's a CLI plus a Markdown knowledge base your agent
 reads. The screenshots below are the companion site
-([akos-ai.lovable.app](https://akos-ai.lovable.app)), kept in sync with this
-repo's corpus, agents, and roadmap.
+([akos.ipaud.dev](https://akos.ipaud.dev)), kept in sync with this repo's
+corpus, agents, and roadmap.
 
 <p align="center">
   <img src="docs/assets/screenshot-home.png" alt="AKOS site — homepage" width="800">

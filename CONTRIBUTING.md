@@ -136,7 +136,7 @@ Merge with `./merge-pr.sh <n>`, not `gh pr merge`. It refuses when checks are fa
 
 This exists because PR #3 was merged with its own `ci` check red — the merge was gated on `mergeable` (can git combine these?) rather than on `gh pr checks` (did the tests pass?), and v1.4.0 shipped and stayed red across three runs.
 
-It is a **mitigation, not a control**: `gh pr merge` still works and bypasses it entirely. The real control is GitHub branch protection with `ci` as a required check, which needs a public repo or a paid plan and is therefore unavailable here. Do not treat the script's presence as the gap being closed.
+It is a **mitigation, not a control**: GitHub branch protection is the control. The `main` branch requires a pull request and these CI checks: `Quality gates + coverage`, `Functional (Ubuntu / Python 3.10 floor)`, and `Functional (macOS / current Python)`. Keep this list aligned with `.github/workflows/ci.yml`; do not treat the script's presence as the gap being closed.
 
 ## Versioning
 
