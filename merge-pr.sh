@@ -7,10 +7,9 @@
 # and never on `gh pr checks` (did the tests pass?). v1.4.0 shipped red and
 # stayed red across three runs. See CHANGELOG [1.5.0] "Corrected".
 #
-# This is a MITIGATION, not a control. GitHub's server-side branch protection
-# is the real control, and it is unavailable on a private repo on the free
-# plan. Anyone can still run `gh pr merge` directly and bypass this entirely.
-# It only works if it is the merge path you actually use.
+# This is a local guard, backed by server-side branch protection on `main`.
+# That rule requires a PR and the three CI checks documented in CONTRIBUTING.md.
+# GitHub enforces the rule even when someone bypasses this helper.
 #
 # Exit codes (matching docs/cli/exit-codes.md's scheme for new commands):
 #   0  merged
@@ -80,7 +79,7 @@ checks_out="$(gh pr checks "$pr" 2>&1)" && checks_rc=0 || checks_rc=$?
 
 if printf '%s' "$checks_out" | grep -qi "no checks reported"; then
   fail "PR #$pr has no CI checks at all. Refusing — a PR with no checks is not a PR with passing checks."
-  echo "  If that is expected for this PR, merge deliberately with: gh pr merge $pr --$strategy --delete-branch" >&2
+  echo "  Check target-branch protection before merging without CI." >&2
   exit 2
 fi
 
