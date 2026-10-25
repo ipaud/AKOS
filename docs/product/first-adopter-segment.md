@@ -58,7 +58,7 @@ Channels that already exist, no paid acquisition assumed:
   path.
 - The Claude Code plugin marketplace (`/plugin marketplace add ipaud/AKOS`)
   and the Codex CLI equivalent.
-- The public site (`akos-ai.lovable.app`).
+- The public site (`https://akos.ipaud.dev`).
 
 ## What would kill this hypothesis
 

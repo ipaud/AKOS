@@ -33,3 +33,6 @@ __pycache__/
 # would otherwise show up as untracked noise (or worse, get committed).
 /.akos-update.lock
 .gstack/
+
+# AKOS review reports — may quote secrets found during a review
+.akos/reviews/

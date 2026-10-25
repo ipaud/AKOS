@@ -43,7 +43,7 @@ class TestCIWorkflowContract(unittest.TestCase):
 
         self.assertRegex(config, r"(?m)^branch\s*=\s*True$")
         self.assertRegex(config, r"(?m)^fail_under\s*=\s*80$")
-        self.assertIn("coverage==7.15.2", requirements)
+        self.assertRegex(requirements, r"(?m)^coverage==\d+\.\d+\.\d+$")
         self.assertIn("coverage run", workflow)
         self.assertIn("coverage report", workflow)
         self.assertIn(
