@@ -1,5 +1,7 @@
 version: 1
 cases:
+  - id: conditional-api-auth
+    path: cases/conditional-api-auth
   - id: supabase-rls-basic
     path: cases/supabase-rls-basic
   - id: supabase-rls-multi-migration

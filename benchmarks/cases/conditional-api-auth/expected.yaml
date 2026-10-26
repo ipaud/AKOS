@@ -1,0 +1,16 @@
+case_id: conditional-api-auth
+domain: security
+level: B
+rules_under_test: [CONDITIONAL_API_AUTH]
+must_detect:
+  - rule_id: CONDITIONAL_API_AUTH
+    path: fixture/src/app.ts
+    line: 4
+  - rule_id: CONDITIONAL_API_AUTH
+    path: fixture/src/app-inline.ts
+    line: 2
+must_not_detect:
+  - rule_id: CONDITIONAL_API_AUTH
+    path: fixture/src/health.ts
+  - rule_id: CONDITIONAL_API_AUTH
+    path: fixture/src/unconditional.ts

@@ -1,7 +1,7 @@
 # Measure first-review activation
 
 **Owner:** AKOS maintainer  
-**Review date:** 23 October 2026
+**Review date:** 26 October 2026
 
 AKOS must help a solo developer complete an evidence-backed review in their
 existing agent, without hidden telemetry or a facilitator repairing the setup.
@@ -40,9 +40,27 @@ the segment this study recruits from, and why, is decided in
 2. Let them choose the global-clone or plugin path without coaching.
 3. Ask them to run either the full frontend/UI review or the full twelve-lens
    review, whichever matches the repository.
-4. Stop the timer when one complete Review Summary appears.
-5. Ask the participant what blocked or confused them, then inspect the report
-   against the completion criteria.
+4. Start the timer when they receive the README. Stop when one complete Review
+   Summary appears; stop the session at 30 minutes if they are still blocked.
+5. Do not explain steps or repair setup. If they ask for help, answer with
+   “What would you try next?” and record whether they recover without a hint.
+6. Ask what blocked or confused them, then inspect the report against the
+   completion criteria.
+
+## Completion check
+
+Count a session as complete only when report includes:
+
+- Evidence locations and concrete failure modes for findings.
+- Severity-ranked findings, with confidence grounded in inspected evidence.
+- Coverage that names inspected and uninspected surfaces; no invented runtime
+  checks.
+- Scores only for dimensions the report supports, plus final decision.
+
+A report that appears within 10 minutes but fails this check does not count as
+completed. Record first blocker using one of these steps: `README/install`,
+`agent restart`, `skill activation`, `target/profile setup`, `review run`,
+`report completion`, or `report evidence`.
 
 ## Evidence without telemetry
 
@@ -53,12 +71,20 @@ Collect this baseline without telemetry:
   command or prompt they used.
 - The facilitator records install path, agent, completion, elapsed time and
   the first blocking step.
+- Inspect repository evidence locally with participant permission; do not copy
+  or retain repository files. If participant declines to share report, record
+  completion as unverified.
 - AKOS does not phone home, add analytics, read unrelated agent history or
   upload repository content.
 
 Store only aggregate results in this document after the study. Keep raw notes
 outside the repository if they identify a participant or contain project
 content.
+
+Use participant numbers only (`P1`–`P5`) in the result table. For each session,
+record exact minutes, completion, blocker step, and whether report passed the
+completion check. Do not put names, repository names, report text, or source
+code in this file.
 
 ## Result table
 
