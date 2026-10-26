@@ -3,6 +3,14 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.17.17] — 2026-10-26
+
+### Added
+
+- **`CONDITIONAL_API_AUTH`** — Level B security rule for API auth hooks that
+  are registered only when an optional token is configured. Added benchmark
+  fixtures for the finding and near-misses.
+
 ## [1.17.16] — 2026-08-03
 
 ### Added
