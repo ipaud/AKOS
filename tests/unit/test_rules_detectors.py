@@ -60,6 +60,7 @@ class TestDetectorReadFailuresAreNotSuppressed(TempDirCase):
         "rules/devops/destructive-migration-no-guard.py",
         "rules/devops/migration-no-down-file.py",
         "rules/security/secret-in-source.py",
+        "rules/security/conditional-api-auth.py",
         "rules/security/service-role-in-client.py",
         "rules/security/supabase-policy-too-permissive.py",
         "rules/security/supabase-rls-disabled.py",
@@ -590,6 +591,89 @@ class TestPackExpired(TempDirCase):
                   "name: _fake\ndomain: testing\nid: testing/_fake\nreview_after: 2099-01-01\n")
         findings = self.mod.run([f])
         self.assertEqual(findings, [])
+
+
+class TestConditionalApiAuth(TempDirCase):
+    def setUp(self):
+        super().setUp()
+        self.mod = load_detector("rules/security/conditional-api-auth.py")
+
+    def test_api_hook_gated_by_optional_token_is_flagged(self):
+        f = write(
+            self.tmp, "src/app.ts",
+            "if (options.apiToken) {\n"
+            "  app.addHook('onRequest', async () => checkToken());\n"
+            "}\n"
+            "app.post('/api/settings', saveSettings);\n",
+        )
+        findings = self.mod.run([f])
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["evidence"][0]["line_start"], 1)
+
+    def test_nested_hook_braces_do_not_hide_conditional_registration(self):
+        f = write(
+            self.tmp, "src/app.ts",
+            "if (options.apiToken) {\n"
+            "  app.addHook('onRequest', async () => {\n"
+            "    if (blocked) { return reject(); }\n"
+            "  });\n"
+            "}\n"
+            "app.post('/api/settings', saveSettings);\n",
+        )
+        self.assertEqual(len(self.mod.run([f])), 1)
+
+    def test_inline_hook_registration_is_flagged(self):
+        f = write(
+            self.tmp, "src/app.ts",
+            "if (options.apiToken) { app.addHook('onRequest', checkToken); }\n"
+            "app.post('/api/settings', saveSettings);\n",
+        )
+        self.assertEqual(len(self.mod.run([f])), 1)
+
+    def test_unconditional_api_hook_is_not_flagged(self):
+        f = write(
+            self.tmp, "src/app.ts",
+            "if (options.apiToken) logConfiguredToken();\n"
+            "app.addHook('onRequest', checkToken);\n"
+            "app.post('/api/settings', saveSettings);\n",
+        )
+        self.assertEqual(self.mod.run([f]), [])
+
+    def test_inline_unrelated_guard_does_not_capture_later_hook(self):
+        f = write(
+            self.tmp, "src/app.ts",
+            "if (options.apiToken) logTokenConfigured();\n"
+            "app.addHook('onRequest', checkToken);\n"
+            "app.post('/api/settings', saveSettings);\n",
+        )
+        self.assertEqual(self.mod.run([f]), [])
+
+    def test_conditional_token_without_api_route_is_not_flagged(self):
+        f = write(
+            self.tmp, "src/app.ts",
+            "if (options.apiToken) {\n"
+            "  app.addHook('onRequest', checkToken);\n"
+            "}\n"
+            "app.get('/health', healthCheck);\n",
+        )
+        self.assertEqual(self.mod.run([f]), [])
+
+    def test_comment_describing_the_pattern_is_not_flagged(self):
+        f = write(
+            self.tmp, "src/app.ts",
+            "// if (options.apiToken) { app.addHook('onRequest', checkToken); }\n"
+            "app.post('/api/settings', saveSettings);\n",
+        )
+        self.assertEqual(self.mod.run([f]), [])
+
+    def test_string_literals_do_not_impersonate_guard_hook_or_route(self):
+        f = write(
+            self.tmp, "src/app.ts",
+            '''const example = "if (options.apiToken) { app.addHook('onRequest', checkToken); } app.post('/api/settings')";
+app.get('/health', healthCheck);
+''',
+        )
+        self.assertEqual(self.mod.run([f]), [])
 
 
 if __name__ == "__main__":

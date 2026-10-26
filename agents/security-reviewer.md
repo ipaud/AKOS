@@ -30,11 +30,13 @@ Detects security vulnerabilities — the safety-floor security check. Covers OWA
 
 ## Review checklist
 
-**Start from the deterministic findings.** Four executable detectors cover
+**Start from the deterministic findings.** Five executable detectors cover
 part of this lens and are run by the orchestrator before you are dispatched
 (`akos rules run`, see `skills/akos-review/SKILL.md` step 3):
 `SECRET_IN_SOURCE`, `SERVICE_ROLE_IN_CLIENT`, `SUPABASE_RLS_DISABLED`,
-`SUPABASE_POLICY_TOO_PERMISSIVE`. Confirm each against the artifact and carry
+`SUPABASE_POLICY_TOO_PERMISSIVE`, `CONDITIONAL_API_AUTH`. Confirm each against
+the artifact; `CONDITIONAL_API_AUTH` is only a Level B lead, so verify whether
+another auth layer protects the route. Carry
 its `rule_id` into your findings. You hold `Read, Grep, Glob` and no Bash, so
 you cannot run them yourself — if they were not handed to you, say so in
 Coverage rather than substituting a manual grep and reporting it as equivalent.

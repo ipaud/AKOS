@@ -17,7 +17,7 @@ No central index file. Rules are discovered by globbing `rules/*/*.yaml`, the sa
 - **Level B** — heuristic. The detection mechanism is still a deterministic script, but the underlying question can't be answered by text-matching alone (e.g. real HTML/JSX label association is a tree-structural relationship, not a regex). Level B rules are capped at MEDIUM severity regardless of profile and are excluded from CRITICAL-only exit-code gating.
 - **Level C** (LLM-assisted) is not implemented as executable rules — see `benchmarks/` for how the harness handles optional LLM-assisted evaluation.
 
-## The 9 rules shipped today
+## The 10 rules shipped today
 
 | Rule | Domain | Level | Default severity |
 |---|---|---|---|
@@ -25,13 +25,14 @@ No central index file. Rules are discovered by globbing `rules/*/*.yaml`, the sa
 | `SUPABASE_POLICY_TOO_PERMISSIVE` | security | A | HIGH |
 | `SECRET_IN_SOURCE` | security | A | HIGH |
 | `SERVICE_ROLE_IN_CLIENT` | security | A | HIGH |
+| `CONDITIONAL_API_AUTH` | security | B | MEDIUM (capped) |
 | `A11Y_INPUT_NO_LABEL` | accessibility | B | MEDIUM (capped) |
 | `A11Y_SELECT_NO_LABEL` | accessibility | B | MEDIUM (capped) |
 | `MIGRATION_NO_DOWN_FILE` | devops | A | HIGH |
 | `DESTRUCTIVE_MIGRATION_NO_GUARD` | devops | A | HIGH |
 | `PACK_EXPIRED` | meta | A | MEDIUM |
 
-`PACK_EXPIRED` is different from the other eight: it scans AKOS's own `packs/`, not a consuming project's source (`applies_to.target: akos-packs`), and is dual-wired directly into `doctor.sh` for that reason. `A11Y_SELECT_NO_LABEL` shares its tag-scanning helpers with `A11Y_INPUT_NO_LABEL` via `schemas/a11y_dom_utils.py` rather than duplicating them — same heuristic shape, same already-learned false-positive/false-negative fixes.
+`PACK_EXPIRED` is different from the other nine: it scans AKOS's own `packs/`, not a consuming project's source (`applies_to.target: akos-packs`), and is dual-wired directly into `doctor.sh` for that reason. `A11Y_SELECT_NO_LABEL` shares its tag-scanning helpers with `A11Y_INPUT_NO_LABEL` via `schemas/a11y_dom_utils.py` rather than duplicating them — same heuristic shape, same already-learned false-positive/false-negative fixes.
 
 ## Suppression
 

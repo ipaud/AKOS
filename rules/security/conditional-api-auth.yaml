@@ -1,0 +1,20 @@
+id: CONDITIONAL_API_AUTH
+title: API authentication hook may be conditional on a token
+domain: security
+level: B
+severity:
+  default: MEDIUM
+confidence: Moderate
+related_packs:
+  - security/owasp-api-top-10
+  - security/auth
+detector: rules/security/conditional-api-auth.py
+applies_to:
+  glob: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"]
+  target: project-source
+recommendation: Review this lead: require an auth token before starting the API or explicitly allowlist public routes; do not conditionally omit the shared auth hook.
+references:
+  - packs/security/owasp-api-top-10/engineering-rules.md
+  - packs/security/auth/engineering-rules.md
+version: 1
+status: stable

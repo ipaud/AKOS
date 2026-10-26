@@ -218,7 +218,7 @@ Before dispatching any lens, run:
 akos rules run <project-dir> --profile "<active profile>" --format json
 ```
 
-Nine executable detectors cover checks the lenses would otherwise perform by
+Ten executable detectors cover checks the lenses would otherwise perform by
 reading: hardcoded secrets (`SECRET_IN_SOURCE`), `service_role` reachable from
 client code (`SERVICE_ROLE_IN_CLIENT`), Supabase tables created without RLS
 (`SUPABASE_RLS_DISABLED`), always-true RLS policies
@@ -227,9 +227,11 @@ client code (`SERVICE_ROLE_IN_CLIENT`), Supabase tables created without RLS
 (`DESTRUCTIVE_MIGRATION_NO_GUARD`), inputs with no accessible name
 (`A11Y_INPUT_NO_LABEL`), selects with no accessible name
 (`A11Y_SELECT_NO_LABEL` — worse than an unlabeled input: no placeholder
-fallback, so zero accessible name in any modality), and knowledge packs past
-their review date (`PACK_EXPIRED`). A regex that runs is more reliable than a
-model asked to grep, and it costs one command.
+fallback, so zero accessible name in any modality), optional-token-gated API
+hooks (`CONDITIONAL_API_AUTH` — Level B lead; confirm alternate auth and route
+registration before reporting), and knowledge packs past their review date
+(`PACK_EXPIRED`). A regex that runs is more reliable than a model asked to
+grep, and it costs one command.
 
 **You must run this yourself, in this thread.** The lens subagents hold
 `tools: Read, Grep, Glob` — no Bash — so none of them can invoke it. A
