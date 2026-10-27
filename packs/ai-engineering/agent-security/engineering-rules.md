@@ -137,3 +137,12 @@ General web and API rules are not repeated here; see [owasp-top-10](../../securi
 - ASE93. Denied actions — blocked egress, refused tool calls, failed authorization, rejected approvals — are logged as prominently as successful ones; a control that fires silently cannot be shown to work.
 - ASE94. Logs are sufficient to reconstruct a run end to end without re-execution, including sub-agent runs linked to their parent.
 - ASE95. Security-relevant events (suspected injection, blocked exfiltration, privilege denial, memory-write rejection, approval denial) raise alerts rather than only appearing in a log nobody reads (extends OW16).
+
+## Runtime policy enforcement and observability
+
+- ASE96 ★. Each consequential action passes through a named, independently enforced runtime policy hook before execution; a missing, unavailable, or bypassed hook fails closed.
+- ASE97. The runtime policy evaluates a structured action envelope containing the authenticated principal, agent identity, tool and resolved arguments, requested resource, provenance, and applicable approval state; it does not rely on free-form model narration.
+- ASE98. The platform exposes auditable decision outcomes for policy hooks — allow, deny, or require approval — and links each decision to the resulting action or denial in the run trace.
+- ASE99. Policy definitions and hook configuration are versioned and change-controlled; tests verify enforcement at each action boundary and detect alternate routes that bypass the hook.
+- ASE100. Bound model calls, tool loops, retrieval volume, concurrency, tokens, wall-clock time, and spend with enforceable quotas; exhaustion stops the run and is observable (OWASP LLM06:2026 Unbounded Consumption).
+- ASE101. When model-generated claims can trigger a consequential decision or tool action, require validation against an authoritative source or human review; confidence or fluent wording is not evidence (OWASP LLM07:2026 Misinformation).

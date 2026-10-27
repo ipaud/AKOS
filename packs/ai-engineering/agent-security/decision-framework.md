@@ -93,6 +93,12 @@ Work down; stop at the first "no" and remove or narrow the capability.
 
 ## Profile-adjusted rigor
 
+### Is the action controlled at runtime?
+
+For each tool invocation and consequential side effect, identify the platform hook that sees the authenticated principal, target, resolved arguments, provenance, and approval state before execution. The hook returns an auditable allow, deny, or approval-required decision. If it cannot run, the action is denied; if any alternate route can invoke the capability without it, the policy is not an effective control. This operationalizes the OWASP Agent Control Standard's emphasis on inspectable, traceable agents and portable runtime policy hooks. Treat ACS as published OWASP guidance; adopt the controls proportionately to the platform, and do not imply framework portability unless the implementation demonstrates it.
+
+NIST's 2026 AI-agent RFI response analysis reports stakeholder views and areas for future guidance; it supports adapting existing cybersecurity practice and tracking emerging agent-specific work, but it does not create a finalized NIST agent-security standard or independent mandatory controls.
+
 Ceremony scales with the reasoning profile. The floor does not (AS18, [core/constitution.md](../../../core/constitution.md) Article 2).
 
 | Concern | Prototype | Startup MVP | Production | Enterprise |
@@ -106,6 +112,8 @@ Ceremony scales with the reasoning profile. The floor does not (AS18, [core/cons
 | Written threat model of content sources (ASE10) | A list in the README | A short document | Reviewed per surface | Formal, versioned, signed off |
 | Injection test corpus (ASE14, ASE15) | A handful of cases per harmful tool | Per-tool suite in CI | CI-blocking, re-run on model change | + periodic red team |
 | Supply-chain review of servers (ASE72–ASE74) | Pin versions, read the descriptions | + review before first use | + re-review on update, inventory scanned | + provenance attestation |
+| Runtime policy hooks (ASE96–ASE99) | All consequential actions fail closed and are trace-linked | + test structured inputs and denials | + CI checks for boundary coverage and bypass routes | + cross-framework policy conformance |
+| Resource bounds and consequential claims (ASE100–ASE101) | Enforce quotas; verify claims before consequential actions | + monitor limit events | + test exhaustion and evidence paths | + per-tenant budgets and independent evidence review |
 
 **Rule:** what a lower profile buys is less documentation and less process, never a missing sandbox, a missing allowlist, a missing gate, or a missing log. "It is only a prototype" is not a reason — prototype credentials are real credentials.
 
