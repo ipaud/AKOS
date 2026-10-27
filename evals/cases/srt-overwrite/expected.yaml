@@ -1,0 +1,12 @@
+case_id: srt-overwrite
+lens: security
+profile: Startup MVP
+source: zeba-mcp-custom, verified by hand 2026-10-27
+
+must_find:
+  - id: existing-subtitle-overwritten
+    concept: finalization silently truncates an existing SRT file and can destroy user edits
+    match_all: [".srt", "write_text"]
+    match_any: [overwrite, truncat, "existing file", "existing subtitle", "user edits", "data loss"]
+    min_severity: CRITICAL
+    why: "Path.write_text replaces an existing subtitle file without a guard or confirmation. Re-running finalization can erase edited subtitle text."
