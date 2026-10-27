@@ -3,6 +3,15 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [1.18.1] — 2026-10-27
+
+### Added
+
+- Added `srt-overwrite` review-output eval from a verified finding in
+  `zeba-mcp-custom`, covering silent replacement of existing subtitle files.
+- Refreshed the `tool-design` and `agent-security` packs with the MCP
+  2026-07-28 baseline and 2026 agent-security controls.
+
 ## [1.18.0] — 2026-10-26
 
 ### Added
