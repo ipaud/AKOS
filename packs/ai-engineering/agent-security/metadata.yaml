@@ -1,13 +1,17 @@
 name: agent-security
 domain: ai-engineering
 authority-level: 1
-version: 1.0.1
+version: 1.1.0
 tags: [prompt-injection, indirect-prompt-injection, tool-poisoning, data-exfiltration, excessive-agency, confused-deputy, memory-poisoning, insecure-output-handling, human-in-the-loop, mcp-security, sandboxing, audit-logging]
 sources:
-  - title: "OWASP Top 10 for Large Language Model Applications"
+  - title: "OWASP Top 10 for LLM Applications 2026"
     author: OWASP GenAI Security Project
     org: OWASP
-    url: https://genai.owasp.org/llm-top-10/
+    url: https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/
+  - title: "Agent Control Standard (ACS)"
+    author: OWASP GenAI Security Project
+    org: OWASP
+    url: https://genai.owasp.org/resource/agent-control-standard-acs/
   - title: "OWASP Top 10 for Agentic Applications"
     author: OWASP GenAI Security Project
     org: OWASP
@@ -16,10 +20,18 @@ sources:
     author: NIST
     org: NIST
     url: https://www.nist.gov/itl/ai-risk-management-framework
-  - title: "Model Context Protocol Specification"
+  - title: "Summary Analysis of Responses to the Request for Information Regarding Security Considerations for AI Agents"
+    author: Jared Riggs, Maia Hamin, Neil Perry, Benjamin Edelman, Peter Cihon
+    org: NIST
+    url: https://www.nist.gov/publications/summary-analysis-responses-request-information-regarding-security-considerations-ai
+  - title: "AI Agent Standards Initiative"
+    author: Center for AI Standards and Innovation
+    org: NIST
+    url: https://www.nist.gov/news-events/news/2026/02/announcing-ai-agent-standards-initiative-interoperable-and-secure
+  - title: "Model Context Protocol Specification, 2026-07-28"
     author: Anthropic
     org: Model Context Protocol
-    url: https://modelcontextprotocol.io/specification/2025-11-25
+    url: https://modelcontextprotocol.io/specification/2026-07-28
 related:
   - packs/security/owasp-top-10
   - packs/security/owasp-api-top-10
@@ -28,8 +40,8 @@ related:
   - packs/ai-engineering/context-engineering
 id: ai-engineering/agent-security
 status: stable
-last_reviewed: 2026-07-26
-review_after: 2028-01-22
+last_reviewed: 2026-10-27
+review_after: 2028-04-24
 maintainer: core
 license: MIT
 deprecated: false

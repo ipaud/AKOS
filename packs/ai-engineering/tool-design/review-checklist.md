@@ -85,6 +85,15 @@ Reviewing a tool surface means reading the tool definitions, the schemas, real r
 
 ## Process
 
+- [ ] MCP clients and servers follow the stateless 2026-07-28 core and carry cross-call state only through explicit handles. (TDE87, TDE88)
+- [ ] MRTR retries the original request with a new request ID, carries `inputResponses`, and echoes supplied `requestState` unchanged; Tasks are used only when negotiated. (TDE89, TDE90)
+- [ ] Every Streamable HTTP POST includes `Mcp-Method`; `tools/call`, `resources/read`, and `prompts/get` also include `Mcp-Name`, with supplied headers checked against the JSON-RPC body. (TDE91)
+- [ ] Catalogues have deterministic ordering and cache hints with the right public/private scope. (TDE92)
+- [ ] OAuth issuer is validated and credentials are issuer-bound; new registration prefers CIMD. (TDE93, TDE94)
+- [ ] JSON Schema 2020-12 support bounds reference and composition work. (TDE95)
+- [ ] No new implementation adopts deprecated MCP features or the old HTTP+SSE transport. (TDE96)
+- [ ] Missing-resource errors use `-32602`, not the obsolete `-32002`. (TDE97)
+
 - [ ] The review read the actual tool definitions, schemas, and at least one real response payload — not the descriptions alone.
 - [ ] **Trace check:** the surface has been exercised by a real agent on realistic tasks, and the traces were read. (TDE77)
 - [ ] Observed wrong calls were fixed at the name, description, or schema — not only by adding prompt instructions. (TDE78)

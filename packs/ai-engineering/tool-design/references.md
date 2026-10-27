@@ -5,7 +5,10 @@ Attribution only. Nothing in this pack is copied from the sources below; the pac
 ## Primary sources (Level 2 — published engineering practice and specification)
 
 - **Writing Effective Tools for AI Agents** — Anthropic. https://www.anthropic.com/engineering/writing-tools-for-agents
-- **Model Context Protocol Specification** — Anthropic / Model Context Protocol. https://modelcontextprotocol.io/specification/2025-11-25
+- **Model Context Protocol Specification** — Anthropic / Model Context Protocol. https://modelcontextprotocol.io/specification/2026-07-28
+- **Key Changes — Model Context Protocol Specification 2026-07-28** — Model Context Protocol maintainers. https://modelcontextprotocol.io/specification/2026-07-28/changelog
+
+The 2026-07-28 revision changes how MCP tools are transported and composed. Apply these design consequences when building an MCP client or server (TDE87–TDE97): requests are self-describing and stateless; represent cross-call work with explicit handles; model mid-call user/client input as a retryable MRTR result; opt into Tasks as an extension; use and validate routing headers; publish deterministic, cacheable catalogues; bind OAuth credentials to a validated issuer and prefer CIMD; accept JSON Schema 2020-12 without unbounded reference/composition work; and avoid newly adopting deprecated primitives/transports. The checklist and rules below capture the implementation-facing subset, not the full protocol.
 
 ## Research (applied as a decision framework, not a commandment)
 

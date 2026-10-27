@@ -126,3 +126,17 @@ Checkable in a tool definition, a JSON Schema, a response payload, a server mani
 - TDE84. Deprecated tools are removed from the surface rather than left in place carrying a deprecation note in the description.
 - TDE85. The number of tools in a surface is a tracked quantity with a stated ceiling, not an unbounded catalogue.
 - TDE86. A tool never selected by an agent across a representative evaluation run is examined for a naming or description defect, or removed.
+
+## MCP protocol lifecycle and transport (2026-07-28)
+
+- TDE87. An MCP client/server targets the stateless 2026-07-28 core: do not depend on `initialize`/`initialized` or `Mcp-Session-Id`; carry protocol version and client capabilities in request `_meta`. Servers MUST implement `server/discover`; clients MAY call it when capability discovery before a request is useful.
+- TDE88. Cross-call application state is represented by an explicit, server-minted handle returned by one tool and accepted as an ordinary argument by later tools; the handle is opaque, scoped to the caller/authorization context, and has a documented expiry or cleanup path.
+- TDE89. A server that needs client/user input mid-operation returns an MRTR `input_required` result with the needed requests; the client retries the original request with `inputResponses` and a new JSON-RPC request ID. If the result supplies `requestState`, the client echoes it unchanged. Do not hold a bidirectional stream open or substitute a second tool call.
+- TDE90. Long-running work uses Tasks only when both peers negotiate the `io.modelcontextprotocol/tasks` extension; treat returned task handles as explicit stable references and use `tasks/get`, `tasks/update`, and `tasks/cancel` where supported, not the removed `tasks/list` or a blocking result call.
+- TDE91. Every Streamable HTTP POST includes `Mcp-Method`; `tools/call`, `resources/read`, and `prompts/get` POSTs additionally include `Mcp-Name`. Servers validate supplied header values against the JSON-RPC body before dispatch.
+- TDE92. List-capable MCP servers return tools in deterministic order and provide `ttlMs` and correct `cacheScope` on cacheable result types; clients treat TTL as a freshness hint, honor private scope, and do not cache beyond it.
+- TDE93. OAuth clients validate a returned `iss` against the authorization server selected before redeeming a code, key persisted credentials by issuer, and never reuse credentials with another issuer.
+- TDE94. New OAuth client registration prefers Client ID Metadata Documents (CIMD); if backward-compatible DCR is required, declare the correct `application_type` and retain issuer-bound credentials.
+- TDE95. MCP `inputSchema` and `outputSchema` use JSON Schema 2020-12; `$ref` resolution and composition processing are bounded by depth, time, and resource limits, and remote references are not fetched without an explicit trust policy.
+- TDE96. New MCP implementations do not adopt deprecated Roots, Sampling, Logging, HTTP+SSE, or Sampling `includeContext` values; use explicit path/resource inputs, direct model-provider integration, stderr/OpenTelemetry, Streamable HTTP, and `includeContext: "none"` as applicable.
+- TDE97. MCP errors use the current JSON-RPC/MCP code allocation; resource-not-found is `-32602` (Invalid Params), and clients do not depend on the former `-32002` code.

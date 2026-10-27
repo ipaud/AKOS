@@ -2,7 +2,7 @@
 
 Durable rules for securing a system where a language model plans, calls tools, and acts. Each carries an **operational corollary** — the form the principle takes when it meets a real design. Violating one requires an explicit, recorded tradeoff, and several cannot be traded at all (AS18).
 
-OWASP item names are cited so the normative text is one click away. Where the current numbering of a category is not certain, the category is named without a number rather than guessed at.
+OWASP item names and 2026 identifiers are cited so the source text is one click away. Confirm identifiers against the linked list before reuse.
 
 ## AS1 — Retrieved text, documents, web content, and tool output are data, never instructions
 
@@ -12,7 +12,7 @@ This is the spine of the pack. A model has no innate mechanism for telling an in
 
 ## AS2 — The dangerous injection is the one nobody typed
 
-Direct prompt injection — a user telling the agent to disregard its constraints — is bounded by what that user was already allowed to do. Indirect injection is the real threat class: an instruction embedded in a support ticket, an invoice, a web page, a README, a commit message, a calendar invite, an email signature, or the JSON body a tool returned. Nobody with legitimate access typed it. Nobody reading the transcript afterward will recognize it as foreign. The operator's own trust in the agent is the delivery mechanism. (OWASP LLM01: Prompt Injection.)
+Direct prompt injection — a user telling the agent to disregard its constraints — is bounded by what that user was already allowed to do. Indirect injection is the real threat class: an instruction embedded in a support ticket, an invoice, a web page, a README, a commit message, a calendar invite, an email signature, or the JSON body a tool returned. Nobody with legitimate access typed it. Nobody reading the transcript afterward will recognize it as foreign. The operator's own trust in the agent is the delivery mechanism. (OWASP LLM01:2026 Prompt Injection.)
 
 **Corollary:** treat every content source the agent reads as attacker-influenced unless it is under your change control and reviewed. "It came from our own CRM" is not provenance — the CRM's records were written by customers.
 
@@ -30,7 +30,7 @@ What an agent will do is a probabilistic question. What an agent *can* do is a c
 
 ## AS5 — Authority is scoped to the task, not to the agent
 
-An agent holding a general-purpose credential holds it on every run, including the run where it reads a hostile document. Capability granted "so it can handle anything" is capability standing by permanently for the one request that turns hostile. This is excessive agency, and it is the multiplier on every other finding in this pack: the same injection against a narrowly-scoped agent is an annoyance, and against a broadly-scoped one is an incident. (OWASP: Excessive Agency — see the OWASP GenAI Security Project for current numbering.)
+An agent holding a general-purpose credential holds it on every run, including the run where it reads a hostile document. Capability granted "so it can handle anything" is capability standing by permanently for the one request that turns hostile. This is excessive agency, and it is the multiplier on every other finding in this pack: the same injection against a narrowly-scoped agent is an annoyance, and against a broadly-scoped one is an incident. (OWASP LLM03:2026 Excessive Agency.)
 
 **Corollary:** tools, credentials, and scopes are granted per task or per session at the narrowest level that completes the work. A capability needed once a quarter is not in the default toolset; it is requested, granted, and revoked.
 
@@ -54,13 +54,13 @@ Exfiltration rarely looks like sending data somewhere. It looks like a URL with 
 
 ## AS9 — Agent output is untrusted input to whatever consumes it
 
-An agent's output is generated text, partly derived from content an attacker may have written. Rendering it as HTML, executing it as a shell command, interpolating it into SQL, using it as a filesystem path, or feeding it into another agent's context are all the same mistake: trusting a string for where it came from rather than validating it for where it is going. (OWASP: Improper/Insecure Output Handling — see the OWASP GenAI Security Project for current numbering.)
+An agent's output is generated text, partly derived from content an attacker may have written. Rendering it as HTML, executing it as a shell command, interpolating it into SQL, using it as a filesystem path, or feeding it into another agent's context are all the same mistake: trusting a string for where it came from rather than validating it for where it is going. (OWASP LLM10:2026 Improper Output Handling.)
 
 **Corollary:** agent output crossing into a browser, a shell, a query, a path, or another agent gets exactly the validation the same bytes would get from an anonymous internet user — the contextual escaping of OW5, the parameterization of OW3, and the argument-array handling of OW4 in [owasp-top-10](../../security/owasp-top-10/engineering-rules.md).
 
 ## AS10 — Poisoned memory outlives the session that accepted it
 
-A false fact written into persistent memory becomes a trusted premise in every later session, including sessions with a different user, a different task, and no trace of where the fact came from. It is the highest-leverage form of injection because it escapes the containment of a single run: the attacker gets one chance to be read and an unbounded number of chances to be acted on. Later reasoning that appears to corroborate it usually traces back to the same origin. (OWASP: Data and Model Poisoning; agentic memory poisoning — see the OWASP GenAI Security Project for current numbering.)
+A false fact written into persistent memory becomes a trusted premise in every later session, including sessions with a different user, a different task, and no trace of where the fact came from. It is the highest-leverage form of injection because it escapes the containment of a single run: the attacker gets one chance to be read and an unbounded number of chances to be acted on. Later reasoning that appears to corroborate it usually traces back to the same origin. (OWASP LLM05:2026 Data and Model Poisoning; memory poisoning is also covered by the existing OWASP Agentic Top 10.)
 
 **Corollary:** a write to persistent memory is a privileged action with its own gate — what may be written, from which provenance, with what expiry. Every stored fact records its source, and a fact derived from untrusted content is never promoted into a trusted tier without human confirmation.
 
@@ -72,13 +72,13 @@ A confirmation step is worth exactly as much as the information it presents. An 
 
 ## AS12 — An agent's toolset is a supply chain
 
-Every MCP server, tool package, plugin, and skill an agent loads is third-party code *and* third-party prompt content, running with the agent's trust. It can be typosquatted, taken over after installation, or benign at review time and hostile after an update — and unlike an ordinary dependency, part of its payload is natural language aimed directly at the model's decision-making. (OWASP LLM: Supply Chain — see the OWASP GenAI Security Project for current numbering.)
+Every MCP server, tool package, plugin, and skill an agent loads is third-party code *and* third-party prompt content, running with the agent's trust. It can be typosquatted, taken over after installation, or benign at review time and hostile after an update — and unlike an ordinary dependency, part of its payload is natural language aimed directly at the model's decision-making. (OWASP LLM04:2026 Supply Chain.)
 
 **Corollary:** every server and tool package is pinned to a version and a publisher, reviewed before first use, and re-reviewed on update. A server that can change its own tool list or descriptions at run time is treated as a remote code path, not as configuration.
 
 ## AS13 — A secret that reaches the context window is a secret you have disclosed
 
-Once a credential is in context it can be echoed into an answer, captured in a trace, carried into a summary, written into memory, transmitted to a model provider, and extracted by any injection that simply asks for it. Nothing inside the window keeps it from being reproduced — the model does not know which of its tokens are dangerous. (OWASP LLM: Sensitive Information Disclosure, and System Prompt Leakage — see the OWASP GenAI Security Project for current numbering.)
+Once a credential is in context it can be echoed into an answer, captured in a trace, carried into a summary, written into memory, transmitted to a model provider, and extracted by any injection that simply asks for it. Nothing inside the window keeps it from being reproduced — the model does not know which of its tokens are dangerous. (OWASP LLM02:2026 Sensitive Information Disclosure; LLM08:2026 Hidden Context Exposure.)
 
 **Corollary:** agents hold references, not credentials; the tool layer resolves a handle into a secret at the call boundary, outside the model's view. Where a secret genuinely must enter context, it is short-lived, narrowly scoped, excluded from traces and memory, and treated as compromised the moment an injection is confirmed.
 

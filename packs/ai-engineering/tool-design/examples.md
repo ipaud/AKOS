@@ -2,6 +2,10 @@
 
 Invented cases. Bad → good, with the rule applied. All scenarios are fabricated for calibration, except the final section, which audits real code in this repository.
 
+## Stateless MCP flow: explicit handle and MRTR input
+
+Suppose an order service exposes `prepare_return` and `submit_return`. `prepare_return(order_id)` validates eligibility and returns a server-minted `return_handle` plus a short expiry. If user approval is required, it returns `resultType: "input_required"` with a confirmation request and `requestState`. The client obtains approval, then retries the original `prepare_return` request with a new JSON-RPC request ID, the answer in `inputResponses`, and the returned `requestState` echoed unchanged. On completion, the server returns the handle and a preview of the exact items/refund amount. `submit_return(return_handle, confirmation)` then performs the single side effect. The handle is an ordinary argument, so either request can reach any server instance; the user interaction is explicit, and repeating a completed preparation does not silently submit the return. This is the 2026-07-28 stateless/MRTR design consequence, not a new MCP primitive (TDE87–TDE89).
+
 ## The tool that did too much (TD4, TDE12–TDE16)
 
 A CRM integration exposes `close_deal(deal_id, amount, notes)`. One call marks the deal closed, writes a commission row, sends a congratulations message to a Slack channel, and posts to an analytics endpoint. An agent closes a deal; the Slack call fails on an expired webhook. The tool returns `{"error": "notification failed"}`.

@@ -12,6 +12,7 @@ This checklist covers only the surface the agent adds. Run [owasp-top-10](../../
 - [ ] ★ Untrusted content cannot authorize an action, widen a scope, or change a rule; the action gate consults provenance, not content. (ASE3)
 - [ ] ★ The agent's rules, toolset, scopes, and approval thresholds are loaded from change-controlled configuration and are not modifiable from the conversation, from retrieved content, or from memory. (ASE7, ASE57)
 - [ ] ★ Every path to a consequential action is bounded by a control enforced **outside the model** — scoped credential, sandbox, egress allowlist, or approval gate — and the enforcing component is named per path. (ASE11, ASE86)
+- [ ] ★ Every consequential action crosses an external runtime policy hook that fails closed when unavailable; its decision is linked to the action or denial in the trace. (ASE96, ASE98)
 - [ ] ★ Outbound network destinations are an allowlist with default-deny at the network layer, not a policy stated in the prompt. (ASE26)
 - [ ] ★ Model-generated markup does not auto-load remote resources in any client that renders it. (ASE27)
 - [ ] ★ Context-derived data never reaches a URL parameter, path segment, or fragment. (ASE28)
@@ -34,10 +35,12 @@ This checklist covers only the surface the agent adds. Run [owasp-top-10](../../
 - [ ] ★ Code execution, file operations, and shell access run in a sandbox with an explicit filesystem root, an egress allowlist, and no ambient host credentials. (ASE85)
 - [ ] ★ **Trace check:** every tool call is logged with tool name, resolved arguments, result summary, timestamp, run ID, and the principal acted for. (ASE90)
 - [ ] ★ Audit records are written to a store the agent cannot modify or delete. (ASE91)
+- [ ] Model calls, loops, retrieval, concurrency, tokens, runtime, and spend have enforceable bounds; the run stops observably when a limit is hit. (ASE100)
 
 ## High
 
 - [ ] Every content source the agent can read is enumerated in a threat model with an owner and a trust classification. (ASE10)
+- [ ] Runtime authorization consumes structured identity, tool, resolved-argument, resource, provenance, and approval state rather than model-written justification. (ASE97)
 - [ ] Untrusted content is delivered inside an explicit structural wrapper with an unguessable per-session delimiter. (ASE4, ASE5)
 - [ ] Prompt-level defenses are recorded as mitigations, never as the control bounding impact. (ASE12)
 - [ ] Behavior is tested against an **indirect** injection corpus — hidden instructions in retrieved documents, tool results, and file contents. (ASE14)
@@ -81,6 +84,7 @@ This checklist covers only the surface the agent adds. Run [owasp-top-10](../../
 - [ ] Memory writes and reads are logged with provenance. (ASE58)
 - [ ] Model output used as a filesystem path is canonicalized and confirmed inside an allowed root. (ASE62)
 - [ ] Structured output is schema-validated before use; malformed structure is an error, not something to interpret leniently. (ASE63)
+- [ ] Claims that can trigger consequential decisions or actions are corroborated with an authoritative source or reviewed by a human; model confidence alone is not accepted as evidence. (ASE101)
 - [ ] Output entering another agent's context is labeled `untrusted` on arrival. (ASE64)
 - [ ] Approval volume and cadence are bounded; a batch approval enumerates every item it covers. (ASE69)
 - [ ] An approval does not establish standing consent for later actions unless explicitly scoped and bounded. (ASE70)
@@ -103,6 +107,7 @@ This checklist covers only the surface the agent adds. Run [owasp-top-10](../../
 ## Process
 
 - [ ] The review inspected the tool manifest, the permission grants, the sandbox configuration, and at least one real run trace — not the prompt alone.
+- [ ] Runtime policy definitions and hooks are versioned, tested at each action boundary, and checked for bypass routes. (ASE99)
 - [ ] The reviewer enumerated the agent's full permission set from configuration and stated it as the worst case of a successful injection. (AS4)
 - [ ] The three ingredients of the exfiltration triangle were checked for co-occurrence in a single run: sensitive data, untrusted content, reachable egress. (AS8)
 - [ ] Exfiltration was tested directly — an attempt to place context data in a URL, an image, and a third-party-visible field — with the assertion that a control blocked each. (ASE35)

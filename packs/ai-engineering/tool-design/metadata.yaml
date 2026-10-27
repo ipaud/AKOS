@@ -1,7 +1,7 @@
 name: tool-design
 domain: ai-engineering
 authority-level: 2
-version: 1.1.1
+version: 1.2.0
 tags: [tool-design, agent-tools, tool-descriptions, structured-inputs, structured-outputs, error-design, idempotency, dry-run, pagination, stable-references, model-context-protocol, agent-computer-interface]
 sources:
   - title: "Writing Effective Tools for AI Agents"
@@ -15,7 +15,11 @@ sources:
   - title: "Model Context Protocol Specification"
     author: Anthropic
     org: Model Context Protocol
-    url: https://modelcontextprotocol.io/specification/2025-11-25
+    url: https://modelcontextprotocol.io/specification/2026-07-28
+  - title: "Key Changes — Model Context Protocol Specification 2026-07-28"
+    author: Model Context Protocol maintainers
+    org: Model Context Protocol
+    url: https://modelcontextprotocol.io/specification/2026-07-28/changelog
 related:
   - packs/ai-engineering/agent-foundations
   - packs/ai-engineering/context-engineering
@@ -23,8 +27,8 @@ related:
   - packs/architecture/design-patterns
 id: ai-engineering/tool-design
 status: stable
-last_reviewed: 2026-07-26
-review_after: 2027-07-26
+last_reviewed: 2026-10-27
+review_after: 2027-10-27
 maintainer: core
 license: MIT
 deprecated: false

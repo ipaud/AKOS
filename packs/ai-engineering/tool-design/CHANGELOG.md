@@ -1,5 +1,19 @@
 # Changelog — tool-design
 
+## [1.2.0] — 2026-10-27
+
+### Added
+
+- Updated the MCP source baseline to the official 2026-07-28 specification and its normative key-changes page; review dates refreshed for this Level 2 pack.
+- Added TDE87–TDE97 and checklist coverage for stateless requests and explicit handles, required server/optional client `server/discover`, MRTR, negotiated Tasks, required `Mcp-Method` on every Streamable HTTP POST and `Mcp-Name` on `tools/call`, `resources/read`, and `prompts/get`, deterministic cacheable results, issuer-bound OAuth and CIMD, bounded JSON Schema 2020-12 handling, deprecations, and the resource-not-found code change.
+- Clarified MRTR retry behavior: retry the original request with a new request ID and echo any supplied `requestState` unchanged.
+- Clarified the boundary with `agent-security`: this pack covers protocol requirements that shape tool/server/client interfaces; broad threat modeling and authorization policy remain there.
+- Added an invented order-review flow showing a stateless handle and MRTR retry.
+
+### Changed
+
+- README version and rule range now match the pack version and rules.
+
 ## [1.1.1] — 2026-07-26
 
 ### Changed
