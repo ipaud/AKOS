@@ -40,6 +40,8 @@ Two further decisions organise the rest:
   notes that Secure Boot never sees interpreted files.
 - **Devices out of reach.** A device beyond a USB cable cannot be recovered by hand, so an update that
   stops the update channel is permanent unless the device can say why and undo it.
+- **Calibrated against repeated audits.** IDF37 adds the data half of a self-test; IDF45 covers deletes
+  and the order of an unfinished rollback.
 - **Board models stay apart.** FNK0104N and FNK0104B figures are not interchangeable (IDF2).
 - **No flash endurance figure.** The pages read state none, so the pack gives none.
 

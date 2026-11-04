@@ -1,7 +1,7 @@
 # Engineering Rules — Game QA Pack
 
 Checkable in an artifact: code, data, a script, a log, a screenshot, a measurement. `★` marks
-the three rules that are floor business, because breaking one loses the player's progress
+the four rules that are floor business, because breaking one loses the player's progress
 (P2). Parenthetical codes cite the principle in [principles.md](principles.md).
 
 Labels on a rule: **[AKOS methodology]** means the Level 2 source is silent and the rule was
@@ -80,7 +80,9 @@ All of this section is [AKOS methodology]: the source does not treat determinism
 Skip this section only if the game keeps nothing between sessions.
 
 - GMQ19 ★. An interrupted write never costs the last good save: atomic replace or alternating
-  copies, and an unreadable copy never starts a new game over an old one. The test resets
+  copies, and an unreadable copy never starts a new game over an old one. The claim covers
+  every mutation on the path, deletes included, not only the final swap: anything other code
+  trusts by its existence is renamed aside in one step before it is deleted. The test resets
   repeatedly during real saves on the target's real storage. [needs board] (P2, P13)
 - GMQ20 ★. Every schema version ever shipped has a fixture, written by that version where
   possible, that loads and plays on. A save newer than the engine is refused, unchanged and
@@ -95,6 +97,19 @@ Skip this section only if the game keeps nothing between sessions.
   of a long intensive run, with the margin stated. Unbounded lists are found here. (P13)
 - GMQ24. A failed save is visible and stays due: the game keeps running, retries, and the
   player can find out it is not saving. (P2)
+- GMQ51. Saves held in more than one place are branches, and each event states which survives:
+  rollback, confirmation, a missing volume, a volume that cannot be written. A move between
+  them happens after the version is confirmed, never before, and a folder says which version
+  wrote it, so an interrupted move is finished or dropped by ownership, not by position.
+  [AKOS methodology] (P2, P13)
+- GMQ52 ★. A new version is confirmed only after it saves and reopens that same save. Slots it
+  cannot decode still count as a game, so opening nothing, or only an older copy, sends it
+  back before anything is written. Time played and a reachable update channel prove neither.
+  [AKOS methodology] (P2, P13)
+- GMQ53. A fix on a save, update, or rollback path is not done until a review that did not
+  write it has walked every interruption point against it. Its author's tests prove only the
+  cases the author imagined. Each cut gets the next boot's behaviour and what could be lost.
+  [AKOS methodology] (P1, P2)
 
 ## Long-running time
 

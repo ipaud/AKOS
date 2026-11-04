@@ -1,6 +1,6 @@
 # Review Checklist — Game QA Pack
 
-Binary checks, each citing its rule. Only three items are CRITICAL, all of them the
+Binary checks, each citing its rule. Only four items are CRITICAL, all of them the
 data-integrity floor applied to games. **A finding names its rung and its place**: what
 evidence it rests on, and whether that evidence is HOST or BOARD (P4). An unrun item is
 marked `not run`, never passed.
@@ -11,6 +11,8 @@ marked `not run`, never passed.
       out of reach, losing paths included. (GMQ1)
 - [ ] An interrupted write cannot cost the last good save, shown by repeated resets during
       real saves on the target. (GMQ19)
+- [ ] A new version saves and reopens that save before it is confirmed, and goes back if it opens
+      nothing or only an older copy. (GMQ52)
 - [ ] Every shipped save version has a fixture that loads and plays on. (GMQ20)
 
 ## High

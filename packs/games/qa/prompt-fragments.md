@@ -67,9 +67,9 @@ Three rules bind the review itself:
    look of the art, how the music sounds. Flag for a human if useful, with no severity. Balance
    is out too.
 
-Only three findings are CRITICAL by rule: a softlock or blocker on the main path (GMQ1), an
-interrupted write that can cost a save (GMQ19), and a shipped save version that no longer
-loads (GMQ20). A softlock is critical even when it looks cosmetic.
+Only four findings are CRITICAL by rule: a softlock or blocker on the main path (GMQ1), an
+interrupted write that can cost a save (GMQ19), a shipped save version that no longer loads
+(GMQ20), and a version confirmed without reopening its own save (GMQ52). A softlock is critical even when it looks cosmetic.
 
 Then in order: forced lines where a whole-game run was claimed, required steps that depend on
 a draw, shown values differing from used ones, replay not exact, retries on a deterministic

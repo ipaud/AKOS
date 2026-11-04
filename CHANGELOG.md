@@ -21,6 +21,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follo
 - `skills/akos/SKILL.md` gains a **Game packs** table, loaded only for a game. It is empty until
   a pack promotes. The ~60-row ceiling stays on the general table, which game rows never join.
 - The personal layer's default game stack now names Pinyol and MicroPython.
+- `games/qa` adds GMQ51–GMQ53, from defects that passed their authors' tests: saves across volumes are branches, a version must reopen its own save before it stays, and save-path fixes need an adversarial review. `workflows/game-review.md` gains an After a fix step.
 - Packs calibrated against one real audit: stricter meaning for patterns and contrast, one deduction per root cause, tooling as an owner, rollback across every save volume, and a last path that resets.
 - Rejected at intake, recorded in `ROADMAP.md`: pixel art, game audio, narrative and level
   design as packs. Project findings never enter a pack: rules only.

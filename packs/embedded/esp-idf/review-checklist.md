@@ -44,7 +44,7 @@ skipped. `[board]` items need a recorded run on real hardware. From static readi
       resets rather than reaching a prompt. (IDF43)
 - [ ] Every file is checked against a signed manifest, the version is signed and only rises, and
       failed versions are not retried. (IDF44)
-- [ ] Every install and rollback step repeats safely after a cut. `[board]` (IDF45)
+- [ ] Every install and rollback step repeats safely after a cut, deletes included. `[board]` (IDF45)
 - [ ] Health includes a successful update-channel check. (IDF48)
 - [ ] Diagnosis works with no USB and no REPL, from the fixed layer. (IDF49)
 - [ ] An unconfirmed version that hangs reaches a reset with no person involved. `[board]` (IDF38)

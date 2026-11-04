@@ -51,7 +51,7 @@ question about whether the game is good; a web app, which belongs to
 | File | Highlights |
 |------|-----------|
 | [principles.md](principles.md) | P1–P18. What a run proves, rungs and places, determinism, progression, saves as input, time as input, budgets per target. |
-| [engineering-rules.md](engineering-rules.md) | GMQ1–GMQ50, then one labelled mapping section for Pinyol. Only three rules are starred. |
+| [engineering-rules.md](engineering-rules.md) | GMQ1–GMQ53, then one labelled mapping section for Pinyol. Only three rules are starred. |
 | [decision-framework.md](decision-framework.md) | **The evidence ladder**, which test closes which claim, severity, choosing an oracle, and the exact web-testing rules this pack overrides. |
 | [review-checklist.md](review-checklist.md) | By severity, plus reviewer discipline: every finding names its rung and its place. |
 | [anti-patterns.md](anti-patterns.md) | Green and blank, the teleporting playthrough, the completable softlock, retry to green, the CRC that sees everything, HOST promoted to BOARD, the epoch birthday. |
@@ -66,11 +66,12 @@ question about whether the game is good; a web app, which belongs to
 A run proves only what it exercised, and every claim names its rung and whether it ran on
 HOST or BOARD; a claim that cannot do either is not a QA result.
 
-## The three starred rules
+## The four starred rules
 
-All three are the data-integrity floor applied to games: **no reachable state leaves the
+All four are the data-integrity floor applied to games: **no reachable state leaves the
 required ending out of reach** (GMQ1), **an interrupted write never costs the last good
-save** (GMQ19), and **every shipped save version loads and plays on** (GMQ20). A softlock
+save** (GMQ19), **every shipped save version loads and plays on** (GMQ20), and **a new version
+reopens its own save before it stays** (GMQ52). A softlock
 can look cosmetic on a screenshot and is still critical.
 
 ## How far the authority goes
