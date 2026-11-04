@@ -9,7 +9,10 @@ Last reviewed: 2026-08-01.
 
 ## Now
 
-Nothing queued — see Next.
+**Game audits, draft.** `games/accessibility`, `games/qa`, `embedded/esp-idf` and
+`embedded/micropython` shipped at `status: draft`, with `agents/game-runtime-reviewer.md`
+and `workflows/game-review.md`, also draft. They promote after real audits, and a pack
+needs its own review evidence. Run them by name until then.
 
 ## Next
 
@@ -19,7 +22,8 @@ or wait for the next real defect a live run surfaces; this file's own
 history so far is that the honest items came from running the pipeline, not
 from staring at it.
 
-**The routing table is full.** 60 packs, against a stated operating ceiling of
+**The general routing table is full.** Game packs sit in a separate table that loads only
+for a game, so they do not count here. 60 packs, against a stated operating ceiling of
 roughly 60 rows — past that, selection precision degrades faster than coverage
 improves. The 2026-07-27 routing trial found no degradation *at 58*, which is
 evidence for the current size and not for a larger one. A new pack now needs to
@@ -48,6 +52,13 @@ task.
   but it overlaps `martin-fowler-refactoring`, so it waits for a real
   inherited codebase. `backend/payments` (Stripe's published practice, L2,
   named explicitly in `core/authority-model.md`) — when something is monetized.
+- **Game audit, next phases.** `games/engine-architecture` (Nystrom, L3, with Level 4
+  timestep, rollback and sandbox sources as secondary, if Pinyol's tests confirm them),
+  then `games/balance` (Schreiber and Romero, L3) and `games/game-feel` (Swink, L3). The two
+  books need a real read first: only publisher pages were verified.
+- **`games/release-ethics`** — when a game is sold or has purchases. PEGI's primary criteria
+  were unread, and the Digital Fairness Act and Spain's loot-box bill were still moving in
+  November 2026, so a pack today would state law that may change.
 
 ## Won't do now
 
@@ -80,6 +91,10 @@ every audit pass.
     overlapping `martin-fowler-refactoring`, `solid` and `tdd`.
   - `devops/dora` (*Accelerate*) — team delivery metrics; the owner is a solo
     developer. Fails intake question 1 in practice.
+  - `games/pixel-art`, `games/audio` — no Level 1 to 3 source gave 10+ checkable rules; the
+    rest is taste. Mechanical audio checks live in `games/qa`.
+  - `games/narrative`, `games/level-design` — no source clears the gate. Story and level
+    data integrity lives in `games/qa`, while pacing, voice and payoff stay a human call.
   - Any "MDN" or API-reference pack — reference, not doctrine. Fails intake
     question 1 by definition.
   - Any pack named after a paper — papers enter as `sources[]` inside a pack.

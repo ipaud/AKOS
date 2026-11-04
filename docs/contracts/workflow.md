@@ -2,7 +2,7 @@
 
 Machine schema: [`schemas/v1/workflow.schema.json`](../../schemas/v1/workflow.schema.json) (resolved via [`schemas/registry.json`](../../schemas/registry.json)). Run `akos validate workflows` to check.
 
-## All 9 `workflows/*.md` files now carry frontmatter
+## All 10 `workflows/*.md` files now carry frontmatter
 
 `schema_version: 1` requires frontmatter to be present (the file must open with a `---` block) and requires `schema_version` itself — every other field stays optional so a future minimal workflow still validates. A file with no leading `---` block is now a validation **error**, not the informational skip it was pre-v1.
 

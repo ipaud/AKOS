@@ -66,6 +66,7 @@ Agent emphasis per profile (0 = skip unless asked, 1 = light pass, 2 = standard,
 | copy-reviewer | 1 | 2 | 2 | 2 | 1 | 1 |
 | mobile-reviewer | 1 | 2 | 3 | 2 | 1 | 1 |
 | release-reviewer | 0 | 1 | 3 | 3 | 2 | 1 |
+| game-runtime-reviewer | 0 | 1 | 3 | 3 | 3 | 0 |
 
 Score weighting for the overall score lives in [scoring-model.md](scoring-model.md) and `scoring/overall-score.md`.
 

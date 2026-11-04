@@ -141,8 +141,8 @@ Coverage that doesn't depend on any single lens reporting back.
 | 11 | Personal rules | all agents — `packs/personal/<personal_profile>/` |
 | 12 | Release readiness | `release-reviewer.md` |
 
-Two agents sit outside the twelve and are routed *from* a lens rather than
-being one:
+Three agents sit outside the twelve and are routed *from* a lens or workflow
+rather than being one:
 
 - `agents/database-reviewer.md` — run on schema, migration, query, or RLS
   work, routed from lens 7 or 8.
@@ -152,6 +152,9 @@ being one:
   profile weights in `core/reasoning-profiles.md` like every other agent
   (1 in Prototype → 3 in Production/Enterprise); apply them as you would for
   a numbered lens.
+- `agents/game-runtime-reviewer.md` — draft. Runs on a game or game engine,
+  routed from `workflows/game-review.md`, only when the user asks for it by
+  name. Weights in `core/reasoning-profiles.md`, like any other agent.
 
 - **Targeted run** — the user named a lens ("run the AKOS UX review"). Run that
   one alone, inline. Spawning a subagent for a single lens costs more than it saves.
@@ -159,6 +162,10 @@ being one:
   screen review". Run `workflows/ui-screen-review.md`: UX → Accessibility →
   Mobile/responsive → Copywriting → Frontend quality. Do not collapse this to
   the single Frontend quality lens.
+- **Game run** — the user asks for a "game review" by name. Run
+  `workflows/game-review.md`: capture evidence first, then Accessibility with
+  `games/accessibility`, then `game-runtime-reviewer`. A web lens that does not
+  apply is reported in Coverage, never skipped silently.
 - **Full run** — execute the lenses in order. Later lenses assume earlier
   findings are addressed or accepted.
 

@@ -101,6 +101,10 @@ The same structure — one `h1`, nesting headings, real anchors with `href`, alt
 What a user experiences as fast is not what a profiler measures. Immediate visual acknowledgement, a skeleton matching the eventual layout, and disproportionate attention to the waiting and error moments all change the experience without changing the elapsed time — which is why this is a design decision that happens to be measurable, not a measurement that happens to affect design.
 → [web.dev WD6: perceived performance is a designed property](../packs/performance/web-dev/principles.md) · [Core Web Vitals CW8: acknowledge the interaction immediately](../packs/performance/core-web-vitals/principles.md) · [Laws of UX: waiting and errors are the negative peaks to invest in](../packs/ux/laws-of-ux/principles.md) · the loading half of [the four states](#the-four-states-emptyloadingerrorsuccess)
 
+### The real target is the only witness
+A simulator, lab run or desktop build can find a defect, but cannot prove what the real environment does.
+→ [Core Web Vitals CW13: field data is ground truth](../packs/performance/core-web-vitals/principles.md) · [MicroPython P1–P2: host never counts for board](../packs/embedded/micropython/principles.md) · [ESP-IDF P1: a measurement beats doctrine on that board](../packs/embedded/esp-idf/principles.md) · [Game QA: a simulator with board timings is still host evidence](../packs/games/qa/principles.md)
+
 ### Compositor-friendly animation
 → [Browser rendering BR1](../packs/performance/browser-rendering/principles.md) · [CSS CS5](../packs/frontend/css/principles.md) · [Core Web Vitals CW12](../packs/performance/core-web-vitals/principles.md) · [WCAG reduced-motion](../packs/ux/wcag/engineering-rules.md)
 

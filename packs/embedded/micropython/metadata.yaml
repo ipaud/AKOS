@@ -1,0 +1,39 @@
+schema_version: 1
+name: micropython
+domain: embedded
+authority-level: 1
+platform-scope: [micropython, esp32-s3]
+version: 1.0.0
+tags: [micropython, esp32, esp32-s3, embedded, garbage-collection, heap, fragmentation, allocation, interrupts, isr, littlefs, fat, power-loss, crash-recovery, portable-core, cpython, frozen-bytecode, mpy-cross, watchdog, games]
+sources:
+  - title: "MicroPython documentation"
+    org: MicroPython
+    url: https://docs.micropython.org/en/latest/
+  - title: "Maximising MicroPython speed"
+    org: MicroPython
+    url: https://docs.micropython.org/en/latest/reference/speed_python.html
+  - title: "MicroPython on microcontrollers"
+    org: MicroPython
+    url: https://docs.micropython.org/en/latest/reference/constrained.html
+  - title: "Writing interrupt handlers"
+    org: MicroPython
+    url: https://docs.micropython.org/en/latest/reference/isr_rules.html
+  - title: "MicroPython differences from CPython"
+    org: MicroPython
+    url: https://docs.micropython.org/en/latest/genrst/index.html
+  - title: "Working with filesystems"
+    org: MicroPython
+    url: https://docs.micropython.org/en/latest/reference/filesystem.html
+  - title: "MicroPython source tree, v1.28.0 and v1.29.0"
+    org: MicroPython
+    url: https://github.com/micropython/micropython
+related:
+  - packs/embedded/esp-idf
+  - packs/testing/testing-pyramid
+id: embedded/micropython
+status: draft
+last_reviewed: 2026-11-04
+review_after: 2028-05-02
+maintainer: core
+license: MIT
+deprecated: false

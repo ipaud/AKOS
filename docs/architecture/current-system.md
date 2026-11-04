@@ -18,7 +18,7 @@ Snapshot as of v1.3.0, written from a direct audit of the repository (not from m
 | `core/` | How agents reason: constitution, authority model, conflict resolution, confidence model, scoring model, decision framework, reasoning engine, reasoning profiles, review pipeline, knowledge schema, source policy | 11 files | No — prose, read by LLM agents only |
 | `packs/<domain>/<name>/` | Distilled knowledge, one source or domain each | 49 packs, 17-file contract | Partial — `metadata.yaml` is YAML, hand-written, never schema-validated |
 | `packs/personal/pau-avila/` | Level-0 personal rules — the one sanctioned exception to the 17-file contract | 10 files, no `metadata.yaml` | No |
-| `agents/*.md` | 13 review-lens role definitions | 13 files, YAML frontmatter (`name`, `description`, `tools`) + prose body | Frontmatter only |
+| `agents/*.md` | 14 review-lens role definitions | 14 files, YAML frontmatter (`name`, `description`, `tools`) + prose body | Frontmatter only |
 | `skills/{akos,akos-review}/SKILL.md` | The Claude Code / Codex CLI entry points — bootstrap + build mode, and the 12-lens review pipeline | 2 files | No — LLM-read only |
 | `workflows/*.md` | Chained-agent task recipes | 9 files | No frontmatter at all today |
 | `scoring/*.md` | 0–100 rubrics per dimension | 8 files (ux, accessibility, architecture, security, performance, product, overall, mobile) | No |

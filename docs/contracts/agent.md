@@ -9,12 +9,12 @@ Machine schema: [`schemas/v1/agent.schema.json`](../../schemas/v1/agent.schema.j
 | `schema_version` | integer, `enum: [1]` | **Yes** | Which version of this contract the file was authored against. An unknown value fails explicitly rather than falling back to the current schema |
 | `name` | string, pattern `^akos-[a-z-]+$` | **Yes** | e.g. `akos-ux-reviewer` |
 | `description` | string, min 20 chars | **Yes** | When Claude Code should delegate to this subagent |
-| `tools` | string (comma-joined, e.g. `Read, Grep, Glob`) | **Yes** | **Not** a YAML list — confirmed the real format across all 13 agents |
+| `tools` | string (comma-joined, e.g. `Read, Grep, Glob`) | **Yes** | **Not** a YAML list — confirmed the real format across all 14 agents |
 | `id` | string | optional | Default: the pipeline-lens number this agent owns, e.g. `lens-2` |
 | `status` | `draft` \| `stable` \| `deprecated` | optional, default `stable` | |
 | `maintainer` | string | optional, default `core` | |
 
-`additionalProperties` is `false` — an unknown top-level key (a typo) is a validation error, not a silently-ignored extra field. All 13 real agents carry `schema_version: 1`.
+`additionalProperties` is `false` — an unknown top-level key (a typo) is a validation error, not a silently-ignored extra field. All 14 real agents carry `schema_version: 1`.
 
 ## Minimal valid example (today's real shape)
 

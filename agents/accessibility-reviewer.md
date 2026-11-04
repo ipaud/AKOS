@@ -15,6 +15,7 @@ Audits UI against WCAG 2.2 AA — the safety-floor accessibility check no profil
 
 - Any UI build or review (pipeline step 3).
 - Always loaded for user-facing work regardless of profile — at reduced depth in Prototype (floor rules only), full AA in Production.
+- For a rendered game, [workflows/game-review.md](../workflows/game-review.md) replaces the WCAG walks below with the walks of the game accessibility pack. The floor does not move.
 
 ## Packs to load
 

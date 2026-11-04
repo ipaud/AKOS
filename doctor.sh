@@ -149,8 +149,8 @@ count_check() { local dir="$1" want="$2" label="$3"
   local n; n="$(find "$AKOS_HOME/$dir" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
   if [ "$n" -ge "$want" ]; then ok "$label: $n"; else warn "$label: $n (expected ≥$want)"; fi
 }
-count_check agents 13 "agents"
-count_check workflows 9 "workflows"
+count_check agents 14 "agents"
+count_check workflows 10 "workflows"
 count_check scoring 7 "scoring rubrics"
 count_check graphs 5 "graphs"
 count_check prompts 6 "prompts"

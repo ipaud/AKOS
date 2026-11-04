@@ -1,0 +1,50 @@
+schema_version: 1
+name: qa
+domain: games
+authority-level: 2
+version: 1.0.0
+tags: [games, qa, game-testing, softlock, progression, saves, determinism, replay, headless, campaign-bots, localisation, frame-budget]
+sources:
+  - title: "Certified Tester Game Testing (CT-GaMe) Syllabus, Version 1.0.1"
+    org: International Software Testing Qualifications Board
+    url: https://www.istqb.org/wp-content/uploads/2024/11/ISTQB_CT_GaMe_Syllabus_v1.0.1_LtrKuyi.pdf
+  - title: "Automated Testing of Gameplay Features in Sea of Thieves"
+    author: Robert Masella
+    org: Rare
+    url: https://gdcvault.com/play/1026366/Automated-Testing-of-Gameplay-Features
+  - title: "Automated Testing for League of Legends"
+    author: Jim Merrill
+    org: Riot Games
+    url: https://www.riotgames.com/en/news/automated-testing-league-legends
+  - title: "Gauntlet Automation Framework Overview"
+    org: Epic Games
+    url: https://dev.epicgames.com/documentation/en-us/unreal-engine/gauntlet-automation-framework-overview-in-unreal-engine
+  - title: "Stuck in the Middle: Generating Levels without (or with) Softlocks"
+    author: Seth Cooper and Mahsa Bazzaz
+    url: https://pcgworkshop.com/archive/cooper2025softlocks.pdf
+  - title: "Cooperative Multi-agent Approach for Automated Computer Game Testing"
+    author: Samira Shirzadeh-hajimahmood, I. S. W. B. Prasetya, Mehdi Dastani, Frank Dignum
+    url: https://arxiv.org/abs/2405.11347
+  - title: "Towards Automated Video Game Testing: Still a Long Way to Go"
+    author: Cristiano Politowski, Yann-Gaël Guéhéneuc, Fabio Petrillo
+    url: https://arxiv.org/abs/2202.12777
+  - title: "Standard Patterns in Choice-Based Games"
+    author: Sam Kabo Ashwell
+    url: https://www.ifwiki.org/Standard_Patterns_in_Choice-Based_Games
+  - title: "Small-Scale Structures in CYOA"
+    author: Emily Short
+    url: https://emshort.blog/2016/11/05/small-scale-structures-in-cyoa/
+  - title: "Writing with ink"
+    org: inkle
+    url: https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md
+related:
+  - packs/testing/qa-checklists
+  - packs/testing/testing-pyramid
+  - packs/testing/tdd
+id: games/qa
+status: draft
+last_reviewed: 2026-11-04
+review_after: 2027-11-04
+maintainer: core
+license: MIT
+deprecated: false

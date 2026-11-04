@@ -3,6 +3,28 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
+## [Unreleased]
+
+### Added
+
+- **Game and embedded audits, as drafts.** New domains `games` and `embedded`:
+  `games/accessibility` (Level 1, GAX1–GAX55), `games/qa` (Level 2, GMQ1–GMQ50),
+  `embedded/esp-idf` (Level 1, IDF1–IDF64) and `embedded/micropython` (Level 1, MPY1–MPY50).
+  Cleared the intake gate on a verified gap: `gameplay`, `playtest`, `softlock`,
+  `photosensitiv`, `firmware`, `FreeRTOS`, `ESP32` and `MicroPython` all returned zero.
+- `agents/game-runtime-reviewer.md` and `workflows/game-review.md`, both draft. The workflow
+  captures evidence first, because reviewers cannot run anything, and keeps host and real-hardware
+  evidence apart.
+
+### Changed
+
+- `skills/akos/SKILL.md` gains a **Game packs** table, loaded only for a game. It is empty until
+  a pack promotes. The ~60-row ceiling stays on the general table, which game rows never join.
+- The personal layer's default game stack now names Pinyol and MicroPython.
+- Packs calibrated against one real audit: stricter meaning for patterns and contrast, one deduction per root cause, tooling as an owner, rollback across every save volume, and a last path that resets.
+- Rejected at intake, recorded in `ROADMAP.md`: pixel art, game audio, narrative and level
+  design as packs. Project findings never enter a pack: rules only.
+
 ## [1.18.1] — 2026-10-27
 
 ### Added
