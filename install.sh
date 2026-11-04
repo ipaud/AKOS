@@ -155,7 +155,7 @@ for skill in akos akos-review; do
   link_skill "$skill" "$HOME/.agents/skills" "Codex CLI"
 done
 
-# 3c. Link the 13 reviewers as Claude Code subagents, so a full pipeline run
+# 3c. Link the reviewers as Claude Code subagents, so a full pipeline run
 #     can fan out in parallel with isolated context. Claude-only: Codex
 #     subagents use TOML, and the skills already cover Codex.
 mkdir -p "$HOME/.claude/agents"

@@ -29,7 +29,9 @@ packs, never packs themselves**, and **a website earns a pack only as a platform
 normative documentation**.
 
 The corpus is bounded at roughly 60 routing rows. Past that, selection precision degrades
-faster than coverage improves — so a new pack now has to name the row it displaces.
+faster than coverage improves — so a new pack now has to name the row it displaces. The
+one exception is a surface-gated table, such as Game packs in `skills/akos/SKILL.md`: its
+rows load only for that surface, so they never compete with the general table.
 `ROADMAP.md` records the candidates already evaluated and rejected, with the reason and the
 supporting grep, so the same ones don't get re-proposed.
 

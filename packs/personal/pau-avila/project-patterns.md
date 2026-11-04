@@ -5,7 +5,7 @@ Recurring architecture and stack choices across this owner's projects. These are
 ## Default stacks
 
 - **Web apps / webapps:** React + Tailwind + Supabase. TypeScript strict mode ([typescript pack](../../frontend/typescript/README.md)). Deployed on a platform with built-in CDN/CI (Vercel/Netlify-class).
-- **Games:** Godot.
+- **Games:** Pinyol (own C engine, Lua games) on the Cirera console; MicroPython on small ESP32-S3 boards. Godot for projects outside them.
 - **Tooling/scripts:** whatever's fastest to ship — often a small Node/Bash script; no ceremony.
 - **Prototypes:** the above, minus the process (skip exhaustive tests, formal architecture) but never the safety floor.
 

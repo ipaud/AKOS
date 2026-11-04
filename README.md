@@ -51,7 +51,7 @@ corpus, agents, and roadmap.
 
 ## What's in the corpus
 
-60 packs across 12 domains. Each distills one source or domain into the same file
+64 packs across 14 domains. Each distills one source or domain into the same file
 structure, so an agent can fetch exactly the file type it needs without reading the whole
 thing.
 
@@ -69,12 +69,14 @@ thing.
 | `testing` | 4 | TDD, testing pyramid, Playwright, QA checklists |
 | `content` | 2 | UX writing, gov.uk content design |
 | `mobile` | 2 | Responsive web, touch ergonomics |
+| `games` | 2 | Game accessibility and flashing safety, game QA (draft) |
+| `embedded` | 2 | ESP-IDF on ESP32-class chips, MicroPython on microcontrollers (draft) |
 
 Plus `packs/personal/` — your own Level-0 layer, which outranks all of it.
 
 **The corpus is deliberately bounded.** Routing selects 2–5 packs per task from one flat
 table, and past roughly 60 rows selection precision degrades faster than coverage improves.
-A new pack has to earn its place by displacing one — see the intake gate in
+The ceiling applies to that general table: game packs load from a separate table, only for games. Any other new pack has to earn its place by displacing one — see the intake gate in
 [core/source-policy.md](core/source-policy.md), which also records the candidates that were
 evaluated and rejected, with the reason.
 
@@ -139,7 +141,7 @@ git clone https://github.com/ipaud/AKOS.git ~/DEV/AKOS
 cd ~/DEV/AKOS
 ./install.sh      # verifies structure, chmods scripts, symlinks ~/DEV/AKOS + ~/bin/akos,
                   # links the skills into Claude Code and Codex CLI, and links the
-                  # 13 reviewer subagents into ~/.claude/agents/ (all akos-prefixed)
+                  # 14 reviewer subagents into ~/.claude/agents/ (all akos-prefixed)
 ./doctor.sh       # health check
 ```
 
@@ -342,7 +344,7 @@ Full docs: [`docs/architecture/`](docs/architecture/) (a dated v1.3.0 baseline +
 ```
 core/         how agents reason (constitution, authority, profiles, pipeline, scoring model)
 packs/        knowledge packs by domain + personal layer(s)
-agents/       13 reviewer role definitions
+agents/       14 reviewer role definitions
 skills/       akos + akos-review (Claude Code and Codex CLI)
 workflows/    task-level review flows
 templates/    per-tool integration templates

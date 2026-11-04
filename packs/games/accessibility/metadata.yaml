@@ -1,0 +1,41 @@
+schema_version: 1
+name: accessibility
+domain: games
+authority-level: 1
+version: 1.0.0
+tags: [games, accessibility, photosensitivity, seizures, flashing, remapping, button-gestures, handheld, text-legibility, contrast, colour-blindness, subtitles, captions, screen-shake, juice, difficulty, assists, wall-clock, real-time-pressure, input-loss]
+sources:
+  - title: "Xbox Accessibility Guidelines"
+    org: Microsoft
+    url: https://learn.microsoft.com/en-us/gaming/accessibility/guidelines
+  - title: "Understanding SC 2.3.1: Three Flashes or Below Threshold"
+    org: W3C
+    url: https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html
+  - title: "Understanding SC 2.3.2: Three Flashes"
+    org: W3C
+    url: https://www.w3.org/WAI/WCAG22/Understanding/three-flashes.html
+  - title: "Web Content Accessibility Guidelines (WCAG) 2.2"
+    org: W3C
+    url: https://www.w3.org/TR/WCAG22/
+  - title: "Recommendation ITU-R BT.1702-3"
+    org: ITU
+    url: https://www.itu.int/rec/R-REC-BT.1702/en
+  - title: "Game Accessibility Guidelines"
+    org: gameaccessibilityguidelines.com
+    url: https://gameaccessibilityguidelines.com/full-list/
+  - title: "Steam Deck and Steam Machine Compatibility Review"
+    org: Valve
+    url: https://partner.steamgames.com/doc/steamdeck/compat
+related:
+  - packs/ux/wcag
+  - packs/ux/apple-hig
+  - packs/mobile/touch-ergonomics
+  - packs/ux/laws-of-ux
+id: games/accessibility
+status: draft
+last_reviewed: 2026-11-04
+review_after: 2028-05-02
+maintainer: core
+license: MIT
+deprecated: false
+platform-scope: [handheld, desktop, web]

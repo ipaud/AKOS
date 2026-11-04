@@ -205,17 +205,17 @@ class TestValidateRealRepo(unittest.TestCase):
     def test_all_real_agents_validate_v1_strict(self):
         schema = v.load_schema("agent")
         results = v.check_agents(schema)
-        self.assertEqual(len(results), 13)
+        self.assertEqual(len(results), 14)
         errors = [e for r in results for e in r["errors"]]
         self.assertEqual(errors, [])
 
     def test_all_real_workflows_have_frontmatter_and_validate_v1(self):
         # Inverts the pre-v1 contract: schema_version 1 requires frontmatter
-        # to be present. All 9 real workflows were migrated to carry it
+        # to be present. All real workflows were migrated to carry it
         # (id, description, agents, packs, profiles, status, maintainer).
         schema = v.load_schema("workflow")
         results = v.check_workflows(schema)
-        self.assertEqual(len(results), 9)
+        self.assertEqual(len(results), 10)
         errors = [e for r in results for e in r["errors"]]
         self.assertEqual(errors, [], f"unexpected schema errors in real workflows: {errors}")
 
