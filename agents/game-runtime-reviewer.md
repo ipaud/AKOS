@@ -28,6 +28,8 @@ Audits a game or game engine as a running system. Can the player get stuck? Can 
 
 The [games/qa checklist](../packs/games/qa/review-checklist.md), plus the [esp-idf](../packs/embedded/esp-idf/review-checklist.md) and [micropython](../packs/embedded/micropython/review-checklist.md) checklists when they apply. Start from the evidence block the workflow captured. For every claim, state which rung it reached: read in code or data, exercised by a headless run, measured on the slowest target. A claim about performance on real hardware needs a measurement from that hardware.
 
+When the target is a fix on a save, update or rollback path, review it as an attack: enumerate every interruption point, state what the next boot does at each, and do not take its tests as evidence for it (GMQ53).
+
 Treat engine, game, firmware and tooling as separate owners. A defect in shared engine code is reported once against the engine, not once per game.
 
 ## Severity levels

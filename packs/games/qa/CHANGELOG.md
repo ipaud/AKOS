@@ -11,6 +11,13 @@
   text, narrative data, frame budgets, and audio. One labelled mapping section holds every
   engine detail: Pinyol, and MicroPython board games.
 
+### Calibrated against repeated audits of one real game
+
+GMQ19 now covers every mutation, deletes included. New: GMQ51 (saves across volumes are branches, moved
+after confirmation, owned by version), GMQ52 ★ (a version must reopen its own save before it stays),
+and GMQ53 (save-path fixes need a review by someone who did not write them). Each came from a defect
+that passed its author's tests.
+
 ### The pack's organising decision: what it refuses to contain
 
 **Taste is refused, and claims with no run are capped.** Pixel-art doctrine and audio doctrine
@@ -32,7 +39,7 @@ five places:
 
 ### Other notable choices
 
-- **Only three rules are starred.** GMQ1 (softlocks), GMQ19 (interrupted writes), and GMQ20
+- **Only three rules were starred at first; GMQ52 made it four.** GMQ1 (softlocks), GMQ19 (interrupted writes), and GMQ20
   (every shipped save version). Each is the data-integrity floor applied to games.
 - **Determinism is labelled AKOS methodology.** The Level 2 source is silent on it, so the rules
   rest on what the owner's projects do, recorded exactly in `references.md`. Pinyol's `--crc` is

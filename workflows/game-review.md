@@ -40,6 +40,10 @@ Combine per-agent findings into one [unified Review Summary](../core/review-pipe
 - A dimension with no score keeps the run BLOCKED if a CRITICAL is open elsewhere, naming what was not verified.
 - Firmware security is scored from the [esp-idf rubric](../packs/embedded/esp-idf/scoring-rubric.md) when it applies, because `scoring/security-score.md` has no embedded inputs.
 
+## After a fix
+
+A fix on a save, update or rollback path goes back to [game-runtime-reviewer](../agents/game-runtime-reviewer.md) as an adversarial pass before it merges, briefed to break it and given the cut points to walk (GMQ53). Repeat after any correction, and stop when a pass finds only what needs two independent failures, or a known open item. The agent that wrote the fix does not review it.
+
 ## Profile adjustments
 
 - **Prototype:** run accessibility at floor depth and the runtime checks for softlocks and save loss only.

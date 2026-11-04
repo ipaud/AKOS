@@ -123,7 +123,8 @@ Kconfig defaults quoted here were read from the ESP-IDF v5.4.2 source tree.
 - IDF36. `CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE` is set before first deployment. It defaults to
   `n`, it lives in the bootloader, and OTA cannot update the bootloader. (P3, P11)
 - IDF37. An image confirms itself only after a self-test of what the next update needs, done
-  promptly. Confirming first thing at startup defeats rollback. (P11)
+  promptly, and of the data it writes: it reopens a fresh save first. Confirming first thing at
+  startup defeats rollback. *(AKOS on the data half)* (P11)
 - IDF38. An unconfirmed version that hangs reaches a reset with no person involved, through a
   timer or a watchdog set to reset. Rollback fires on a reset, and IDF23 means the default
   watchdog will not supply one. `[board]` *(AKOS)* (P11)
@@ -153,8 +154,10 @@ For a design that replaces files on a filesystem and leaves the app partition al
   acceptable only as a recorded deviation with the signature as the trust. No hand-written crypto
   primitives: HMAC built on the platform's SHA-256 is construction, not a hand-written primitive.
   (P6, P7)
-- IDF45. Every install and rollback step can repeat after a cut, and the swap primitive is proven
-  on that filesystem and that board. `[board]` *(AKOS)* (P9, P10)
+- IDF45. Every install and rollback step can repeat after a cut, deletes included, and the swap
+  primitive is proven on that filesystem and that board. A folder whose existence carries meaning
+  is renamed aside before it is deleted. An unfinished rollback goes before a pending install.
+  `[board]` *(AKOS)* (P9, P10)
 
 ## Devices out of reach
 

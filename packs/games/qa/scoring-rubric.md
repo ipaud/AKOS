@@ -13,6 +13,7 @@ Two things this rubric deliberately refuses to do: score taste, and score a clai
 | A softlock or progression blocker on the main path | −25 (CRITICAL) |
 | Save data lost or corrupted, or an interrupted write that can cost the last good save | −25 (CRITICAL) |
 | A shipped save version that no longer loads, or no evidence that it does | −25 (CRITICAL) |
+| A version confirmed with no proof its own save reopens | −25 (CRITICAL) |
 | No evidence at all that the game can be finished | −25 (CRITICAL) |
 | A softlock off the main path | −10 (HIGH) |
 | HOST evidence presented as BOARD | −10 (HIGH) |
@@ -27,6 +28,7 @@ Two things this rubric deliberately refuses to do: score taste, and score a clai
 | A long-running game with an untested clock: fallback, moved clock, or absence | −10 (HIGH) |
 | A scene with no way back, or a hang on losing an input | −10 (HIGH) |
 | A required gate that fails on a clean checkout | −10 (HIGH) |
+| Saves across volumes with no stated survivor, or moved before confirmation | −10 (HIGH) |
 | A shipped chapter or mode no run reaches | −4 (MEDIUM) |
 | A text screen with no screenshot review | −4 (MEDIUM) |
 | Text cut at an edge, or a language not rendered | −4 (MEDIUM) |
@@ -37,6 +39,7 @@ Two things this rubric deliberately refuses to do: score taste, and score a clai
 | Story graph, variables, or language files unlinted, or a silent fallback in content | −4 (MEDIUM) |
 | Input edges untested | −4 (MEDIUM) |
 | A test waiting on wall-clock time | −4 (MEDIUM) |
+| A fix on a save or update path with no independent walk of its cut points | −4 (MEDIUM) |
 | Bots that do not repeat under the same seed | −4 (MEDIUM) |
 | Internal names on screen | −1 (LOW) |
 | Audio level drift between files; no stated voice rule | −1 (LOW) |
