@@ -1,5 +1,11 @@
 # Changelog — micropython
 
+## [1.1.1] — 2026-11-05
+
+### Promoted to stable
+
+Cleared the draft→stable criterion after two audits of real boards. An independent read of all 50 rules and items corrected MPY18, where a recorded reason could stand in for a guaranteed collect, and MPY7, which failed text drawn from bytes. MPY43 no longer calls itself a floor failure: the pack has four floor rules and this is not one.
+
 ## [1.1.0] — 2026-11-05
 
 ### Calibrated against a third real audit

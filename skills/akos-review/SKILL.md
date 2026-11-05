@@ -152,9 +152,9 @@ rather than being one:
   profile weights in `core/reasoning-profiles.md` like every other agent
   (1 in Prototype → 3 in Production/Enterprise); apply them as you would for
   a numbered lens.
-- `agents/game-runtime-reviewer.md` — draft. Runs on a game or game engine,
-  routed from `workflows/game-review.md`, only when the user asks for it by
-  name. Weights in `core/reasoning-profiles.md`, like any other agent.
+- `agents/game-runtime-reviewer.md` — runs on a game or game engine, routed
+  from `workflows/game-review.md`. Weights in `core/reasoning-profiles.md`,
+  like any other agent.
 
 - **Targeted run** — the user named a lens ("run the AKOS UX review"). Run that
   one alone, inline. Spawning a subagent for a single lens costs more than it saves.
@@ -162,7 +162,8 @@ rather than being one:
   screen review". Run `workflows/ui-screen-review.md`: UX → Accessibility →
   Mobile/responsive → Copywriting → Frontend quality. Do not collapse this to
   the single Frontend quality lens.
-- **Game run** — the user asks for a "game review" by name. Run
+- **Game run** — the target is a game or game engine, or the user asks for a
+  "game review". Run
   `workflows/game-review.md`: capture evidence first, then Accessibility with
   `games/accessibility`, then `game-runtime-reviewer`. A web lens that does not
   apply is reported in Coverage, never skipped silently.

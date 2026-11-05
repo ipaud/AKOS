@@ -69,8 +69,8 @@ thing.
 | `testing` | 4 | TDD, testing pyramid, Playwright, QA checklists |
 | `content` | 2 | UX writing, gov.uk content design |
 | `mobile` | 2 | Responsive web, touch ergonomics |
-| `games` | 2 | Game accessibility and flashing safety, game QA (draft) |
-| `embedded` | 2 | ESP-IDF on ESP32-class chips, MicroPython on microcontrollers (draft) |
+| `games` | 2 | Game accessibility and flashing safety, game QA |
+| `embedded` | 2 | ESP-IDF on ESP32-class chips, MicroPython on microcontrollers |
 
 Plus `packs/personal/` — your own Level-0 layer, which outranks all of it.
 

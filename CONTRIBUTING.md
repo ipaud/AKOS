@@ -30,8 +30,8 @@ normative documentation**.
 
 The corpus is bounded at roughly 60 routing rows. Past that, selection precision degrades
 faster than coverage improves — so a new pack now has to name the row it displaces. The
-one exception is a surface-gated table, such as Game packs in `skills/akos/SKILL.md`: its
-rows load only for that surface, so they never compete with the general table.
+one exception is a surface-gated table, such as Game and firmware packs in `skills/akos/SKILL.md`:
+its rows load only for that surface, so they never compete with the general table.
 `ROADMAP.md` records the candidates already evaluated and rejected, with the reason and the
 supporting grep, so the same ones don't get re-proposed.
 
@@ -67,7 +67,7 @@ routing table. `schemas/routing_check.py` fails if the row and the status disagr
 
 **Note on the graph (step 5):** [graphs/](graphs/) indexes cross-cutting *concepts*, not
 packs. A pack whose content is mechanics for one protocol, tool, or platform legitimately
-has no node — 9 of 60 are absent by design and listed as such. The test before adding a
+has no node — 9 of 64 are absent by design and listed as such. The test before adding a
 link: quote the line in the pack that states the concept. If you cannot, the link is
 padding.
 

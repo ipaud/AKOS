@@ -86,7 +86,7 @@ Load, in this order:
 
 1. Every valid AKOS pack listed under **Packs to always load** in `.akos/config.md` — a project hint, added on top of your routing, never replacing a mandatory pack.
 2. If `Deployed: yes`, the security and Supabase/RLS packs, whether or not the task looks security-shaped (personal principle 6).
-3. **2-5** more packs closest to the task, from the table below, plus the **Game packs** table when the surface is a game. Let `Stack:` narrow the choice — a React + Supabase project routes to `frontend/react` and `backend/supabase`, not to `graphql` or `css` in the abstract.
+3. **2-5** more packs closest to the task, from the table below, plus the **Game and firmware packs** table when the target is one. Let `Stack:` narrow the choice — a React + Supabase project routes to `frontend/react` and `backend/supabase`, not to `graphql` or `css` in the abstract.
 
 Several packs cover the same domain from different angles. Route on the **reach
 for it when** column, not on the name — picking `laws-of-ux` when the question
@@ -155,14 +155,21 @@ is really about visual craft wastes a slot.
 | `security/auth` | Designing or changing the login itself: authorization code + PKCE, redirect and `state`, token storage and lifetime, refresh rotation, session fixation, logout, password and MFA rules. Not `owasp-asvs`, which answers "at what verification level does this conform". |
 | `security/privacy` | Personal data is collected, stored, or shared: lawful basis, minimization at schema-design time, consent capture and withdrawal, access/erasure/portability as endpoints, retention jobs, processors and residency, breach duty. |
 
-### Game packs (only for a game: `Primary surface: game`, the Game Dev profile, or a target that plainly is one)
+### Game and firmware packs (only for a game or firmware: `Primary surface: game`, the Game Dev profile, or a target that plainly is one)
 
-**None stable yet.** Rows land here on promotion. This table is separate on
-purpose: the ~60-row ceiling exists because precision degrades on one flat table,
-so a game routes from this table on top of the general one, and every other
-project never sees these rows. Judge by the target: a virtual pet on a board is
-a game even if its config calls the surface "embedded firmware". Passing that gate does not override the
-draft rule below.
+This table is separate on purpose: the ~60-row ceiling exists because precision
+degrades on one flat table, so these targets route from this table on top of the
+general one, and every other project never sees these rows. Judge by the target:
+a virtual pet on a board is a game even if its config calls the surface "embedded
+firmware", and it takes both kinds of row. A game with no firmware of its own takes
+only `games/*`; firmware that is no game takes only `embedded/*`.
+
+| Pack | Reach for it when |
+|---|---|
+| `games/accessibility` | A rendered game: controls, text size on real pixels, subtitles, colour-only signals, flashing and seizure risk, screen shake, assists. Replaces the keyboard and accessibility-tree walks of `ux/wcag`, which mean little in a game. |
+| `games/qa` | Is this game verifiably shippable: softlocks, progression, saves, shown versus real values, determinism as a test oracle, frame budgets, mechanical audio checks. Overrides web-testing assumptions from the `testing/*` packs. |
+| `embedded/esp-idf` | Firmware on ESP32-class chips: memory placement, DMA, IRAM and flash-cache safety, watchdogs, OTA and rollback, secure boot and flash encryption. Skip for anything that is not firmware on this chip family. |
+| `embedded/micropython` | Python running on a microcontroller: heap and fragmentation, allocation in hot paths and interrupts, frozen code, filesystem behaviour on flash and SD, recovery after a crash. For the chip's own rules under it, add `embedded/esp-idf`. |
 
 ### Experimental packs (status: draft — read before routing here)
 
@@ -180,12 +187,7 @@ appears in the stable catalog above, or a stable pack goes missing from it.
 `packs/personal/<name>/` is never a routing choice — it's always loaded
 generically in step 3, for whichever profile `.akos/config.md` names.
 
-| Pack | Reach for it when |
-|---|---|
-| `games/accessibility` | A rendered game: controls, text size on real pixels, subtitles, colour-only signals, flashing and seizure risk, screen shake, assists. Replaces the keyboard and accessibility-tree walks of `ux/wcag`, which mean little in a game. |
-| `games/qa` | Is this game verifiably shippable: softlocks, progression, saves, shown versus real values, determinism as a test oracle, frame budgets, mechanical audio checks. Overrides web-testing assumptions from the `testing/*` packs. |
-| `embedded/esp-idf` | Firmware on ESP32-class chips: memory placement, DMA, IRAM and flash-cache safety, watchdogs, OTA and rollback, secure boot and flash encryption. Skip for anything that is not firmware on this chip family. |
-| `embedded/micropython` | Python running on a microcontroller: heap and fragmentation, allocation in hot paths and interrupts, frozen code, filesystem behaviour on flash and SD, recovery after a crash. For the chip's own rules under it, add `embedded/esp-idf`. |
+No pack is in draft today.
 
 For each pack selected:
 

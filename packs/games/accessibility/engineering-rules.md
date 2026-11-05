@@ -172,7 +172,8 @@ AKOS positions, below the floor (P16); neither XAG nor Game Accessibility Guidel
 - GAX37. [game] The difficulty and assist decision is recorded, either way. If options exist, labels
   describe the effect without mocking the player, and changing them keeps progress. Level 2 advice,
   never floor. (P17)
-- GAX38. [game] Failure does not cost much progress, through regular saves. The current objective
+- GAX38. [game] Regular saves bound what failure costs, and the most progress one failure can
+  cost is measured and recorded. The current objective
   and controls can be reviewed at any time. (P17)
 
 ## Settings and disclosure

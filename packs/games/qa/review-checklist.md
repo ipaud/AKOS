@@ -7,16 +7,20 @@ marked `not run`, never passed.
 
 ## Critical (blocks in every profile)
 
-- [ ] A finishing run on the real rules shows no reachable state leaves the required ending
-      out of reach, losing paths included. (GMQ1)
+- [ ] A finishing player or solver on the real rules and update path, plus a backward check where
+      the space can be enumerated, shows no reachable state leaves the required ending out of reach,
+      losing paths included. (GMQ1)
 - [ ] An interrupted write cannot cost the last good save, shown by repeated resets during
       real saves on the target. (GMQ19)
 - [ ] A new version saves and reopens that save before it is confirmed, and goes back if it opens
       nothing or only an older copy. (GMQ52)
-- [ ] Every shipped save version has a fixture that loads and plays on. (GMQ20)
+- [ ] Every shipped save version has a fixture that loads and plays on, and a newer save is refused,
+      unchanged and set aside. (GMQ20)
 
 ## High
 
+- [ ] Saves in more than one place state which survives each event, move only after confirmation,
+      and a rollback returns to the old version's last save. (GMQ51)
 - [ ] A release report keeps HOST and BOARD apart, each with a date and a build. (GMQ14)
 - [ ] Every claim in the review states its rung and whether it ran. (GMQ13)
 - [ ] One run goes from a new game to an ending on real input, with state-setting lines
@@ -42,7 +46,8 @@ marked `not run`, never passed.
 
 ## High, long-running games only
 
-- [ ] The clock source is named, and nothing assumes it survives a power cut. (GMQ25)
+- [ ] The clock source is named, and nothing assumes it survives a power cut unless a battery-backed
+      clock was shown on the hardware. (GMQ25)
 - [ ] Sync failure has a tested fallback that never lands on the epoch. (GMQ26)
 - [ ] A clock moved either way has a test. (GMQ27)
 - [ ] A long absence has a bounded, tested result. (GMQ28)
@@ -51,6 +56,8 @@ marked `not run`, never passed.
 
 ## Medium
 
+- [ ] A fix on a save, update, or rollback path was walked by a review that did not write it, with
+      the next boot and possible loss stated for each cut. (GMQ53)
 - [ ] Lockstep play exchanges a build identity and detects divergence. (GMQ55)
 - [ ] Each hash states what it covers. (GMQ7)
 - [ ] A baseline changes only by recorded decision. (GMQ8)

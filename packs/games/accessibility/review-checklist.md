@@ -9,9 +9,11 @@ stays `unverified` without one; it never passes on static reading (P4).
 - [ ] Nothing over the area limit flashes more than three times in any second at default. (GAX1)
 - [ ] Flashing area was judged against the limit for this panel and distance. (GAX2)
 - [ ] The saturated-red test was run and passes. (GAX3)
-- [ ] No oscillating regular pattern over 20 % of the screen, and no static one over 40 %. (GAX4)
+- [ ] No oscillating regular pattern over 20 % of the screen, and no static one over 40 %; a static
+      one at 20 to 40 % is a HIGH finding. (GAX4)
 - [ ] All of the above hold with default options, with no credit for a toggle or warning. (GAX5)
-- [ ] On each shipped surface, default input can start, complete, pause, and leave; no trap. (GAX9)
+- [ ] On each shipped surface, default input can start, complete, reach pause or exit, and leave
+      every screen; no trap. (GAX9)
 - [ ] Essential text and icons meet 4.5:1, or 3:1 large, on rendered pixels. (GAX20)
 - [ ] No cue the primary task depends on is single-channel. (GAX25)
 
@@ -36,18 +38,22 @@ stays `unverified` without one; it never passes on static reading (P4).
 ## Medium
 
 - [ ] Flashing sequences near the limit end within five seconds. (GAX8)
-- [ ] Touch, tilt, microphone, and speech have a digital alternative. (GAX15)
-- [ ] Touch targets are measured in mm, act on release, need no multi-point gesture. (GAX16)
-- [ ] The game pauses at any time, cutscenes included, offline. (GAX17)
+- [ ] Gameplay-critical touch, tilt, microphone, and speech have a digital alternative. (GAX15)
+- [ ] Touch targets are measured in mm and meet the GAX16 size, act on release, and multi-point or
+      path gestures have an alternative. (GAX16)
+- [ ] The game pauses at any time, cutscenes included, offline, unless it runs on the wall clock
+      (GAX35). (GAX17)
 - [ ] Menus take one press per step, with visible focus and wrapping lists. (GAX18)
 - [ ] Essential text scales to 200 %, or the gap is recorded with its owner. (GAX22)
-- [ ] Text waits for a press, and UI timers can be lifted. (GAX24)
+- [ ] Text waits for a press, and each UI timer can be turned off, extended tenfold, or extended
+      after a warning. (GAX24)
 - [ ] Master mute exists; categories are independent where the game has them. (GAX28)
 - [ ] Sound cues are distinct and audible on the actual output, never pan-only. (GAX29)
-- [ ] HUD and reading text stay still. (GAX32)
+- [ ] HUD and reading text ignore camera shake, and text to read has no wave or tremble. (GAX32)
 - [ ] The cost of absence is tested at a day, a week, and a month, and has a ceiling. (GAX35)
 - [ ] Return gives one calm summary, and the first press cannot act. (GAX36)
-- [ ] Objectives and controls are reviewable; failure costs little progress. (GAX38)
+- [ ] Objectives and controls are reviewable, and the most progress one failure can cost is
+      recorded. (GAX38)
 
 ## Low
 
@@ -65,13 +71,14 @@ stays `unverified` without one; it never passes on static reading (P4).
 - [ ] Prompts follow `settings().buttons`, checked with a mapped run. (GAX45)
 - [ ] Smallest `text()` is at least 7 px on Cirera; `shot` is treated as HOST. (GAX46)
 - [ ] Text and shapes pass unfiltered; CVD was simulated offline. (GAX47)
-- [ ] Volume categories and rumble are covered by the game or recorded as gaps. (GAX48)
+- [ ] Volume categories are covered by the game or recorded as a gap, and rumble is gated by the
+      game's own option. (GAX48)
 
 ## Target: FNK0104B
 
 - [ ] Limits used are this panel's own. (GAX49)
-- [ ] Each screen's BACK, MENU, and HOLD has a plain route, or a finding. (GAX50)
-- [ ] BOTONES with the console busy is signed on the unit. (GAX51)
+- [ ] On every screen, going back, reaching a menu, and confirming each have a plain route. (GAX50)
+- [ ] A button diagnostic with the console busy is recorded on the unit. (GAX51)
 - [ ] Clock-forward absence tests are recorded. (GAX52)
 - [ ] Flash rate uses measured redraw time; LED and backlight are inventoried. (GAX53)
 - [ ] Sound-off walk is signed on the unit; no LED-only or mic-only cue. (GAX54)
