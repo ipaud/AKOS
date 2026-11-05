@@ -3,7 +3,7 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
-## [Unreleased]
+## [1.19.0] — 2026-11-05
 
 ### Added
 
