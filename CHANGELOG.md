@@ -3,7 +3,7 @@
 All notable changes to AKOS are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follows semver.
 
-## [Unreleased]
+## [1.20.0] — 2026-11-05
 
 ### Changed
 
@@ -14,10 +14,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follo
   and GMQ51 and GMQ53 gained items. The Game packs table is now Game and firmware packs, and a game
   target runs the game review without being asked by name.
 - A third real audit moved `games/accessibility` and `games/qa` to 1.2.0 and `embedded/micropython`
-  and `embedded/esp-idf` to 1.1.0. All stay draft. New GMQ56: a gate that cannot fail is no gate.
+  and `embedded/esp-idf` to 1.1.0. New GMQ56: a gate that cannot fail is no gate.
   `embedded/esp-idf` rubric rows now cover file-based updates.
-- `games/accessibility` and `games/qa` 1.1.0, calibrated against a second real audit. Both stay
-  draft. New GMQ54 and GMQ55 for messages from another device and lockstep play. GAX2 and GAX6
+- `games/accessibility` and `games/qa` 1.1.0, calibrated against a second real audit. New
+  GMQ54 and GMQ55 for messages from another device and lockstep play. GAX2 and GAX6
   state how to measure sprite flashes and reject false candidates.
 
 ## [1.19.0] — 2026-11-05
