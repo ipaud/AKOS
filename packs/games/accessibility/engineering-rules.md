@@ -20,7 +20,9 @@ read (see [references.md](references.md)) or is marked an AKOS derivation. Paren
   WCAG solid angle at viewing distance `d`. *AKOS derivation:* use `d` = 20 cm for a held device,
   and the WCAG reference rectangle (2.8 % of the frame) for a desktop or full-screen browser. With
   several surfaces, the tightest shipped limit applies. Shares quoted for television or console
-  (25 %, about 20 %) do not relax this. (P2)
+  (25 %, about 20 %) do not relax this. Area is the pixels that really change by the GAX1 amounts,
+  not a bounding box. Effects flashing in phase add up, so two sprites that pass alone can fail
+  together: the route stacks them. (P2)
 - GAX3 ★. [game] Red is tested separately at the same rate and area: a transition to or from
   a state with R/(R+G+B) ≥ 0.8 whose chromaticity moves more than 0.2 in CIE 1976 u'v'. It can
   fail with almost no luminance change, so a luminance-only check does not cover it. Xbox's
@@ -37,8 +39,10 @@ read (see [references.md](references.md)) or is marked an AKOS derivation. Paren
   and a warning screen earn no credit towards them. (P1)
 - GAX6. [both] A flash result names the tool, the limit it used, the route played, and the frame
   rate. It looks at every displayed frame, at the rate the target really displays them; half-rate
-  video does not qualify. A candidate from fast scrolling is inspected, since pixel counters
-  report motion as flashing. (P3)
+  video does not qualify. A candidate is inspected before it is believed: pixel counters report
+  scrolling, shake, and moving sprites over detailed art as flashing, so check mean frame
+  brightness, view the frames, and isolate the effect with the camera still. A script presses at
+  a human pace, or it reports its own menu navigation as flashing. (P3)
 - GAX7. [game] A written flash inventory exists: hit flashes, explosions, lightning, palette swaps,
   blinking, transitions, rapid cuts, attract and splash screens, screensavers, an LED, and
   backlight changes. The test route reaches the worst stacked moment of each. (P3)
@@ -52,7 +56,9 @@ read (see [references.md](references.md)) or is marked an AKOS derivation. Paren
   input, a player can start the game, complete the primary task, reach pause or exit, and leave
   every screen. No state traps input. (P8)
 - GAX10. [both] Every action has a route of plain presses: one button at a time, no timing window,
-  no duration distinction. Long presses and chords are shortcuts over that route. Where a
+  no duration distinction. Long presses and chords are shortcuts over that route. In an action
+  game a direction plus one button counts as plain, and an assist mode must reach every action,
+  not only the specials. Where a
   screen cannot offer it, the exception is recorded with the reason. On a device with very few
   buttons, one recorded project-level exception may cover a gesture used alike on every screen:
   it is then one MEDIUM finding, not a HIGH per screen. This is an AKOS synthesis of Xbox's
@@ -108,7 +114,8 @@ read (see [references.md](references.md)) or is marked an AKOS derivation. Paren
 - GAX24. [game] Text waits for a press unless it is short and repeated elsewhere. A time limit on
   reading or menus can be turned off, or extended to ten times its default, or be preceded by a
   warning that allows at least 20 seconds to extend with one action. Timers inside the challenge
-  are exempt but listed. (P15)
+  are exempt but listed. A countdown that only decides for an idle player, such as a character
+  select or a continue, is listed the same way unless it holds text to read. (P15)
 
 ## Channels
 

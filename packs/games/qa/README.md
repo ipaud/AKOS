@@ -1,6 +1,6 @@
 # Pack: Game QA — Shippable Is What a Run Can Show
 
-**Domain:** Games · **Authority:** Level 2 (ISTQB CT-GaMe), plus AKOS methodology labelled as such · **Version:** 1.0.0
+**Domain:** Games · **Authority:** Level 2 (ISTQB CT-GaMe), plus AKOS methodology labelled as such · **Version:** 1.1.0
 
 Decides whether a game is **verifiably shippable**: can the player get stuck, can a save be
 lost, does the game do what it shows, does the same input give the same result, does it hold
@@ -51,7 +51,7 @@ question about whether the game is good; a web app, which belongs to
 | File | Highlights |
 |------|-----------|
 | [principles.md](principles.md) | P1–P18. What a run proves, rungs and places, determinism, progression, saves as input, time as input, budgets per target. |
-| [engineering-rules.md](engineering-rules.md) | GMQ1–GMQ53, then one labelled mapping section for Pinyol. Only three rules are starred. |
+| [engineering-rules.md](engineering-rules.md) | GMQ1–GMQ55, then one labelled mapping section for Pinyol. Only three rules are starred. |
 | [decision-framework.md](decision-framework.md) | **The evidence ladder**, which test closes which claim, severity, choosing an oracle, and the exact web-testing rules this pack overrides. |
 | [review-checklist.md](review-checklist.md) | By severity, plus reviewer discipline: every finding names its rung and its place. |
 | [anti-patterns.md](anti-patterns.md) | Green and blank, the teleporting playthrough, the completable softlock, retry to green, the CRC that sees everything, HOST promoted to BOARD, the epoch birthday. |

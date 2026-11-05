@@ -2,7 +2,7 @@ schema_version: 1
 name: qa
 domain: games
 authority-level: 2
-version: 1.0.0
+version: 1.1.0
 tags: [games, qa, game-testing, softlock, progression, saves, determinism, replay, headless, campaign-bots, localisation, frame-budget]
 sources:
   - title: "Certified Tester Game Testing (CT-GaMe) Syllabus, Version 1.0.1"
@@ -43,8 +43,8 @@ related:
   - packs/testing/tdd
 id: games/qa
 status: draft
-last_reviewed: 2026-11-04
-review_after: 2027-11-04
+last_reviewed: 2026-11-05
+review_after: 2027-11-05
 maintainer: core
 license: MIT
 deprecated: false

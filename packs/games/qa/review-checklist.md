@@ -36,6 +36,8 @@ marked `not run`, never passed.
 - [ ] Performance claims come from the real target. (GMQ46)
 - [ ] Every scene has a way back through the real controls, and a lost input device does not
       hang the game. (GMQ36)
+- [ ] Messages from another device are bounded and validated, and a malformed one cannot stop the
+      game. (GMQ54)
 
 ## High, long-running games only
 
@@ -48,6 +50,7 @@ marked `not run`, never passed.
 
 ## Medium
 
+- [ ] Lockstep play exchanges a build identity and detects divergence. (GMQ55)
 - [ ] Each hash states what it covers. (GMQ7)
 - [ ] A baseline changes only by recorded decision. (GMQ8)
 - [ ] Test waits count ticks or steps, not wall-clock time. (GMQ11)
