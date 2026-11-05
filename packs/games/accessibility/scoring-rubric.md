@@ -56,7 +56,8 @@ A score here says what was checked on which surface. It is not a statement that 
   says "host evidence only". A simulator screenshot may produce a failure, never a legibility pass.
 - **`n/a` conditions.** Each only for what does not exist: a surface not shipped; speech rules if there
   is no speech; touch rules if there is no touch; haptics if there is no motor; time-away rules if the game
-  does not run on the wall clock; difficulty options if none are wanted and the decision is recorded.
+  does not run on the wall clock; pause if it does and cannot stop time; difficulty options if none are
+  wanted and the decision is recorded.
 - **A missing engine feature is never `n/a`.** It is a recorded gap with an owner, and it costs what the
   table says unless the game covers it (P7).
 - Floor rules are not waived by profile, including Prototype and Game Dev.

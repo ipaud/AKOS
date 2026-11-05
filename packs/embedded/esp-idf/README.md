@@ -1,6 +1,6 @@
 # Pack: ESP-IDF — Firmware That Survives Its Board, Its Battery, and Its Owner's Absence
 
-**Domain:** Embedded · **Authority:** Level 1 (Espressif, platform owner) · **Version:** 1.0.0
+**Domain:** Embedded · **Authority:** Level 1 (Espressif, platform owner) · **Version:** 1.1.0
 
 Checkable positions on how firmware must behave on ESP32-class chips, with the ESP32-S3 as
 reference and ESP-IDF v5.4.2 as baseline: memory placement, DMA, flash-cache safety, tasks,

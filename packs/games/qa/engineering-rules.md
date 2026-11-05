@@ -36,8 +36,8 @@ All of this section is [AKOS methodology]: the source does not treat determinism
 - GMQ6. Replay is run: same build, same inputs, twice, comparing a per-frame or per-step
   record, exact match only. A deterministic software renderer at a fixed resolution matches
   to the pixel, with no tolerance. Where the target can drop frames, the run is repeated at a
-  different draw rate and the state must match: drawing that shares a random stream with the
-  rules fails this. (P7)
+  different draw or simulation step rate and the state must match: drawing that shares a random
+  stream with the rules fails this, and so does a guard that a slow step trips. (P7)
 - GMQ7. A report names what its hash covers: a framebuffer hash covers the pixels of the
   frames it hashed, and a state digest covers the listed fields at the sampled moments.
   Neither is claimed for more. Undrawn state needs a state digest or an assertion. (P8)
@@ -56,6 +56,9 @@ All of this section is [AKOS methodology]: the source does not treat determinism
 - GMQ12. The main safety net is a whole-game run from a new game to an ending through the
   real input path. Every line that sets state, jumps to a chapter, or forces a result is
   marked, and the claim starts after the last such line. (P1)
+- GMQ56. A simulator, bot, or playthrough that only prints is not a gate. It asserts its expected
+  outcome, exits non-zero when that fails, runs in CI, and fails when an input it depends on stops
+  doing what it expects. A document claims only what such a gate asserts. [AKOS methodology] (P1)
 - GMQ13. A review says, per claim, which rung of the
   [evidence ladder](decision-framework.md#the-evidence-ladder) it came from and whether it
   ran. A claim with no run says "not run". (P4, P6)
@@ -102,8 +105,9 @@ Skip this section only if the game keeps nothing between sessions.
 - GMQ51. Saves held in more than one place are branches, and each event states which survives:
   rollback, confirmation, a missing volume, a volume that cannot be written. A move between
   them happens after the version is confirmed, never before, and a folder says which version
-  wrote it, so an interrupted move is finished or dropped by ownership, not by position.
-  [AKOS methodology] (P2, P13)
+  wrote it, so an interrupted move is finished or dropped by ownership, not by position. On one
+  volume the same holds: the old version's last save stays aside until the new one is confirmed,
+  and a rollback returns to it. [AKOS methodology] (P2, P13)
 - GMQ52 ★. A new version is confirmed only after it saves and reopens that same save. Slots it
   cannot decode still count as a game, so opening nothing, or only an older copy, sends it
   back before anything is written. Time played and a reachable update channel prove neither.
@@ -113,8 +117,8 @@ Skip this section only if the game keeps nothing between sessions.
   cases the author imagined. Each cut gets the next boot's behaviour and what could be lost.
   [AKOS methodology] (P1, P2)
 - GMQ54. A message from another device is untrusted input, like a save. Size and nesting are
-  bounded before parsing; sender, type, range, and frame window are checked before use. A
-  malformed message cannot stop the game or grow its memory without limit. [AKOS methodology]
+  bounded before parsing; type and range are checked before use, and sender and frame window
+  wherever the transport has them. A malformed message cannot stop the game or grow its memory without limit. [AKOS methodology]
   (P2, P13)
 - GMQ55. Lockstep play proves itself: both sides exchange a build identity before play, and a
   periodic state hash ends the match with a message when they diverge. Injecting a peer's inputs

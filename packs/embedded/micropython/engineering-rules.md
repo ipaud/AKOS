@@ -6,8 +6,7 @@ safety floor. Parenthetical codes cite the principle in [principles.md](principl
 `[BOARD]` means the rule can only be passed by a measurement on the hardware. `[HUMAN]` means it
 also needs a person with the hardware in hand. Static reading of a rule with either tag reports
 **not verified**, never pass. Provenance marks (`[source]`, `[AKOS]`) are defined in the
-principles. Project figures sit in one labelled section at the end, so the rules stay valid for
-any MicroPython project.
+principles. The rules stay valid for any MicroPython project.
 
 ## Evidence
 
@@ -77,7 +76,8 @@ any MicroPython project.
   code moves between ports. `[AKOS]` for that extension. (P4, P7)
 - MPY21. A program that registers callbacks calls
   `micropython.alloc_emergency_exception_buf(100)` early. Handlers catch their own exceptions,
-  because an unhandled one disables the interrupt and never reaches the main loop. (P7)
+  because an unhandled one disables the interrupt and never reaches the main loop. BLE event
+  callbacks are handlers too, and every rule of this section applies to them. (P7)
 - MPY22. Globals and dict keys a handler touches exist before interrupts start. Handlers write
   only values into existing slots and never add or delete keys. (P9)
 - MPY23. Related values shared with a handler pass through a ring buffer, or a short

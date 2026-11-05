@@ -150,7 +150,7 @@ For a design that replaces files on a filesystem and leaves the app partition al
 - IDF44. Every file is checked against a signed manifest before install, the signature covers the
   version, versions only rise, and a failed version is never retried. A key held on the device
   must not be able to sign for other devices: a shared symmetric key is limited to a recorded
-  single-device case. TLS that does not authenticate the server is not authentication, and is
+  single-device case; a bench unit its owner keeps does not count as a second device. TLS that does not authenticate the server is not authentication, and is
   acceptable only as a recorded deviation with the signature as the trust. No hand-written crypto
   primitives: HMAC built on the platform's SHA-256 is construction, not a hand-written primitive.
   (P6, P7)

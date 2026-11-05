@@ -29,7 +29,8 @@ Two things this rubric deliberately refuses to do: score taste, and score a clai
 | A long-running game with an untested clock: fallback, moved clock, or absence | −10 (HIGH) |
 | A scene with no way back and no exit of its own, or a hang on losing an input | −10 (HIGH) |
 | A required gate that fails on a clean checkout | −10 (HIGH) |
-| Saves across volumes with no stated survivor, or moved before confirmation | −10 (HIGH) |
+| Saves across volumes with no stated survivor, moved before confirmation, or lost to a rollback | −10 (HIGH) |
+| A simulator, bot, or playthrough that cannot fail, or a claim no gate asserts | −10 (HIGH) |
 | A shipped chapter or mode no run reaches | −4 (MEDIUM) |
 | A scene that leaves only by its own timer | −4 (MEDIUM) |
 | Lockstep play with no build check or no divergence detection | −4 (MEDIUM) |
@@ -67,10 +68,14 @@ These are the defaults of [core/scoring-model.md](../../../core/scoring-model.md
   and does not cap the score at 59 by itself, unless nothing ran at all.
 - **One root cause, one deduction.** A defect in shared engine code is deducted in the engine's
   review; a game's review lists it with its owner and deducts it only if the game could avoid it.
-- **The sum and the anchors can disagree.** Report the sum, name the nearest anchor, and below 40
-  compare severity counts across reviews, not the number.
+  A root cause seen by two packs is one finding in the summary, and counts once in each pack's own
+  scale; scales are never added.
+- **The sum and the anchors can disagree.** Report the sum, floored at 0, name the nearest anchor,
+  and below 40 compare severity counts across reviews, not the number.
 - **`n/a` for GMQ20 and GMQ52** before anything has shipped: no released save version, no update
-  path. The review says so.
+  path. The review says so. Shipped means a unit left its owner's hands, or an update channel
+  reaches one.
+- **`n/a` for GMQ54** with no link between devices, and for GMQ55 when play is not in lockstep.
 - **`n/a` for the long-running rules** (GMQ25–GMQ30) when the game has no real-time element.
 - **`n/a` for the save rules** (GMQ19–GMQ24) when the game keeps nothing between sessions.
 - **`n/a` for the bot rules** (GMQ31, GMQ32) when a script can enumerate every route.
