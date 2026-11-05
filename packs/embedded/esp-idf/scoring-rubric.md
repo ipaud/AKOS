@@ -13,10 +13,11 @@ review reach a high score by reading code about behaviour only hardware can show
 | Signing key in a repository, image, device, CI, or log, or with no backup | −40 (CRITICAL) |
 | Development-mode encryption or insecure options on a device leaving the owner's hands | −40 (CRITICAL) |
 | A power cut during save, update, or rollback can lose the last good state | −40 (CRITICAL) |
+| Data a version rewrote is not kept until it is confirmed | −40 (CRITICAL) |
 | RAM-saving swap of flash-driver or ISR-path code with no board run | −15 (HIGH) |
 | File-based update without signed manifest, repeatable steps, or a protected update layer | −15 (HIGH) |
 | ROM download choice not matched to a recovery path | −40 (CRITICAL) |
-| A hang needs a person to recover, on a device its owner holds | −15 (HIGH) |
+| A hang needs a person to recover, on a device its owner holds (out of reach: the row above) | −15 (HIGH) |
 | No OTA test with the production bootloader, or no slot guard | −15 (HIGH) |
 | Confirmation before a meaningful self-test | −15 (HIGH) |
 | Watchdog behaviour undecided, or assumed to reset | −15 (HIGH) |
@@ -62,7 +63,8 @@ review reach a high score by reading code about behaviour only hardware can show
 - **eFuse rows are `n/a`** where no burn is planned and the unit stays a development board. Say so,
   and do not score that as secured.
 - **OTA rows are `n/a`** where a device has no over-the-air path, and the file-based rows are `n/a`
-  where it uses only partitions, and the reverse.
+  where it uses only partitions, and the reverse. Health, confirmation, hang, and data rows
+  (IDF37-IDF39) apply to both; only bootloader and slot rows are partition-only.
 - **Out-of-reach rows are `n/a`** only while the device stays with its owner and no handover is planned.
 - **`n/a` under Prototype** for everything except floor rows on a board you would mind losing.
 

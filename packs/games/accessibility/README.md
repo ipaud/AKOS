@@ -1,7 +1,7 @@
 # Pack: Game Accessibility — Safe by Default, Measured on the Panel in Use
 
 **Domain:** Games · **Authority:** Level 1 (Xbox Accessibility Guidelines, WCAG, ITU-R), with Level 2 and
-AKOS positions marked · **Version:** 1.1.0
+AKOS positions marked · **Version:** 1.2.0
 
 Operationalizes AKOS's accessibility floor for rendered games: photosensitive safety, control, reading,
 colour, sound, motion, wall-clock pressure, difficulty, and settings. `ux/wcag` still governs page shells,

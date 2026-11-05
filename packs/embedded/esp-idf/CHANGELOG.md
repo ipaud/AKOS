@@ -1,5 +1,11 @@
 # Changelog — esp-idf
 
+## [1.1.0] — 2026-11-05
+
+### Calibrated against a third real audit
+
+Third audit. Rubric rows for IDF37-IDF39 now apply to file-based updates, IDF39 has its row, and a hang out of reach is pointed at the out-of-reach row. IDF44 says a bench unit is not a second device. The prompt fragment no longer calls IDF11 and IDF42-IDF45 CRITICAL against the rubric.
+
 ## [1.0.0] — 2026-11-04
 
 ### Added

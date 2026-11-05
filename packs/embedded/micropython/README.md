@@ -1,6 +1,6 @@
 # Pack: MicroPython — Python on a Board, Measured on the Board
 
-**Domain:** Embedded · **Authority:** Level 1 (MicroPython documentation and source) · **Version:** 1.0.0 · **Status:** draft
+**Domain:** Embedded · **Authority:** Level 1 (MicroPython documentation and source) · **Version:** 1.1.0 · **Status:** draft
 
 Keeps Python honest on a microcontroller, with the ESP32-S3 port as the reference target: heap,
 fragmentation and collection, allocation in hot paths, interrupt handlers, timing, bytecode,

@@ -1,5 +1,11 @@
 # Changelog — accessibility
 
+## [1.2.0] — 2026-11-05
+
+### Calibrated against a third real audit
+
+Third audit, on a wall-clock pet. GAX17 exempts a game that cannot stop time. GAX34 names a shortened life and GAX35 refuses a floor that still fails a later evaluation. GAX53 judges an effect by its own clock and takes a position on LEDs. GAX24 limits the tenfold rule to short limits. GAX10 says what `alike` means.
+
 ## [1.1.0] — 2026-11-05
 
 ### Calibrated against a second real audit

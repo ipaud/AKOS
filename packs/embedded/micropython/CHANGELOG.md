@@ -1,5 +1,11 @@
 # Changelog — micropython
 
+## [1.1.0] — 2026-11-05
+
+### Calibrated against a third real audit
+
+Third audit. MPY21 names BLE event callbacks as handlers. The rubric's row now matches MPY39 on files. The promised project-figures section is dropped: figures belong to projects, not to a public pack.
+
 ## [1.0.0] — 2026-11-04
 
 ### Added

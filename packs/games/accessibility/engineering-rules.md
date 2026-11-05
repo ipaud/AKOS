@@ -61,7 +61,8 @@ read (see [references.md](references.md)) or is marked an AKOS derivation. Paren
   not only the specials. Where a
   screen cannot offer it, the exception is recorded with the reason. On a device with very few
   buttons, one recorded project-level exception may cover a gesture used alike on every screen:
-  it is then one MEDIUM finding, not a HIGH per screen. This is an AKOS synthesis of Xbox's
+  it is then one MEDIUM finding, not a HIGH per screen. The gesture must do the same job wherever it
+  appears; a screen that also offers a plain route does not break the exception. This is an AKOS synthesis of Xbox's
   simplified-control and alternative-input positions. (P9)
 - GAX11. [game] Neither menus nor play require an extended hold, a rapid repeat, or a simultaneous
   press without an alternative or bypass. Any long press needed for navigation completes in
@@ -86,7 +87,8 @@ read (see [references.md](references.md)) or is marked an AKOS derivation. Paren
   [touch-ergonomics](../../mobile/touch-ergonomics/README.md) at the panel's real density),
   activation is on release, and multi-point or path gestures have an alternative. (P6, P13)
 - GAX17. [both] Single-player and local games pause at any time, including cutscenes, save and
-  load screens excepted. Live networked play is exempt. (P8)
+  load screens excepted. Live networked play is exempt, and so is a game that runs on the wall
+  clock and cannot stop time: GAX35 governs its care mode instead. (P8)
 - GAX18. [game] Menus are operable by one press per step, in a logical order. The focus is always
   visible and never off screen, linear lists wrap, and a slider needs no held button. (P8)
 - GAX19. [game] Actions that destroy saved data or cannot be undone show what will be lost and can
@@ -115,7 +117,8 @@ read (see [references.md](references.md)) or is marked an AKOS derivation. Paren
   reading or menus can be turned off, or extended to ten times its default, or be preceded by a
   warning that allows at least 20 seconds to extend with one action. Timers inside the challenge
   are exempt but listed. A countdown that only decides for an idle player, such as a character
-  select or a continue, is listed the same way unless it holds text to read. (P15)
+  select or a continue, is listed the same way unless it holds text to read. The tenfold rule is
+  for limits under ten minutes: a longer ask passes when missing it costs nothing lasting. (P15)
 
 ## Channels
 
@@ -154,11 +157,13 @@ read (see [references.md](references.md)) or is marked an AKOS derivation. Paren
 AKOS positions, below the floor (P16); neither XAG nor Game Accessibility Guidelines covers absence.
 
 - GAX34. [game] Where the game runs on the wall clock, absence alone never causes irreversible
-  loss: no death, no lost save, no closed route that a return cannot recover, without a recorded
-  design decision and a warning the player sees before starting. (P16)
+  loss: no death, no lost save, no shortened life or ended run, no closed route that a return
+  cannot recover, without a recorded design decision and a warning the player sees before
+  starting. (P16)
 - GAX35. [game] The cost of absence is known and bounded: a test advances the clock by a day, a
   week, and a month, and the result is recorded. A pause or care mode is reachable from the normal
-  menus, and decay stops or levels off at a stated ceiling for the case with no time to set it. (P16)
+  menus, and decay stops or levels off at a stated ceiling for the case with no time to set it.
+  A floor that still counts as failure in a later evaluation is not a ceiling. (P16)
 - GAX36. [game] Return shows what happened, once, without blame or a flood of alerts. The first press
   on return cannot trigger an action. Lost or unknown time reads as unknown, never as neglect. (P16)
 
@@ -227,8 +232,10 @@ legibility evidence: a board item stays open until a person signs it.
   recorded absence test covering its longest gap and any carer or pause feature. (P16)
 - GAX53. [game] GAX6 uses the board's measured redraw time, not the simulator's rate. At a measured
   6 redraws a second or fewer the screen cannot exceed three flashes, which closes GAX1 for the panel
-  only: the LED and backlight are checked apart. Screensavers, the LED, and backlight changes go in the
-  GAX7 inventory. (P3)
+  only: the LED and backlight are checked apart. An effect with its own clock is judged by that clock,
+  not by the screen's redraw rate. Screensavers, the LED, and backlight changes go in the GAX7 inventory
+  with their rate. *AKOS position:* an LED under the GAX2 area does not fail GAX1, and if it repeats
+  faster than three times a second by default, an option dims or stops it. (P3)
 - GAX54. [game] The sound-off walk is run on the unit: one small speaker, no panning. An LED or a
   microphone never stands alone, and that stays a test a person signs. (P11)
 - GAX55. [game] Contrast and icons are judged on the panel at high, medium, and low brightness. A 1-bit

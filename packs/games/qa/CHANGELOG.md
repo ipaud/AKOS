@@ -1,5 +1,11 @@
 # Changelog — qa
 
+## [1.2.0] — 2026-11-05
+
+### Calibrated against a third real audit
+
+Third audit, on a wall-clock pet with live updates. GMQ56 refuses a gate that cannot fail. GMQ51 covers rollback on one volume. GMQ6 includes the simulation step rate. GMQ54 fits transports with no sender. The rubric defines shipped, adds `n/a` for GMQ54 and GMQ55, floors the sum at 0, and says how a root cause counts across packs. The README now says four stars. The 1.0.0 entry promised a MicroPython mapping that does not exist: `embedded/micropython` covers that ground.
+
 ## [1.1.0] — 2026-11-05
 
 ### Calibrated against a second real audit

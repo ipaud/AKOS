@@ -3,7 +3,7 @@ name: esp-idf
 domain: embedded
 authority-level: 1
 platform-scope: [esp32-s3, esp-idf]
-version: 1.0.0
+version: 1.1.0
 tags: [esp-idf, esp32, esp32-s3, firmware, embedded, psram, dma, iram, flash-cache, freertos, watchdog, ota, rollback, secure-boot, flash-encryption, efuse, brownout, power-loss, real-time]
 sources:
   - title: "ESP-IDF Programming Guide (ESP32-S3, v5.4.2)"
@@ -19,8 +19,8 @@ related:
   - packs/performance/browser-rendering
 id: embedded/esp-idf
 status: draft
-last_reviewed: 2026-11-04
-review_after: 2028-05-02
+last_reviewed: 2026-11-05
+review_after: 2028-05-03
 maintainer: core
 license: MIT
 deprecated: false

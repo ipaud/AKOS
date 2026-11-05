@@ -14,7 +14,7 @@ This rubric deliberately refuses one thing: it will not let a score stand in for
 |---------|-----------|
 | A step of a save overwrites the only complete state | −40 (CRITICAL) |
 | No fall-through to a second copy, or a read failure starts a new game over old files | −40 (CRITICAL) |
-| Data from a card used before validation, or a CRC treated as proof of origin | −40 (CRITICAL) |
+| Data from a card or file used before validation, or a CRC treated as proof of origin | −40 (CRITICAL) |
 | Anything on a removable card can execute | −40 (CRITICAL) |
 | Runtime claim stated with no board evidence, or a HOST result filed as BOARD | −15 (HIGH) |
 | Core change with only one runtime checked | −10 (HIGH) |

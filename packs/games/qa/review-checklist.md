@@ -38,6 +38,7 @@ marked `not run`, never passed.
       hang the game. (GMQ36)
 - [ ] Messages from another device are bounded and validated, and a malformed one cannot stop the
       game. (GMQ54)
+- [ ] Simulators and bots assert their outcome, fail when it fails, and run in CI. (GMQ56)
 
 ## High, long-running games only
 

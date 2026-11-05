@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follo
 
 ### Changed
 
+- A third real audit moved `games/accessibility` and `games/qa` to 1.2.0 and `embedded/micropython`
+  and `embedded/esp-idf` to 1.1.0. All stay draft. New GMQ56: a gate that cannot fail is no gate.
+  `embedded/esp-idf` rubric rows now cover file-based updates.
 - `games/accessibility` and `games/qa` 1.1.0, calibrated against a second real audit. Both stay
   draft. New GMQ54 and GMQ55 for messages from another device and lockstep play. GAX2 and GAX6
   state how to measure sprite flashes and reject false candidates.

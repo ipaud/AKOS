@@ -58,11 +58,10 @@ Rules binding the review:
 
 CRITICAL: an eFuse procedure lacking dry run or written recovery (IDF51); ROM download not matched
 to recovery (IDF56); key exposure (IDF52); development mode or insecure options leaving the owner's
-hands (IDF53); possible loss of the last good state (IDF30, IDF35, IDF39); an unproven RAM-saving
-swap (IDF11); unprotected file-based updates (IDF42-IDF45); an out-of-reach device without health,
+hands (IDF53); possible loss of the last good state (IDF30, IDF35, IDF39); an out-of-reach device without health,
 rollback, and diagnosis (IDF46-IDF49).
 
-Then: watchdog assumptions, confirmation timing, ISR closures, DMA ownership, cross-core state.
+Then: an unproven RAM-saving swap (IDF11), unprotected file-based updates (IDF42-IDF45), watchdog assumptions, confirmation timing, ISR closures, DMA ownership, cross-core state.
 
 For each finding: rule code, file and line, board model, measurement or "none", smallest fix.
 ```
