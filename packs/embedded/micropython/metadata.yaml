@@ -3,7 +3,7 @@ name: micropython
 domain: embedded
 authority-level: 1
 platform-scope: [micropython, esp32-s3]
-version: 1.1.0
+version: 1.1.1
 tags: [micropython, esp32, esp32-s3, embedded, garbage-collection, heap, fragmentation, allocation, interrupts, isr, littlefs, fat, power-loss, crash-recovery, portable-core, cpython, frozen-bytecode, mpy-cross, watchdog, games]
 sources:
   - title: "MicroPython documentation"
@@ -31,7 +31,7 @@ related:
   - packs/embedded/esp-idf
   - packs/testing/testing-pyramid
 id: embedded/micropython
-status: draft
+status: stable
 last_reviewed: 2026-11-05
 review_after: 2028-05-03
 maintainer: core

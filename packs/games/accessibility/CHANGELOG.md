@@ -1,5 +1,11 @@
 # Changelog — accessibility
 
+## [1.2.1] — 2026-11-05
+
+### Promoted to stable
+
+Cleared the draft→stable criterion after three real audits. An independent read of all 55 rules and items corrected 11 items that asked less or other than their rule, and could not fail: GAX4, GAX9, GAX15, GAX16, GAX17, GAX24, GAX32, GAX38, GAX48, GAX50, GAX51. GAX38 had no observable and now records the most progress one failure can cost.
+
 ## [1.2.0] — 2026-11-05
 
 ### Calibrated against a third real audit

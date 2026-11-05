@@ -1,5 +1,11 @@
 # Changelog — esp-idf
 
+## [1.1.1] — 2026-11-05
+
+### Promoted to stable
+
+Cleared the draft→stable criterion after two audits of real boards. An independent read of all rules and items corrected three. IDF38 now has a Critical item for a device out of reach and a High one for a device its owner holds, matching the rubric, and both need the board. IDF52 keeps its verification-key exception. IDF39 binds only a format the predecessor cannot read.
+
 ## [1.1.0] — 2026-11-05
 
 ### Calibrated against a third real audit

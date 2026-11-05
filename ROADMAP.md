@@ -5,14 +5,12 @@ Source of truth for *why* an item exists: `.akos/audit-2026-07-23.md` (full
 integral audit) and `CHANGELOG.md` (what already shipped). This file only
 tracks what's still open.
 
-Last reviewed: 2026-08-01.
+Last reviewed: 2026-11-05.
 
 ## Now
 
-**Game audits, draft.** `games/accessibility`, `games/qa`, `embedded/esp-idf` and
-`embedded/micropython` shipped at `status: draft`, with `agents/game-runtime-reviewer.md`
-and `workflows/game-review.md`, also draft. They promote after real audits, and a pack
-needs its own review evidence. Run them by name until then.
+Empty. The game and embedded packs, their agent and their workflow went stable on
+2026-11-05, each with its own evidence from real audits. See `CHANGELOG.md`.
 
 ## Next
 
@@ -22,8 +20,8 @@ or wait for the next real defect a live run surfaces; this file's own
 history so far is that the honest items came from running the pipeline, not
 from staring at it.
 
-**The general routing table is full.** Game packs sit in a separate table that loads only
-for a game, so they do not count here. 60 packs, against a stated operating ceiling of
+**The general routing table is full.** Game and firmware packs sit in a separate table that
+loads only for those targets, so they do not count here. 60 packs, against a stated operating ceiling of
 roughly 60 rows — past that, selection precision degrades faster than coverage
 improves. The 2026-07-27 routing trial found no degradation *at 58*, which is
 evidence for the current size and not for a larger one. A new pack now needs to

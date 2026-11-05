@@ -22,7 +22,7 @@ transferable in.
 The test before adding a link: *quote the line in the pack that says the concept.* If you
 cannot, the link is padding.
 
-**Currently absent by design (9 of 60), audited 2026-07-27:**
+**Currently absent by design (9 of 64), audited 2026-07-27:**
 `architecture/twelve-factor-app` · `backend/graphql` · `backend/postgres` · `backend/rest` ·
 `devops/ci-cd` · `devops/git` · `frontend/design-systems` · `frontend/react` ·
 `performance/network-performance`
@@ -48,7 +48,7 @@ Importance encoded by prominence.
 
 ### Accessibility as a floor
 One effort serves more people than it was aimed at: 320px is simultaneously a small phone and a 1280px page at 400% zoom, and a target big enough for a thumb is big enough for an unsteady hand.
-→ [WCAG](../packs/ux/wcag/README.md) (L1 authority) · [Apple HIG](../packs/ux/apple-hig/principles.md) · [Material](../packs/ux/material-design/principles.md) · [NN/g](../packs/ux/nielsen-norman-group/principles.md) · [Krug P15](../packs/ux/steve-krug/principles.md) · [responsive-web RW2: 320px serves small screens and low vision at once](../packs/mobile/responsive-web/principles.md) · [touch-ergonomics target sizing](../packs/mobile/touch-ergonomics/principles.md) · enforced by [constitution](../core/constitution.md)
+→ [WCAG](../packs/ux/wcag/README.md) (L1 authority) · [Apple HIG](../packs/ux/apple-hig/principles.md) · [Material](../packs/ux/material-design/principles.md) · [NN/g](../packs/ux/nielsen-norman-group/principles.md) · [Krug P15](../packs/ux/steve-krug/principles.md) · [responsive-web RW2: 320px serves small screens and low vision at once](../packs/mobile/responsive-web/principles.md) · [touch-ergonomics target sizing](../packs/mobile/touch-ergonomics/principles.md) · [games/accessibility P8: the floor's keyboard clause restated for games](../packs/games/accessibility/principles.md) · enforced by [constitution](../core/constitution.md)
 
 ### Security as a floor
 → [OWASP Top 10](../packs/security/owasp-top-10/README.md) · [OWASP API](../packs/security/owasp-api-top-10/README.md) · [ASVS](../packs/security/owasp-asvs/README.md) · [NIST SSDF](../packs/security/nist-ssdf/README.md) · [Supabase RLS](../packs/backend/supabase/README.md) · [personal supabase-rules](../packs/personal/pau-avila/supabase-rules.md) · [agent-security](../packs/ai-engineering/agent-security/README.md) (L1, the agent surface) · [auth](../packs/security/auth/README.md) (L1, the login itself) · [privacy](../packs/security/privacy/README.md) (L1, what may be held at all)

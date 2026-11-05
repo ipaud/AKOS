@@ -12,15 +12,18 @@ skipped. `[board]` items need a recorded run on real hardware. From static readi
 - [ ] The ROM download choice matches a written, proven recovery path. `[board]` (IDF56)
 - [ ] Publishing to a device out of reach is treated as irreversible and was rehearsed on the same
       model from the version in the field. `[board]` (IDF46)
-- [ ] Signing keys are absent from repositories, images, devices, CI, and logs, with a strong source,
-      an offline backup, and written loss and compromise procedures; a CI key can never reach a
-      device. (IDF52)
+- [ ] Signing keys are absent from repositories, images, devices, CI, and logs, except a
+      verification key under a recorded single-device case, with a strong source, an offline backup,
+      and written loss and compromise procedures; a CI key can never reach a device. (IDF52)
 - [ ] Devices leaving the owner's hands use Flash Encryption Release mode where encryption is used,
       and the generated `sdkconfig` has no insecure options. (IDF53)
 - [ ] A cut at any point leaves the last good persisted state readable. (IDF30)
-- [ ] Data a new version rewrites is kept until confirmed, on every volume holding saves. (IDF39)
+- [ ] Data rewritten in a format the predecessor cannot read is kept until confirmed, on every
+      volume holding it. (IDF39)
 - [ ] Health confirmation, automatic rollback, and a diagnosis path exist before the device
       leaves. (IDF47)
+- [ ] On a device out of reach, an unconfirmed version that hangs reaches a reset with no person
+      involved. `[board]` (IDF38)
 
 ## High
 
@@ -47,9 +50,8 @@ skipped. `[board]` items need a recorded run on real hardware. From static readi
 - [ ] Every install and rollback step repeats safely after a cut, deletes included. `[board]` (IDF45)
 - [ ] Health includes a successful update-channel check. (IDF48)
 - [ ] Diagnosis works with no USB and no REPL, from the fixed layer. (IDF49)
-- [ ] An unconfirmed version that hangs reaches a reset with no person involved. `[board]` (IDF38)
-
-- [ ] Same hang check on a device its owner holds: IDF38 is High here rather than Critical. (IDF38)
+- [ ] On a device its owner holds, an unconfirmed version that hangs reaches a reset with no person
+      involved. `[board]` (IDF38)
 - [ ] An image confirms only after a self-test of what the next update needs. (IDF37)
 - [ ] OTA was tested on the board with the production bootloader, including corrupt images and a reset
       before confirming, and CI guards slot size. `[board]` (IDF40)

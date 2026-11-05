@@ -5,13 +5,13 @@ description: Auditing a game or game engine as a running system.
 agents: [accessibility-reviewer, game-runtime-reviewer, security-reviewer]
 packs: [games/accessibility, games/qa, embedded/esp-idf, embedded/micropython]
 profiles: [Prototype, Game Dev, Production]
-status: draft
+status: stable
 maintainer: core
 ---
 
 # Workflow: Game Review
 
-Auditing a game or game engine as a running system. Draft: run it only when the user asks for it by name.
+Auditing a game or game engine as a running system.
 
 ## Capture evidence first
 

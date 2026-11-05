@@ -155,7 +155,7 @@ principles. The rules stay valid for any MicroPython project.
 - MPY42. Frequent saves on FAT are a recorded decision with a stated loss window and a bounded
   interval to a LittleFS copy, since the documentation places changing data on littlefs. (P13)
 - MPY43. A failed save is visible. Play continues, and the screen or diagnostics say the game is
-  not being saved. Silent loss is a floor failure. `[AKOS]` (P12)
+  not being saved. `[AKOS]` (P12)
 - MPY44. [HUMAN] A power-loss claim rests on real removal of power during a write, repeated and
   counted, with the recovered state checked: CRC good, counter not regressed, at most the
   in-flight save lost. A reset issued by software is reported as a reset test, under that name,

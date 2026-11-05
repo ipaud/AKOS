@@ -1,6 +1,6 @@
 # Pack: Game QA — Shippable Is What a Run Can Show
 
-**Domain:** Games · **Authority:** Level 2 (ISTQB CT-GaMe), plus AKOS methodology labelled as such · **Version:** 1.2.0
+**Domain:** Games · **Authority:** Level 2 (ISTQB CT-GaMe), plus AKOS methodology labelled as such · **Version:** 1.2.1
 
 Decides whether a game is **verifiably shippable**: can the player get stuck, can a save be
 lost, does the game do what it shows, does the same input give the same result, does it hold

@@ -3,7 +3,7 @@ schema_version: 1
 name: akos-game-runtime-reviewer
 description: AKOS game runtime lens. Audits whether a game or game engine is verifiably shippable — progression, softlocks, save integrity, determinism, frame budget, and firmware behaviour on ESP32-class hardware. Separates what was run from what was only read. Use for the AKOS game review.
 tools: Read, Grep, Glob
-status: draft
+status: stable
 ---
 
 # Agent: Game Runtime Reviewer
@@ -16,7 +16,6 @@ Audits a game or game engine as a running system. Can the player get stuck? Can 
 
 - `Primary surface: game` or the Game Dev profile. This agent sits **outside** the twelve numbered lenses (like `database-reviewer`), routed by [workflows/game-review.md](../workflows/game-review.md). See the routing note in `skills/akos-review/SKILL.md` step 2.
 - Weight 3 Game Dev, Production and Enterprise, 1 MVP, 0 Prototype and Internal, per `core/reasoning-profiles.md`.
-- Draft: runs only when the user asks for the game review by name. Promotion follows real audits.
 
 ## Packs to load
 

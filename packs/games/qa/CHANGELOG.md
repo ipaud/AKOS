@@ -1,5 +1,11 @@
 # Changelog — qa
 
+## [1.2.1] — 2026-11-05
+
+### Promoted to stable
+
+Cleared the draft→stable criterion after three real audits. An independent read of all rules and items corrected GMQ1, which let one finishing run pass, GMQ25, which dropped its battery-backed exception, and GMQ20, which never checked that a newer save is refused. GMQ51 and GMQ53 gained checklist items at the severity their rubric rows give.
+
 ## [1.2.0] — 2026-11-05
 
 ### Calibrated against a third real audit

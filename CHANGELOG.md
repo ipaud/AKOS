@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versioning follo
 
 ### Changed
 
+- **Game and embedded audits are stable.** `games/accessibility` and `games/qa` at 1.2.1,
+  `embedded/micropython` and `embedded/esp-idf` at 1.1.1, with `agents/game-runtime-reviewer.md`
+  and `workflows/game-review.md`. Each pack has its own evidence from real audits. An independent
+  read of every rule and checklist item corrected the items of 19 rules, GAX38 gained an observable,
+  and GMQ51 and GMQ53 gained items. The Game packs table is now Game and firmware packs, and a game
+  target runs the game review without being asked by name.
 - A third real audit moved `games/accessibility` and `games/qa` to 1.2.0 and `embedded/micropython`
   and `embedded/esp-idf` to 1.1.0. All stay draft. New GMQ56: a gate that cannot fail is no gate.
   `embedded/esp-idf` rubric rows now cover file-based updates.
