@@ -35,7 +35,9 @@ All of this section is [AKOS methodology]: the source does not treat determinism
   test can pin is a finding. (P7)
 - GMQ6. Replay is run: same build, same inputs, twice, comparing a per-frame or per-step
   record, exact match only. A deterministic software renderer at a fixed resolution matches
-  to the pixel, with no tolerance. (P7)
+  to the pixel, with no tolerance. Where the target can drop frames, the run is repeated at a
+  different draw rate and the state must match: drawing that shares a random stream with the
+  rules fails this. (P7)
 - GMQ7. A report names what its hash covers: a framebuffer hash covers the pixels of the
   frames it hashed, and a state digest covers the listed fields at the sampled moments.
   Neither is claimed for more. Undrawn state needs a state digest or an assertion. (P8)
@@ -110,6 +112,13 @@ Skip this section only if the game keeps nothing between sessions.
   write it has walked every interruption point against it. Its author's tests prove only the
   cases the author imagined. Each cut gets the next boot's behaviour and what could be lost.
   [AKOS methodology] (P1, P2)
+- GMQ54. A message from another device is untrusted input, like a save. Size and nesting are
+  bounded before parsing; sender, type, range, and frame window are checked before use. A
+  malformed message cannot stop the game or grow its memory without limit. [AKOS methodology]
+  (P2, P13)
+- GMQ55. Lockstep play proves itself: both sides exchange a build identity before play, and a
+  periodic state hash ends the match with a message when they diverge. Injecting a peer's inputs
+  below the receive path shows nothing about that path. [AKOS methodology] (P1, P7)
 
 ## Long-running time
 
@@ -155,7 +164,8 @@ Applies to games long enough that a script cannot enumerate the routes. [AKOS me
   scene change, a press during a busy spell, the shortest press, a long hold. One press is
   one action. (P1)
 - GMQ36. Every scene has a way back through the real controls, and losing an input device or
-  sensor pauses or informs instead of hanging. (P2)
+  sensor pauses or informs instead of hanging. A scene that leaves only by its own timer strands
+  nobody, and is a MEDIUM. (P2)
 
 ## Text
 

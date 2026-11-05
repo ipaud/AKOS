@@ -1,5 +1,11 @@
 # Changelog — accessibility
 
+## [1.1.0] — 2026-11-05
+
+### Calibrated against a second real audit
+
+GAX2 measures changed pixels, adds effects in phase, and says so of stacked sprites. GAX6 requires a candidate to be inspected against mean brightness and scripts to press at a human pace. GAX10 defines plain input for action games. GAX24 lists countdowns that only decide for an idle player. The rubric's GAX7 row now matches the checklist, and GAX41 has a row.
+
 ## [1.0.0] — 2026-11-04
 
 ### Added

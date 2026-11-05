@@ -1,5 +1,11 @@
 # Changelog — qa
 
+## [1.1.0] — 2026-11-05
+
+### Calibrated against a second real audit
+
+GMQ54 and GMQ55 cover messages from another device and lockstep proof. GMQ6 repeats a run at a second draw rate. GMQ36 separates a scene that leaves by its own timer. The rubric states how unrun Critical rows, engine defects, unshipped games, and a sum far from the anchors are treated.
+
 ## [1.0.0] — 2026-11-04
 
 ### Added

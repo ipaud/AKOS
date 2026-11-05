@@ -23,13 +23,16 @@ Two things this rubric deliberately refuses to do: score taste, and score a clai
 | A determinism break in a replay or netplay path; replay not exact | −10 (HIGH) |
 | A retry or quarantine on a deterministic suite | −10 (HIGH) |
 | Decoded save data used without validation | −10 (HIGH) |
+| A message from another device used without validation, or able to stop the game | −10 (HIGH) |
 | A failed save the player cannot see | −10 (HIGH) |
 | A frame budget missed, measured on the real target | −10 (HIGH) |
 | A long-running game with an untested clock: fallback, moved clock, or absence | −10 (HIGH) |
-| A scene with no way back, or a hang on losing an input | −10 (HIGH) |
+| A scene with no way back and no exit of its own, or a hang on losing an input | −10 (HIGH) |
 | A required gate that fails on a clean checkout | −10 (HIGH) |
 | Saves across volumes with no stated survivor, or moved before confirmation | −10 (HIGH) |
 | A shipped chapter or mode no run reaches | −4 (MEDIUM) |
+| A scene that leaves only by its own timer | −4 (MEDIUM) |
+| Lockstep play with no build check or no divergence detection | −4 (MEDIUM) |
 | A text screen with no screenshot review | −4 (MEDIUM) |
 | Text cut at an edge, or a language not rendered | −4 (MEDIUM) |
 | A hash claimed for more than it covers | −4 (MEDIUM) |
@@ -60,6 +63,14 @@ These are the defaults of [core/scoring-model.md](../../../core/scoring-model.md
   on is open. The game may be well tested and it is still not proven on its target. Nothing
   rated [needs board] or [needs human] may be counted as passed from a host run or from static
   reading.
+- **An unrun Critical row is `not run`, not an open CRITICAL.** It keeps the release decision open
+  and does not cap the score at 59 by itself, unless nothing ran at all.
+- **One root cause, one deduction.** A defect in shared engine code is deducted in the engine's
+  review; a game's review lists it with its owner and deducts it only if the game could avoid it.
+- **The sum and the anchors can disagree.** Report the sum, name the nearest anchor, and below 40
+  compare severity counts across reviews, not the number.
+- **`n/a` for GMQ20 and GMQ52** before anything has shipped: no released save version, no update
+  path. The review says so.
 - **`n/a` for the long-running rules** (GMQ25–GMQ30) when the game has no real-time element.
 - **`n/a` for the save rules** (GMQ19–GMQ24) when the game keeps nothing between sessions.
 - **`n/a` for the bot rules** (GMQ31, GMQ32) when a script can enumerate every route.

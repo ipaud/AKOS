@@ -2,7 +2,7 @@ schema_version: 1
 name: accessibility
 domain: games
 authority-level: 1
-version: 1.0.0
+version: 1.1.0
 tags: [games, accessibility, photosensitivity, seizures, flashing, remapping, button-gestures, handheld, text-legibility, contrast, colour-blindness, subtitles, captions, screen-shake, juice, difficulty, assists, wall-clock, real-time-pressure, input-loss]
 sources:
   - title: "Xbox Accessibility Guidelines"
@@ -33,8 +33,8 @@ related:
   - packs/ux/laws-of-ux
 id: games/accessibility
 status: draft
-last_reviewed: 2026-11-04
-review_after: 2028-05-02
+last_reviewed: 2026-11-05
+review_after: 2028-05-03
 maintainer: core
 license: MIT
 deprecated: false

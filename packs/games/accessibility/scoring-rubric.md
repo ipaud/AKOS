@@ -30,7 +30,9 @@ A score here says what was checked on which surface. It is not a statement that 
 | Effects cannot be reduced to zero, or have no cap | −10 (HIGH) |
 | Absence alone causes irreversible loss, unwarned | −10 (HIGH) |
 | Settings unreachable before first harm, or not persisted | −10 (HIGH) |
-| No flash inventory, or sequences over five seconds | −4 (MEDIUM) |
+| No flash inventory | −10 (HIGH) |
+| Evidence unlabelled, or a DEVICE item claimed with no signature | −10 (HIGH) |
+| Sequences over five seconds | −4 (MEDIUM) |
 | No digital alternative for non-essential special input; touch rule gaps | −4 (MEDIUM) |
 | No pause, weak menus, no 200 % scale with no recorded gap | −4 (MEDIUM) |
 | UI timers that cannot be lifted; moving HUD or reading text | −4 (MEDIUM) |
